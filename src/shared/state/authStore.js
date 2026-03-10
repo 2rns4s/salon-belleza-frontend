@@ -1,4 +1,8 @@
-const AUTH_TOKEN_KEY = "auth_token";
+import {
+    clearAuthToken,
+    getAuthToken,
+    setAuthToken,
+} from "../storage/authTokenStorage.js";
 
 const estadoAuth = {
     sesionIniciada: false,
@@ -11,7 +15,7 @@ export function guardarSesion({ usuario, rol, token }) {
     estadoAuth.sesionIniciada = true;
     estadoAuth.usuario = usuario;
     estadoAuth.rol = rol;
-    localStorage.setItem(AUTH_TOKEN_KEY, token);
+    setAuthToken(token);
 }
 
 // Limpia la sesion completamente
@@ -19,7 +23,7 @@ export function limpiarSesion() {
     estadoAuth.sesionIniciada = false;
     estadoAuth.usuario = null;
     estadoAuth.rol = null;
-    localStorage.removeItem(AUTH_TOKEN_KEY);
+    clearAuthToken();
 }
 
 export function obtenerEstadoAuth() {
@@ -31,5 +35,5 @@ export function tieneRol(rolRequerido) {
 }
 
 export function obtenerToken() {
-    return localStorage.getItem(AUTH_TOKEN_KEY);
+    return getAuthToken();
 }

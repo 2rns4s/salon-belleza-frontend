@@ -1,3 +1,5 @@
+import { getAuthToken } from "../storage/authTokenStorage.js";
+
 // URL base de la API REST (Java). Cambiar en produccion.
 const URL_BASE_API = "http://localhost:8080";
 
@@ -6,11 +8,6 @@ function construirUrl(endpoint) {
         return endpoint;
     }
     return `${URL_BASE_API}${endpoint}`;
-}
-
-// Lee el token JWT guardado en localStorage (si existe)
-function obtenerToken() {
-    return localStorage.getItem("auth_token") || null;
 }
 
 export async function httpClient(endpoint, opciones = {}) {
@@ -22,7 +19,7 @@ export async function httpClient(endpoint, opciones = {}) {
     };
 
     // Inyectar JWT automaticamente si hay sesion activa
-    const token = obtenerToken();
+    const token = getAuthToken();
     if (token) {
         headers["Authorization"] = `Bearer ${token}`;
     }
@@ -49,22 +46,11 @@ export async function httpClient(endpoint, opciones = {}) {
     if (!respuesta.ok) {
         const error = new Error(`HTTP ${respuesta.status}`);
         error.status = respuesta.status;
-
         try {
-            const rawBody = await respuesta.text();
-            if (!rawBody) {
-                error.data = null;
-            } else {
-                try {
-                    error.data = JSON.parse(rawBody);
-                } catch {
-                    error.data = { message: rawBody };
-                }
-            }
+            error.data = await respuesta.json();
         } catch {
             error.data = null;
         }
-
         throw error;
     }
 

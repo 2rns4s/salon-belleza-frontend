@@ -49,16 +49,16 @@ select {
     color: #ffffff;
 }
 
-.app__titulo {
+.app__title {
     font-size: 1.25rem;
     font-weight: 700;
 }
 
-.app__contenido {
+.app__content {
     padding: 1.25rem;
     background-color: var(--color-superficie);
 }
 
-.app__texto {
+.app__text {
     font-size: 1rem;
 }
