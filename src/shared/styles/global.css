@@ -1,0 +1,64 @@
+:root {
+    --color-fondo-principal: #f8f3f4;
+    --color-texto-principal: #2c1a1e;
+    --color-superficie: #ffffff;
+    --color-header-vinotinto-claro: #8a3f52;
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html,
+body {
+    min-height: 100%;
+}
+
+body {
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--color-fondo-principal);
+    color: var(--color-texto-principal);
+    line-height: 1.5;
+}
+
+img,
+svg {
+    display: block;
+    max-width: 100%;
+}
+
+button,
+input,
+textarea,
+select {
+    font: inherit;
+    color: inherit;
+}
+
+.app {
+    min-height: 100vh;
+}
+
+.app__header {
+    padding: 1rem 1.25rem;
+    background-color: var(--color-header-vinotinto-claro);
+    color: #ffffff;
+}
+
+.app__titulo {
+    font-size: 1.25rem;
+    font-weight: 700;
+}
+
+.app__contenido {
+    padding: 1.25rem;
+    background-color: var(--color-superficie);
+}
+
+.app__texto {
+    font-size: 1rem;
+}

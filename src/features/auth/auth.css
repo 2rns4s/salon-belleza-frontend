@@ -1,0 +1,120 @@
+.auth {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 80vh;
+    padding: 1.25rem;
+    background-color: var(--color-fondo-principal);
+}
+
+.auth__card {
+    background-color: var(--color-superficie);
+    border-radius: 0.5rem;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.12);
+    padding: 2rem;
+    width: 100%;
+    max-width: 400px;
+}
+
+.auth__title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--color-texto-principal);
+    margin-bottom: 1.25rem;
+    text-align: center;
+}
+
+.auth__description {
+    font-size: 0.9rem;
+    color: #666;
+    margin-bottom: 1.25rem;
+    text-align: center;
+}
+
+.auth__error {
+    background-color: #fdecea;
+    border-left: 4px solid #c0392b;
+    color: #c0392b;
+    border-radius: 0.25rem;
+    padding: 0.6rem 0.75rem;
+    margin-bottom: 1rem;
+    font-size: 0.875rem;
+}
+
+.auth__form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.auth__field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+
+.auth__label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--color-texto-principal);
+}
+
+.auth__input {
+    border: 1px solid #ccc;
+    border-radius: 0.375rem;
+    padding: 0.55rem 0.75rem;
+    font-size: 1rem;
+    transition: border-color 0.2s;
+}
+
+.auth__input:focus {
+    outline: none;
+    border-color: var(--color-header-vinotinto-claro);
+    box-shadow: 0 0 0 3px rgba(138, 63, 82, 0.15);
+}
+
+.auth__input--otp {
+    letter-spacing: 0.4rem;
+    font-size: 1.25rem;
+    text-align: center;
+}
+
+.auth__field-error {
+    color: #c0392b;
+    font-size: 0.8rem;
+    min-height: 1rem;
+}
+
+.auth__btn {
+    border: none;
+    border-radius: 0.375rem;
+    padding: 0.65rem 1rem;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s, opacity 0.2s;
+}
+
+.auth__btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.auth__btn--primary {
+    background-color: var(--color-header-vinotinto-claro);
+    color: #ffffff;
+}
+
+.auth__btn--primary:hover:not(:disabled) {
+    background-color: #72334a;
+}
+
+.auth__btn--secondary {
+    background-color: transparent;
+    color: var(--color-header-vinotinto-claro);
+    border: 1px solid var(--color-header-vinotinto-claro);
+}
+
+.auth__btn--secondary:hover:not(:disabled) {
+    background-color: rgba(138, 63, 82, 0.06);
+}
