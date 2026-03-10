@@ -1,4 +1,4 @@
-import { inicializarAuth } from "./auth.controller.js";
+import { initAuth } from "./auth.controller.js";
 
 function renderAuthRoute() {
     const appContent = document.querySelector(".app__content");
@@ -7,7 +7,7 @@ function renderAuthRoute() {
         return;
     }
 
-    inicializarAuth(appContent);
+    initAuth(appContent);
 }
 
 const existingFeatureRoutes = window.appFeatureRoutes || [];

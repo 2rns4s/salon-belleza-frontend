@@ -258,7 +258,7 @@ function asignarEventosMfa() {
 }
 
 // Punto de entrada del feature: recibe el nodo del DOM donde renderizar
-export function inicializarAuth(container) {
+export function initAuth(container) {
     domContainer = container;
     estado = {
         cargando: false,
