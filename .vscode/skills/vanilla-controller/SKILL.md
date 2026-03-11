@@ -2,24 +2,28 @@
 
 **Trigger:** Cuando el archivo termina en `.controller.js`.
 
-## Reglas Estrictas:
-1. **Rol:** Eres el "Contenedor". Tu única responsabilidad es coordinar.
-2. **Importaciones:** Debes importar el `.service.js` para los datos y el `.view.js` para el renderizado.
-3. **Flujo OBLIGATORIO:** 
-   - Llama al servicio.
-   - Pasa los datos a la vista.
-   - Inyecta el resultado HTML en el DOM (`domContainer.innerHTML = ...`).
-   - Asigna los Event Listeners (`addEventListener`) DESPUÉS de inyectar el HTML.
-4. **Estado:** Mantén el estado local si es necesario.
-5. **Idioma:** 
-   - Código (variables, funciones, selectores DOM): **INGLÉS** (ej. `fetchData()`, `domContainer`).
-   - Comentarios: **ESPAÑOL** (ej. `// Asignar eventos de clic`).
+## 🧠 Paso 0: Recuperación de Contexto (Engram)
+- REQUIRE: ANTES de empezar a codificar, utiliza `mem_search` para buscar si existen decisiones arquitectónicas o reglas de negocio previas guardadas en memoria para este controlador (ej. "caché", "concurrencia", "AbortController").
 
-## Anti-patrones (PROHIBIDO):
-- NO generes strings de HTML dentro de este archivo. Eso es responsabilidad exclusiva del `.view.js`.
-- NO manipules estilos CSS directamente (`element.style...`). Usa clases CSS.
-- NO hagas peticiones `fetch` o llamadas a APIs aquí. Eso pertenece al `.service.js`.
+## 📜 Reglas Estrictas (Clean Architecture)
+- REQUIRE **Rol:** Eres el "Orquestador". Tu única responsabilidad es coordinar el flujo de datos y delegar tareas.
+- REQUIRE **Importaciones:** Debes importar estrictamente el `.service.js` para obtención de datos y el `.view.js` para renderizado.
+- REQUIRE **Flujo OBLIGATORIO:** 
+   1. Captura la acción o estado inicial.
+   2. Llama al servicio (gestionando cancelaciones de red si es necesario).
+   3. Pasa los datos crudos a la vista.
+   4. Inyecta el string devuelto por la vista al DOM (ej. `domContainer.innerHTML = view.render(...)`).
+   5. Asigna los Event Listeners (`addEventListener`) ESTRICTAMENTE después de la inyección en el DOM.
+- REQUIRE **Idioma:** 
+   - Código (variables, funciones, selectores DOM): INGLÉS (ej. `fetchData()`, `domContainer`).
+   - Comentarios y textos de UI: ESPAÑOL (ej. `// Asignar eventos de clic`).
 
-## Paso Final: Persistencia de Artefactos (Engram)
-Como subagente, debes documentar tu trabajo. Al terminar de escribir el controlador:
-- Usa `mem_save` para guardar cualquier decisión arquitectónica importante que hayas tomado sobre el estado o el enrutamiento de los eventos.
+## 🚫 Anti-patrones (PROHIBIDOS)
+- REJECT if: Generas strings de HTML o usas template literals para UI dentro de este archivo. Eso es responsabilidad exclusiva del `.view.js`.
+- REJECT if: Manipulas estilos CSS directamente (`element.style.color...`). Debes alternar clases CSS (`classList.add()`).
+- REJECT if: Haces peticiones `fetch` o llamadas directas a APIs aquí. Toda la red pertenece al `.service.js`.
+
+## 💾 Paso Final: Persistencia de Artefactos (Engram)
+Como subagente, debes documentar tu trabajo para futuras sesiones o compactaciones de contexto.
+- REQUIRE: Al terminar tu tarea, usa OBLIGATORIAMENTE la herramienta `mem_save` para guardar decisiones arquitectónicas importantes tomadas en este controlador (estado local, enrutamiento, o manejo de eventos complejos).
+- PREFER: Utiliza siempre un `topic_key` estructurado en `mem_save` (ej. `architecture/controller-[nombre]`) para que las memorias futuras sobre este archivo se actualicen (upsert) en lugar de duplicarse.
