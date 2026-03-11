@@ -37,6 +37,7 @@ describe("citas module smoke", () => {
 
         citasRoute.handler();
         await flushPromises();
+        await flushPromises();
 
         expect(document.querySelector(".citas__title")?.textContent).toContain("Agenda de citas");
         expect(fetchSpy).toHaveBeenCalled();

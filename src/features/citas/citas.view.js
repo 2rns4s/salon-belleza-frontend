@@ -51,6 +51,59 @@ function formatMetric(metricValue) {
     return `${metricValue.toFixed(2)} ms`;
 }
 
+// Genera las opciones del dropdown de servicios.
+function renderServiceOptions({ services = [], selectedServiceId = "", hasCatalogError = false }) {
+    if (hasCatalogError) {
+        return '<option value="">Error al cargar</option>';
+    }
+
+    const defaultOption = '<option value="">Seleccionar servicio</option>';
+
+    if (!services.length) {
+        return `${defaultOption}<option value="" disabled>Sin servicios disponibles</option>`;
+    }
+
+    const optionsHtml = services
+        .map((service) => {
+            const selectedAttr = String(service.id) === String(selectedServiceId) ? " selected" : "";
+            return `<option value="${escapeHtml(service.id)}"${selectedAttr}>${escapeHtml(service.name)}</option>`;
+        })
+        .join("");
+
+    return `${defaultOption}${optionsHtml}`;
+}
+
+// Genera las opciones del dropdown de empleados filtrados por servicio.
+export function renderEmployeeOptions({
+    employees = [],
+    selectedEmployeeId = "",
+    hasService = false,
+    hasCatalogError = false,
+}) {
+    if (hasCatalogError) {
+        return '<option value="">Error al cargar</option>';
+    }
+
+    if (!hasService) {
+        return '<option value="">Selecciona un servicio primero</option>';
+    }
+
+    const defaultOption = '<option value="">Seleccionar empleado</option>';
+
+    if (!employees.length) {
+        return `${defaultOption}<option value="" disabled>Sin empleados disponibles</option>`;
+    }
+
+    const optionsHtml = employees
+        .map((emp) => {
+            const selectedAttr = String(emp.id) === String(selectedEmployeeId) ? " selected" : "";
+            return `<option value="${escapeHtml(emp.id)}"${selectedAttr}>${escapeHtml(emp.fullName)}</option>`;
+        })
+        .join("");
+
+    return `${defaultOption}${optionsHtml}`;
+}
+
 function renderLoadingMessage(loadingAgenda) {
     if (!loadingAgenda) {
         return "";
@@ -427,7 +480,13 @@ function renderAppointmentsList(appointments = [], appointmentStatuses = [], sta
 }
 
 // SHELL estatica renderizada una vez al inicializar la feature.
-export function renderCitasShell({ state, viewModes }) {
+export function renderCitasShell({
+    state,
+    viewModes,
+    serviceCatalog = [],
+    filteredEmployees = [],
+    catalogLoadError = false,
+}) {
     const viewModeOptions = Object.values(viewModes)
         .map((viewMode) => {
             const optionLabel = viewMode === "day" ? "Dia" : "Semana";
@@ -435,6 +494,22 @@ export function renderCitasShell({ state, viewModes }) {
             return `<option value="${viewMode}"${selectedAttr}>${optionLabel}</option>`;
         })
         .join("");
+
+    const serviceOptionsHtml = renderServiceOptions({
+        services: serviceCatalog,
+        selectedServiceId: state.selectedServiceId,
+        hasCatalogError: catalogLoadError,
+    });
+
+    const employeeOptionsHtml = renderEmployeeOptions({
+        employees: filteredEmployees,
+        selectedEmployeeId: state.selectedEmployeeId,
+        hasService: Boolean(state.selectedServiceId),
+        hasCatalogError: catalogLoadError,
+    });
+
+    const serviceDisabled = catalogLoadError ? " disabled" : "";
+    const employeeDisabled = catalogLoadError || !state.selectedServiceId ? " disabled" : "";
 
     return `
         <section class="citas">
@@ -457,28 +532,26 @@ export function renderCitasShell({ state, viewModes }) {
 
                 <label class="citas__field">
                     <span class="citas__field-label">Servicio</span>
-                    <input
-                        class="citas__input"
-                        type="number"
-                        min="1"
-                        step="1"
+                    <select
+                        class="citas__select"
+                        id="citas-service-select"
                         name="selectedServiceId"
-                        value="${escapeHtml(state.selectedServiceId)}"
-                        placeholder="Id del servicio"
-                    />
+                        ${serviceDisabled}
+                    >
+                        ${serviceOptionsHtml}
+                    </select>
                 </label>
 
                 <label class="citas__field">
                     <span class="citas__field-label">Empleado</span>
-                    <input
-                        class="citas__input"
-                        type="number"
-                        min="1"
-                        step="1"
+                    <select
+                        class="citas__select"
+                        id="citas-employee-select"
                         name="selectedEmployeeId"
-                        value="${escapeHtml(state.selectedEmployeeId)}"
-                        placeholder="Id del empleado"
-                    />
+                        ${employeeDisabled}
+                    >
+                        ${employeeOptionsHtml}
+                    </select>
                 </label>
 
                 <label class="citas__field">
@@ -499,6 +572,41 @@ export function renderCitasShell({ state, viewModes }) {
             <div id="citas-agenda-panel"></div>
         </section>
     `;
+}
+
+export function syncCatalogFilters({
+    serviceCatalog = [],
+    filteredEmployees = [],
+    selectedServiceId = "",
+    selectedEmployeeId = "",
+    catalogLoadError = false,
+} = {}) {
+    if (!domContainer) {
+        return;
+    }
+
+    const serviceSelect = domContainer.querySelector("#citas-service-select");
+    if (serviceSelect instanceof HTMLSelectElement) {
+        serviceSelect.innerHTML = renderServiceOptions({
+            services: serviceCatalog,
+            selectedServiceId,
+            hasCatalogError: catalogLoadError,
+        });
+        serviceSelect.disabled = catalogLoadError;
+        serviceSelect.value = String(selectedServiceId || "");
+    }
+
+    const employeeSelect = domContainer.querySelector("#citas-employee-select");
+    if (employeeSelect instanceof HTMLSelectElement) {
+        employeeSelect.innerHTML = renderEmployeeOptions({
+            employees: filteredEmployees,
+            selectedEmployeeId,
+            hasService: Boolean(selectedServiceId),
+            hasCatalogError: catalogLoadError,
+        });
+        employeeSelect.disabled = catalogLoadError || !selectedServiceId;
+        employeeSelect.value = String(selectedEmployeeId || "");
+    }
 }
 
 // PANEL dinamico actualizado en cada carga o accion del usuario.
@@ -609,11 +717,18 @@ function registerShellListeners(handlers = {}) {
 
     listenersRegistry.shellChange = (event) => {
         const selectElement = event.target;
-        if (!(selectElement instanceof HTMLSelectElement) || selectElement.id !== "citas-view-mode") {
+        if (!(selectElement instanceof HTMLSelectElement)) {
             return;
         }
 
-        handlers.onViewModeChange?.(String(selectElement.value || ""));
+        if (selectElement.id === "citas-service-select") {
+            handlers.onServiceChange?.(String(selectElement.value || ""));
+            return;
+        }
+
+        if (selectElement.id === "citas-view-mode") {
+            handlers.onViewModeChange?.(String(selectElement.value || ""));
+        }
     };
 
     domContainer.addEventListener("submit", listenersRegistry.shellSubmit);
@@ -728,6 +843,9 @@ export function mountCitasView({
     state,
     viewModes,
     appointmentStatuses,
+    serviceCatalog,
+    filteredEmployees,
+    catalogLoadError,
     handlers,
 }) {
     cleanupCitasView();
@@ -740,6 +858,9 @@ export function mountCitasView({
     domContainer.innerHTML = renderCitasShell({
         state,
         viewModes,
+        serviceCatalog,
+        filteredEmployees,
+        catalogLoadError,
     });
 
     agendaPanelContainer = domContainer.querySelector("#citas-agenda-panel");

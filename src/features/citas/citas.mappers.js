@@ -303,6 +303,45 @@ export function mapUpdateAppointmentPayload(appointmentInput = {}) {
     };
 }
 
+// Mapea ServicioResponse del backend al modelo interno del catalogo.
+export function mapServiceCatalogItem(serviceData = {}) {
+    const normalized = serviceData && typeof serviceData === "object" ? serviceData : {};
+
+    return {
+        id: toNumber(getFirstValue(normalized, ["idServicio", "id", "serviceId"], 0), 0),
+        name: String(getFirstValue(normalized, ["nombre", "name"], "")).trim(),
+        duration: toNumber(getFirstValue(normalized, ["duracion", "duration"], 0), 0),
+    };
+}
+
+// Mapea la respuesta de GET /api/v1/servicios al array de catalogo.
+export function mapServicesCatalogResponse(payload) {
+    const rawItems = Array.isArray(payload) ? payload : [];
+    return rawItems.map((item) => mapServiceCatalogItem(item)).filter((s) => s.id > 0);
+}
+
+// Mapea EmpleadoResponse del backend al modelo interno del catalogo.
+export function mapEmployeeCatalogItem(employeeData = {}) {
+    const normalized = employeeData && typeof employeeData === "object" ? employeeData : {};
+
+    const firstName = String(getFirstValue(normalized, ["nombre", "firstName"], "")).trim();
+    const lastName = String(getFirstValue(normalized, ["apellido", "lastName"], "")).trim();
+
+    return {
+        id: toNumber(getFirstValue(normalized, ["idEmpleado", "id", "employeeId"], 0), 0),
+        firstName,
+        lastName,
+        fullName: buildFullName([firstName, lastName]),
+        serviceIds: Array.isArray(normalized.serviciosIds) ? normalized.serviciosIds.map(Number).filter(Number.isFinite) : [],
+    };
+}
+
+// Mapea la respuesta de GET /api/v1/empleados al array de catalogo.
+export function mapEmployeesCatalogResponse(payload) {
+    const rawItems = Array.isArray(payload) ? payload : [];
+    return rawItems.map((item) => mapEmployeeCatalogItem(item)).filter((e) => e.id > 0);
+}
+
 function extractFieldErrors(errorData) {
     if (!errorData || typeof errorData !== "object") {
         return null;

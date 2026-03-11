@@ -7,6 +7,8 @@ const createClientMock = vi.fn();
 const createAppointmentMock = vi.fn();
 const updateAppointmentMock = vi.fn();
 const deleteAppointmentMock = vi.fn();
+const getServicesMock = vi.fn();
+const getEmployeesMock = vi.fn();
 
 vi.mock("../../src/features/citas/citas.service.js", () => ({
     getAvailability: (...args) => getAvailabilityMock(...args),
@@ -16,6 +18,8 @@ vi.mock("../../src/features/citas/citas.service.js", () => ({
     createAppointment: (...args) => createAppointmentMock(...args),
     updateAppointment: (...args) => updateAppointmentMock(...args),
     deleteAppointment: (...args) => deleteAppointmentMock(...args),
+    getServices: (...args) => getServicesMock(...args),
+    getEmployees: (...args) => getEmployeesMock(...args),
 }));
 
 function waitForController(ms = 280) {
@@ -27,8 +31,13 @@ function waitForController(ms = 280) {
 function submitFilters(container, { date = "2026-03-11", serviceId = "5", employeeId = "2" } = {}) {
     const form = container.querySelector("#citas-filter-form");
     form.querySelector("input[name='selectedDate']").value = date;
-    form.querySelector("input[name='selectedServiceId']").value = serviceId;
-    form.querySelector("input[name='selectedEmployeeId']").value = employeeId;
+
+    const serviceSelect = form.querySelector("select[name='selectedServiceId']");
+    serviceSelect.value = serviceId;
+    // Dispara change para que el controller pueble las opciones de empleado
+    serviceSelect.dispatchEvent(new Event("change", { bubbles: true }));
+
+    form.querySelector("select[name='selectedEmployeeId']").value = employeeId;
     form.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
 }
 
@@ -57,6 +66,15 @@ describe("citas - CRUD, quick-add y conflictos 409", () => {
         createAppointmentMock.mockReset();
         updateAppointmentMock.mockReset();
         deleteAppointmentMock.mockReset();
+        getServicesMock.mockReset();
+        getEmployeesMock.mockReset();
+
+        getServicesMock.mockResolvedValue([
+            { id: 5, name: "Lavado Premium", duration: 30 },
+        ]);
+        getEmployeesMock.mockResolvedValue([
+            { id: 2, firstName: "Ana", lastName: "Lopez", fullName: "Ana Lopez", serviceIds: [5] },
+        ]);
 
         getAvailabilityMock.mockResolvedValue([
             { slotDateTime: "2026-03-11T09:00:00", isSelectable: true },
@@ -93,7 +111,7 @@ describe("citas - CRUD, quick-add y conflictos 409", () => {
             },
         });
 
-        initCitas(container);
+        await initCitas(container);
         submitFilters(container);
         await waitForController();
 
@@ -142,7 +160,7 @@ describe("citas - CRUD, quick-add y conflictos 409", () => {
             },
         });
 
-        initCitas(container);
+        await initCitas(container);
         submitFilters(container);
         await waitForController();
 
@@ -219,7 +237,7 @@ describe("citas - CRUD, quick-add y conflictos 409", () => {
         updateAppointmentMock.mockResolvedValue({ id: 91, status: "CONFIRMADA" });
         deleteAppointmentMock.mockResolvedValue({ success: true });
 
-        initCitas(container);
+        await initCitas(container);
         submitFilters(container);
         await waitForController();
 

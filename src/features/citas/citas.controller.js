@@ -4,6 +4,8 @@ import {
     deleteAppointment,
     getAppointments,
     getAvailability,
+    getEmployees,
+    getServices,
     searchClients,
     updateAppointment,
 } from "./citas.service.js";
@@ -16,12 +18,19 @@ import {
     CITAS_UI_MESSAGES,
     CITAS_VIEW_MODES,
 } from "./citas.constants.js";
-import { cleanupCitasView, mountCitasView, renderCitasAgendaPanel } from "./citas.view.js";
+import { cleanupCitasView, mountCitasView, renderCitasAgendaPanel, syncCatalogFilters } from "./citas.view.js";
 
 let currentAbortController = null;
 let filterDebounceTimer = null;
 
 const availabilityCache = new Map();
+const CATALOG_LOAD_ERROR_MESSAGE = "Error al cargar los catalogos. Pulsa Recargar para reintentar.";
+
+// Catalogo de servicios y empleados cargado al inicializar.
+let serviceCatalog = [];
+let employeeCatalog = [];
+let filteredEmployees = [];
+let catalogLoadError = false;
 
 function getTodayDate() {
     return new Date().toISOString().slice(0, 10);
@@ -132,6 +141,78 @@ function renderAgendaPanelOnly() {
         state,
         appointmentStatuses: APPOINTMENT_STATUSES,
     });
+}
+
+function syncCatalogFiltersInView() {
+    syncCatalogFilters({
+        serviceCatalog,
+        filteredEmployees,
+        selectedServiceId: state.selectedServiceId,
+        selectedEmployeeId: state.selectedEmployeeId,
+        catalogLoadError,
+    });
+}
+
+// Filtra empleados elegibles segun el servicio seleccionado.
+function filterEmployeesByService(serviceId) {
+    const numericServiceId = Number(serviceId);
+
+    if (!numericServiceId) {
+        filteredEmployees = [];
+        return;
+    }
+
+    filteredEmployees = employeeCatalog.filter(
+        (emp) => emp.serviceIds.includes(numericServiceId),
+    );
+}
+
+// Carga los catalogos de servicios y empleados en paralelo.
+async function loadCatalogs() {
+    try {
+        const [services, employees] = await Promise.all([
+            getServices(),
+            getEmployees(),
+        ]);
+
+        const hadCatalogError = catalogLoadError;
+        serviceCatalog = services;
+        employeeCatalog = employees;
+        catalogLoadError = false;
+
+        const selectedServiceStillExists = serviceCatalog.some(
+            (service) => String(service.id) === state.selectedServiceId,
+        );
+        if (state.selectedServiceId && !selectedServiceStillExists) {
+            state.selectedServiceId = "";
+        }
+
+        if (hadCatalogError && state.errorMessage === CATALOG_LOAD_ERROR_MESSAGE) {
+            state.errorMessage = null;
+        }
+    } catch {
+        serviceCatalog = [];
+        employeeCatalog = [];
+        filteredEmployees = [];
+        catalogLoadError = true;
+        state.selectedServiceId = "";
+        state.selectedEmployeeId = "";
+        state.errorMessage = CATALOG_LOAD_ERROR_MESSAGE;
+
+        return;
+    }
+
+    filterEmployeesByService(state.selectedServiceId);
+
+    if (state.selectedEmployeeId) {
+        const stillEligible = filteredEmployees.some(
+            (emp) => String(emp.id) === state.selectedEmployeeId,
+        );
+
+        if (!stillEligible) {
+            state.selectedEmployeeId = "";
+        }
+    }
 }
 
 async function loadAgendaData({ forceRefresh = false, preserveErrorMessage = false } = {}) {
@@ -252,18 +333,57 @@ function handleFilterSubmit(formData) {
     updateFiltersState(formData);
     state.selectedSlot = null;
 
+    filterEmployeesByService(state.selectedServiceId);
+
+    // Limpia empleado si ya no es elegible para el servicio seleccionado
+    if (state.selectedEmployeeId) {
+        const stillEligible = filteredEmployees.some(
+            (emp) => String(emp.id) === state.selectedEmployeeId,
+        );
+
+        if (!stillEligible) {
+            state.selectedEmployeeId = "";
+        }
+    }
+
     clearFormErrors();
     clearMessages();
 
     scheduleDebouncedAgendaLoad();
 }
 
-function handleRefreshClick() {
+async function handleRefreshClick() {
     clearTimeout(filterDebounceTimer);
     invalidateCache();
     clearMessages();
 
-    void loadAgendaData({ forceRefresh: true });
+    await loadCatalogs();
+    syncCatalogFiltersInView();
+
+    await loadAgendaData({ forceRefresh: true });
+}
+
+function handleServiceChange(serviceId) {
+    if (catalogLoadError) {
+        state.selectedServiceId = "";
+        state.selectedEmployeeId = "";
+        filteredEmployees = [];
+        return;
+    }
+
+    state.selectedServiceId = String(serviceId || "").trim();
+    filterEmployeesByService(state.selectedServiceId);
+
+    // Limpia empleado si ya no es elegible
+    if (state.selectedEmployeeId) {
+        const stillEligible = filteredEmployees.some(
+            (emp) => String(emp.id) === state.selectedEmployeeId,
+        );
+
+        if (!stillEligible) {
+            state.selectedEmployeeId = "";
+        }
+    }
 }
 
 function handleViewModeChange(nextViewMode) {
@@ -576,7 +696,7 @@ function handleShowQuickAdd() {
     renderAgendaPanelOnly();
 }
 
-export function initCitas(container) {
+export async function initCitas(container) {
     cleanupCitasView();
     clearTimeout(filterDebounceTimer);
     filterDebounceTimer = null;
@@ -586,16 +706,29 @@ export function initCitas(container) {
 
     state = createInitialState();
     invalidateCache();
+    catalogLoadError = false;
+
+    // Cargar catalogos antes de renderizar la shell
+    await loadCatalogs();
 
     const mounted = mountCitasView({
         container,
         state,
         viewModes: CITAS_VIEW_MODES,
         appointmentStatuses: APPOINTMENT_STATUSES,
+        serviceCatalog,
+        filteredEmployees,
+        catalogLoadError,
         handlers: {
             onFilterSubmit: handleFilterSubmit,
-            onRefreshClick: handleRefreshClick,
+            onRefreshClick: () => {
+                void handleRefreshClick();
+            },
             onViewModeChange: handleViewModeChange,
+            onServiceChange: (serviceId) => {
+                handleServiceChange(serviceId);
+                syncCatalogFiltersInView();
+            },
             onClientSearchSubmit: (formData) => {
                 void handleClientSearchSubmit(formData);
             },

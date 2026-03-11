@@ -7,6 +7,8 @@ const createClientMock = vi.fn();
 const createAppointmentMock = vi.fn();
 const updateAppointmentMock = vi.fn();
 const deleteAppointmentMock = vi.fn();
+const getServicesMock = vi.fn();
+const getEmployeesMock = vi.fn();
 
 vi.mock("../../src/features/citas/citas.service.js", () => ({
     getAvailability: (...args) => getAvailabilityMock(...args),
@@ -16,6 +18,8 @@ vi.mock("../../src/features/citas/citas.service.js", () => ({
     createAppointment: (...args) => createAppointmentMock(...args),
     updateAppointment: (...args) => updateAppointmentMock(...args),
     deleteAppointment: (...args) => deleteAppointmentMock(...args),
+    getServices: (...args) => getServicesMock(...args),
+    getEmployees: (...args) => getEmployeesMock(...args),
 }));
 
 function waitForController(ms = 260) {
@@ -28,8 +32,13 @@ function waitForController(ms = 260) {
 function submitFilters(container, { date = "2026-03-11", serviceId = "5", employeeId = "2" } = {}) {
     const form = container.querySelector("#citas-filter-form");
     form.querySelector("input[name='selectedDate']").value = date;
-    form.querySelector("input[name='selectedServiceId']").value = serviceId;
-    form.querySelector("input[name='selectedEmployeeId']").value = employeeId;
+
+    const serviceSelect = form.querySelector("select[name='selectedServiceId']");
+    serviceSelect.value = serviceId;
+    // Dispara change para que el controller pueble las opciones de empleado
+    serviceSelect.dispatchEvent(new Event("change", { bubbles: true }));
+
+    form.querySelector("select[name='selectedEmployeeId']").value = employeeId;
     form.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
 }
 
@@ -44,6 +53,16 @@ describe("citas - disponibilidad y actualizacion del panel (D1, D2, D3, D5)", ()
         createAppointmentMock.mockReset();
         updateAppointmentMock.mockReset();
         deleteAppointmentMock.mockReset();
+        getServicesMock.mockReset();
+        getEmployeesMock.mockReset();
+
+        getServicesMock.mockResolvedValue([
+            { id: 5, name: "Lavado Premium", duration: 30 },
+            { id: 7, name: "Corte Clasico", duration: 45 },
+        ]);
+        getEmployeesMock.mockResolvedValue([
+            { id: 2, firstName: "Ana", lastName: "Lopez", fullName: "Ana Lopez", serviceIds: [5, 7] },
+        ]);
 
         getAvailabilityMock.mockResolvedValue([
             { slotDateTime: "2026-03-11T09:00:00", isSelectable: true },
@@ -64,7 +83,7 @@ describe("citas - disponibilidad y actualizacion del panel (D1, D2, D3, D5)", ()
     it("renderiza los slots disponibles en el grid tras cargar disponibilidad", async () => {
         const { initCitas } = await import("../../src/features/citas/citas.controller.js");
 
-        initCitas(container);
+        await initCitas(container);
         submitFilters(container);
         await waitForController();
 
@@ -78,7 +97,7 @@ describe("citas - disponibilidad y actualizacion del panel (D1, D2, D3, D5)", ()
     it("D2: no reconsulta la API con los mismos filtros (usa cache con TTL)", async () => {
         const { initCitas } = await import("../../src/features/citas/citas.controller.js");
 
-        initCitas(container);
+        await initCitas(container);
 
         submitFilters(container);
         await waitForController();
@@ -94,7 +113,7 @@ describe("citas - disponibilidad y actualizacion del panel (D1, D2, D3, D5)", ()
     it("D2: reconsulta la API con filtros diferentes", async () => {
         const { initCitas } = await import("../../src/features/citas/citas.controller.js");
 
-        initCitas(container);
+        await initCitas(container);
 
         submitFilters(container, { serviceId: "5" });
         await waitForController();
@@ -110,7 +129,7 @@ describe("citas - disponibilidad y actualizacion del panel (D1, D2, D3, D5)", ()
     it("D2: el boton Recargar invalida cache y vuelve a llamar la API", async () => {
         const { initCitas } = await import("../../src/features/citas/citas.controller.js");
 
-        initCitas(container);
+        await initCitas(container);
 
         submitFilters(container);
         await waitForController();
@@ -127,7 +146,7 @@ describe("citas - disponibilidad y actualizacion del panel (D1, D2, D3, D5)", ()
     it("D5: click en un slot lo marca con la clase --selected", async () => {
         const { initCitas } = await import("../../src/features/citas/citas.controller.js");
 
-        initCitas(container);
+        await initCitas(container);
         submitFilters(container);
         await waitForController();
 
@@ -147,7 +166,7 @@ describe("citas - disponibilidad y actualizacion del panel (D1, D2, D3, D5)", ()
 
         const { initCitas } = await import("../../src/features/citas/citas.controller.js");
 
-        initCitas(container);
+        await initCitas(container);
         submitFilters(container);
         await waitForController();
 
@@ -165,7 +184,7 @@ describe("citas - disponibilidad y actualizacion del panel (D1, D2, D3, D5)", ()
 
         const { initCitas } = await import("../../src/features/citas/citas.controller.js");
 
-        initCitas(container);
+        await initCitas(container);
         submitFilters(container);
 
         // Cambio rapido de filtros para gatillar cancelacion por AbortController.
@@ -182,7 +201,7 @@ describe("citas - disponibilidad y actualizacion del panel (D1, D2, D3, D5)", ()
 
         const { initCitas } = await import("../../src/features/citas/citas.controller.js");
 
-        initCitas(container);
+        await initCitas(container);
         submitFilters(container);
         await waitForController();
 

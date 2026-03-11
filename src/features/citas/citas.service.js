@@ -8,6 +8,8 @@ import {
     mapClientsResponse,
     mapCreateAppointmentPayload,
     mapCreateClientPayload,
+    mapEmployeesCatalogResponse,
+    mapServicesCatalogResponse,
     mapUpdateAppointmentPayload,
 } from "./citas.mappers.js";
 
@@ -98,4 +100,16 @@ export async function deleteAppointment(appointmentId) {
     });
 
     return { success: true };
+}
+
+// Obtiene el catalogo completo de servicios.
+export async function getServices() {
+    const payload = await httpClient(CITAS_ENDPOINTS.services);
+    return mapServicesCatalogResponse(payload);
+}
+
+// Obtiene el catalogo completo de empleados.
+export async function getEmployees() {
+    const payload = await httpClient(CITAS_ENDPOINTS.employees);
+    return mapEmployeesCatalogResponse(payload);
 }

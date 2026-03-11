@@ -3,6 +3,8 @@ export const CITAS_ENDPOINTS = Object.freeze({
     availability: "/api/v1/disponibilidad",
     searchClients: "/api/v1/clientes/buscar",
     createClient: "/api/v1/clientes",
+    services: "/api/v1/servicios",
+    employees: "/api/v1/empleados",
     updateAppointmentById: (appointmentId) => `/api/v1/citas/${appointmentId}`,
     deleteAppointmentById: (appointmentId) => `/api/v1/citas/${appointmentId}`,
 });

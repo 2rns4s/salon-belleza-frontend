@@ -1,6 +1,6 @@
-import { login, verificarMfa } from "./auth.service.js";
+import { extractRoleFromToken, login, verificarMfa } from "./auth.service.js";
 import { renderLoadingState, renderLoginPage, renderMfaPage } from "./auth.view.js";
-import { guardarSesion as saveSession } from "../../shared/state/authStore.js";
+import { guardarSesion as saveSession, resolveLandingPathByRole } from "../../shared/state/authStore.js";
 import { navegarA } from "../../shared/router/router.js";
 
 const AUTH_STATES = Object.freeze({
@@ -285,12 +285,15 @@ async function handleLoginSubmit(formElement) {
             throw new Error("Missing token in login response");
         }
 
+        const extractedRole = extractRoleFromToken(responseData.token);
+
         saveSession({
             usuario: username,
+            rol: extractedRole,
             token: responseData.token,
         });
 
-        navegarA("/dashboard");
+        navegarA(resolveLandingPathByRole(extractedRole));
     } catch (error) {
         authState.loading = false;
         const uiError = normalizeUiError(error, AUTH_STATES.LOGIN);
@@ -337,12 +340,15 @@ async function handleMfaSubmit(formElement) {
             throw new Error("Missing token in MFA response");
         }
 
+        const extractedRole = extractRoleFromToken(responseData.token);
+
         saveSession({
             usuario: authState.userData.username,
+            rol: extractedRole,
             token: responseData.token,
         });
 
-        navegarA("/dashboard");
+        navegarA(resolveLandingPathByRole(extractedRole));
     } catch (error) {
         authState.loading = false;
         const uiError = normalizeUiError(error, AUTH_STATES.MFA);

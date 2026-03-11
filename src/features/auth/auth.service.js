@@ -1,5 +1,33 @@
 import { httpClient } from "../../shared/services/httpClient.js";
 
+// Decodifica el payload base64url del JWT y extrae el campo rol.
+export function extractRoleFromToken(token) {
+    try {
+        if (!token || typeof token !== "string") {
+            return null;
+        }
+
+        const parts = token.split(".");
+        if (parts.length !== 3) {
+            return null;
+        }
+
+        const base64Url = parts[1];
+        const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+        const jsonPayload = decodeURIComponent(
+            atob(base64)
+                .split("")
+                .map((char) => `%${char.charCodeAt(0).toString(16).padStart(2, "0")}`)
+                .join(""),
+        );
+
+        const payload = JSON.parse(jsonPayload);
+        return payload?.rol ?? payload?.role ?? null;
+    } catch {
+        return null;
+    }
+}
+
 // Envia credenciales al backend y retorna LoginResponse.
 export async function login(username, password) {
     const requestBody = {
