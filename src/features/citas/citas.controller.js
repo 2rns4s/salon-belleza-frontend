@@ -33,7 +33,9 @@ let filteredEmployees = [];
 let catalogLoadError = false;
 
 function getTodayDate() {
-    return new Date().toISOString().slice(0, 10);
+    const today = new Date();
+    const localIso = new Date(today.getTime() - (today.getTimezoneOffset() * 60000)).toISOString();
+    return localIso.slice(0, 10);
 }
 
 function getNowMs() {
