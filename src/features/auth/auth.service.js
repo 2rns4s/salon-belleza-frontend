@@ -1,19 +1,35 @@
 import { httpClient } from "../../shared/services/httpClient.js";
 
-// Envia credenciales al backend. Devuelve token (final o temporal) y mfaRequired.
-export async function login({ nombreUsuario, contrasena }) {
-    const data = await httpClient("/api/v1/auth/login", {
+// Envia credenciales al backend y retorna LoginResponse.
+export async function login(username, password) {
+    const requestBody = {
+        nombreUsuario: username,
+        contrasena: password,
+    };
+
+    const responseData = await httpClient("/api/v1/auth/login", {
         method: "POST",
-        body: JSON.stringify({ nombreUsuario, contrasena }),
+        body: JSON.stringify(requestBody),
     });
-    return data;
+
+    return responseData;
 }
 
-// Verifica el codigo TOTP enviando el preAuthToken recibido en el paso de login.
-export async function verificarMfa({ nombreUsuario, totpCode, preAuthToken }) {
-    const data = await httpClient("/api/v1/auth/verify-mfa", {
+// Verifica el codigo TOTP para completar el flujo MFA.
+export async function verificarMfa(mfaToken, mfaCode, username = null) {
+    const requestBody = {
+        preAuthToken: mfaToken,
+        totpCode: mfaCode,
+    };
+
+    if (username) {
+        requestBody.nombreUsuario = username;
+    }
+
+    const responseData = await httpClient("/api/v1/auth/verify-mfa", {
         method: "POST",
-        body: JSON.stringify({ nombreUsuario, totpCode, preAuthToken }),
+        body: JSON.stringify(requestBody),
     });
-    return data;
+
+    return responseData;
 }

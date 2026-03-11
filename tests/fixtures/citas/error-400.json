@@ -1,0 +1,8 @@
+{
+    "status": 400,
+    "mensaje": "Hay errores de validacion.",
+    "fieldErrors": {
+        "idServicio": "El servicio es obligatorio",
+        "idCliente": "El cliente es obligatorio"
+    }
+}

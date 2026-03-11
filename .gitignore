@@ -1,0 +1,16 @@
+# Ignorar archivos temporales de GGA, pero NO la configuracion base (.gga)
+*.gga.swp
+
+# Ignorar archivos swap ocultos
+.*.swp
+
+# Ignorar configuraciones locales del editor, PERO permitir los agentes de IA
+.vscode/*
+!.vscode/skills/
+!.vscode/mcp.json
+
+# Ignorar dependencias de Node
+node_modules/
+
+# (Opcional) Ignorar variables de entorno locales si tienes un .env
+.env

@@ -2,6 +2,28 @@ import { getAuthToken } from "../storage/authTokenStorage.js";
 
 // URL base de la API REST (Java). Cambiar en produccion.
 const URL_BASE_API = "http://localhost:8080";
+let unauthorizedCallback = null;
+let isUnauthorizedCallbackRunning = false;
+
+export function setUnauthorizedHandler(callback) {
+    unauthorizedCallback = typeof callback === "function" ? callback : null;
+}
+
+async function runUnauthorizedHandler(errorContext) {
+    if (typeof unauthorizedCallback !== "function" || isUnauthorizedCallbackRunning) {
+        return;
+    }
+
+    isUnauthorizedCallbackRunning = true;
+
+    try {
+        await unauthorizedCallback(errorContext);
+    } catch {
+        // Evita romper el flujo del consumidor si falla el callback global.
+    } finally {
+        isUnauthorizedCallbackRunning = false;
+    }
+}
 
 function construirUrl(endpoint) {
     if (endpoint.startsWith("http")) {
@@ -11,11 +33,12 @@ function construirUrl(endpoint) {
 }
 
 export async function httpClient(endpoint, opciones = {}) {
+    const { skipUnauthorizedHandler = false, ...requestOptions } = opciones;
     const url = construirUrl(endpoint);
 
     const headers = {
         "Content-Type": "application/json",
-        ...(opciones.headers || {}),
+        ...(requestOptions.headers || {}),
     };
 
     // Inyectar JWT automaticamente si hay sesion activa
@@ -26,7 +49,7 @@ export async function httpClient(endpoint, opciones = {}) {
 
     const configuracion = {
         method: "GET",
-        ...opciones,
+        ...requestOptions,
         headers,
     };
 
@@ -51,6 +74,11 @@ export async function httpClient(endpoint, opciones = {}) {
         } catch {
             error.data = null;
         }
+
+        if ((respuesta.status === 401 || respuesta.status === 403) && !skipUnauthorizedHandler) {
+            await runUnauthorizedHandler({ endpoint, error });
+        }
+
         throw error;
     }
 

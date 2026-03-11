@@ -1,4 +1,6 @@
-import { iniciarRouter, registrarRuta } from "../shared/router/router.js";
+import { iniciarRouter, navegarA, registrarRuta } from "../shared/router/router.js";
+import { limpiarSesion } from "../shared/state/authStore.js";
+import { setUnauthorizedHandler } from "../shared/services/httpClient.js";
 
 function renderDashboardPlaceholder(container) {
     container.innerHTML = "<p class=\"app__text\">Autenticación completada correctamente. Panel principal pendiente de implementación.</p>";
@@ -14,6 +16,15 @@ export function initializeApp() {
     if (!appContent) {
         return;
     }
+
+    setUnauthorizedHandler(() => {
+        limpiarSesion();
+
+        const currentPath = window.location.hash.replace("#", "") || "/";
+        if (currentPath !== "/auth") {
+            navegarA("/auth");
+        }
+    });
 
     registrarRuta("/dashboard", () => renderDashboardPlaceholder(appContent));
     registrarRuta("/404", () => renderNotFound(appContent));

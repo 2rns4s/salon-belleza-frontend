@@ -1,50 +1,38 @@
 import { login, verificarMfa } from "./auth.service.js";
-import { renderLoginForm, renderMfaForm } from "./auth.view.js";
-import { guardarSesion } from "../../shared/state/authStore.js";
+import { renderLoadingState, renderLoginPage, renderMfaPage } from "./auth.view.js";
+import { guardarSesion as saveSession } from "../../shared/state/authStore.js";
 import { navegarA } from "../../shared/router/router.js";
 
-// Referencia al contenedor del DOM donde se inyecta el feature
+const AUTH_STATES = Object.freeze({
+    LOGIN: "login",
+    MFA: "mfa",
+});
+
 let domContainer = null;
+let authState = createInitialState();
 
-// Estado local del flujo de autenticacion
-let estado = {
-    cargando: false,
-    error: null,
-    paso: "login",       // "login" | "mfa"
-    preAuthToken: null,
-    nombreUsuario: null,
-};
-
-// --- Funciones de renderizado ---
-
-function mostrarLogin(error = null) {
-    estado.paso = "login";
-    estado.error = error;
-    domContainer.innerHTML = renderLoginForm({ error, loading: estado.cargando });
-    asignarEventosLogin();
+function createInitialState() {
+    return {
+        currentState: AUTH_STATES.LOGIN,
+        userData: {
+            username: "",
+        },
+        mfaToken: null,
+        loading: false,
+        errorMessage: "",
+        fieldErrors: {},
+    };
 }
 
-function mostrarMfa(error = null) {
-    estado.paso = "mfa";
-    estado.error = error;
-    domContainer.innerHTML = renderMfaForm({ error, loading: estado.cargando });
-    asignarEventosMfa();
+function clearErrors() {
+    authState.errorMessage = "";
+    authState.fieldErrors = {};
 }
 
-// Muestra errores de campo individuales devueltos por el backend (400)
-function mostrarErroresCampo(erroresCampo) {
-    if (!erroresCampo || typeof erroresCampo !== "object") return;
-    Object.entries(erroresCampo).forEach(([campo, mensaje]) => {
-        const spanError = domContainer.querySelector(`#error-${campo}`);
-        if (spanError) {
-            spanError.textContent = mensaje;
-        }
-    });
-}
-
-// Extrae errores por campo desde diferentes formatos de respuesta del backend
-function extraerErroresCampo(errorData) {
-    if (!errorData || typeof errorData !== "object") return null;
+function parseFieldErrors(errorData) {
+    if (!errorData || typeof errorData !== "object") {
+        return null;
+    }
 
     if (errorData.fieldErrors && typeof errorData.fieldErrors === "object") {
         return errorData.fieldErrors;
@@ -55,217 +43,327 @@ function extraerErroresCampo(errorData) {
     }
 
     if (Array.isArray(errorData.errors)) {
-        const fieldErrors = {};
+        const errorMap = {};
+
         errorData.errors.forEach((item) => {
             const fieldName = item?.field;
             const fieldMessage = item?.message || item?.defaultMessage;
             if (fieldName && fieldMessage) {
-                fieldErrors[fieldName] = fieldMessage;
+                errorMap[fieldName] = fieldMessage;
             }
         });
-        return Object.keys(fieldErrors).length ? fieldErrors : null;
+
+        return Object.keys(errorMap).length ? errorMap : null;
+    }
+
+    if (Array.isArray(errorData.details)) {
+        const errorMap = {};
+
+        errorData.details.forEach((detail) => {
+            if (typeof detail !== "string") {
+                return;
+            }
+
+            const [rawField, ...rawMessageParts] = detail.split(":");
+            const fieldName = rawField?.trim();
+            const fieldMessage = rawMessageParts.join(":").trim();
+
+            if (fieldName && fieldMessage) {
+                errorMap[fieldName] = fieldMessage;
+            }
+        });
+
+        return Object.keys(errorMap).length ? errorMap : null;
     }
 
     return null;
 }
 
-// Obtiene un mensaje legible desde las posibles llaves del backend
-function extraerMensajeBackend(errorData, fallback) {
+function extractBackendMessage(errorData, fallbackMessage) {
     if (!errorData || typeof errorData !== "object") {
-        return fallback;
+        return fallbackMessage;
     }
 
     return (
-        errorData.mensaje ||
-        errorData.message ||
-        errorData.error ||
-        errorData.detail ||
-        fallback
+        errorData.mensaje
+        || errorData.message
+        || errorData.error
+        || errorData.detail
+        || fallbackMessage
     );
 }
 
-// Detecta mensajes genericos de autenticacion para reemplazarlos en el flujo MFA
 function isGenericAuthMessage(message) {
     const normalizedMessage = (message || "").toLowerCase();
 
     return (
-        normalizedMessage.includes("credenciales invalid") ||
-        normalizedMessage.includes("acceso no autorizado") ||
-        normalizedMessage.includes("bad credentials") ||
-        normalizedMessage.includes("unauthorized")
+        normalizedMessage.includes("credenciales invalid")
+        || normalizedMessage.includes("acceso no autorizado")
+        || normalizedMessage.includes("bad credentials")
+        || normalizedMessage.includes("unauthorized")
     );
 }
 
-// Ajusta el mensaje segun el contexto del flujo de autenticacion
-function resolverMensajeNoAutorizado(errorData, context) {
-    const fallbackMessage = context === "mfa"
+function resolveUnauthorizedMessage(errorData, context) {
+    const defaultMessage = context === AUTH_STATES.MFA
         ? "Codigo de verificacion invalido o expirado. Intenta nuevamente."
         : "Credenciales invalidas o acceso no autorizado.";
 
-    const backendMessage = extraerMensajeBackend(errorData, fallbackMessage);
+    const backendMessage = extractBackendMessage(errorData, defaultMessage);
 
-    if (context === "mfa" && isGenericAuthMessage(backendMessage)) {
-        return fallbackMessage;
+    if (context === AUTH_STATES.MFA && isGenericAuthMessage(backendMessage)) {
+        return defaultMessage;
     }
 
     return backendMessage;
 }
 
-// Traduce el error HTTP a un mensaje legible para la UI
-function resolverMensajeError(error, context = "login") {
+function normalizeUiError(error, context = AUTH_STATES.LOGIN) {
     if (!error || error.status === undefined || error.status === null || error.status === 0) {
         return {
-            tipo: "general",
-            mensaje: "No se pudo conectar con el servidor. Verifica backend y configuracion CORS.",
+            errorMessage: "No se pudo conectar con el servidor. Verifica backend y configuracion CORS.",
+            fieldErrors: {},
         };
     }
 
     if (error.status === 400) {
-        const erroresCampo = extraerErroresCampo(error.data);
-        const mensaje = extraerMensajeBackend(error.data, "Hay errores de validacion. Revisa los campos.");
+        const backendFieldErrors = parseFieldErrors(error.data);
+        const errorMessage = extractBackendMessage(error.data, "Hay errores de validacion. Revisa los campos.");
 
-        if (erroresCampo) {
-            return { tipo: "campo", data: erroresCampo, mensaje };
-        }
-
-        return { tipo: "general", mensaje };
+        return {
+            errorMessage,
+            fieldErrors: backendFieldErrors || {},
+        };
     }
 
     if (error.status === 401 || error.status === 403) {
-        const mensaje = resolverMensajeNoAutorizado(error.data, context);
-        return { tipo: "general", mensaje };
+        return {
+            errorMessage: resolveUnauthorizedMessage(error.data, context),
+            fieldErrors: {},
+        };
     }
 
     if (error.status >= 500) {
-        const mensaje = extraerMensajeBackend(error.data, "Error interno del servidor. Intenta nuevamente.");
-        return { tipo: "general", mensaje };
+        return {
+            errorMessage: extractBackendMessage(error.data, "Error interno del servidor. Intenta nuevamente."),
+            fieldErrors: {},
+        };
     }
 
     return {
-        tipo: "general",
-        mensaje: extraerMensajeBackend(error.data, "Error inesperado del servidor. Por favor intenta mas tarde."),
+        errorMessage: extractBackendMessage(error.data, "Error inesperado del servidor. Por favor intenta mas tarde."),
+        fieldErrors: {},
     };
 }
 
-// --- Manejadores de formularios ---
-
-async function handleLoginSubmit(event) {
-    event.preventDefault();
-    const form = event.target;
-    const nombreUsuario = form.nombreUsuario.value.trim();
-    const contrasena = form.contrasena.value;
-
-    // Validaciones de UI antes de llamar al servicio
-    let hayErrorUI = false;
-    if (!nombreUsuario) {
-        domContainer.querySelector("#error-nombreUsuario").textContent = "El usuario es obligatorio.";
-        hayErrorUI = true;
-    }
-    if (!contrasena) {
-        domContainer.querySelector("#error-contrasena").textContent = "La contrasena es obligatoria.";
-        hayErrorUI = true;
-    }
-    if (hayErrorUI) return;
-
-    estado.cargando = true;
-    estado.nombreUsuario = nombreUsuario;
-
-    // Mostrar estado de carga
-    domContainer.innerHTML = renderLoginForm({ loading: true });
-    asignarEventosLogin();
-
-    try {
-        const respuesta = await login({ nombreUsuario, contrasena });
-
-        if (respuesta.mfaRequired) {
-            // Login parcial: guardar token temporal y pasar al paso MFA
-            estado.preAuthToken = respuesta.token;
-            estado.cargando = false;
-            mostrarMfa();
-        } else {
-            // Login completo: persistir sesion y navegar al dashboard
-            guardarSesion({ usuario: nombreUsuario, rol: respuesta.rol || null, token: respuesta.token });
-            navegarA("/dashboard");
-        }
-    } catch (error) {
-        estado.cargando = false;
-        const resultado = resolverMensajeError(error, "login");
-        if (resultado.tipo === "campo" && resultado.data) {
-            mostrarLogin(resultado.mensaje);
-            mostrarErroresCampo(resultado.data);
-        } else {
-            mostrarLogin(resultado.mensaje);
-        }
-    }
-}
-
-async function handleMfaSubmit(event) {
-    event.preventDefault();
-    const form = event.target;
-    const totpCode = form.totpCode.value.trim();
-
-    // Validar formato TOTP: exactamente 6 digitos numericos
-    if (!/^\d{6}$/.test(totpCode)) {
-        domContainer.querySelector("#error-totpCode").textContent =
-            "El codigo debe tener exactamente 6 digitos numericos.";
+function assignContainerEvents() {
+    if (!domContainer) {
         return;
     }
 
-    estado.cargando = true;
+    // Remover listeners anteriores mediante referencias almacenadas
+    if (domContainer.__submitHandler) {
+        domContainer.removeEventListener("submit", domContainer.__submitHandler);
+    }
+    if (domContainer.__clickHandler) {
+        domContainer.removeEventListener("click", domContainer.__clickHandler);
+    }
 
-    // Mostrar estado de carga
-    domContainer.innerHTML = renderMfaForm({ loading: true });
-    asignarEventosMfa();
+    // Crear nuevos handlers (sin clonar nodo, manteniendo referencia)
+    domContainer.__submitHandler = (event) => {
+        const formElement = event.target;
+
+        if (formElement.id === "login-form") {
+            event.preventDefault();
+            void handleLoginSubmit(formElement);
+            return;
+        }
+
+        if (formElement.id === "mfa-form") {
+            event.preventDefault();
+            void handleMfaSubmit(formElement);
+        }
+    };
+
+    domContainer.__clickHandler = (event) => {
+        if (event.target?.id === "btn-back") {
+            event.preventDefault();
+            handleBackToLogin();
+        }
+    };
+
+    domContainer.addEventListener("submit", domContainer.__submitHandler);
+    domContainer.addEventListener("click", domContainer.__clickHandler);
+}
+
+function renderAuthScreen() {
+    if (!domContainer) {
+        return;
+    }
+
+    if (authState.loading) {
+        domContainer.innerHTML = renderLoadingState({ currentState: authState.currentState });
+        assignContainerEvents();
+        return;
+    }
+
+    if (authState.currentState === AUTH_STATES.MFA) {
+        domContainer.innerHTML = renderMfaPage({
+            loading: authState.loading,
+            errorMessage: authState.errorMessage,
+            fieldErrors: authState.fieldErrors,
+        });
+        assignContainerEvents();
+        return;
+    }
+
+    domContainer.innerHTML = renderLoginPage({
+        loading: authState.loading,
+        errorMessage: authState.errorMessage,
+        fieldErrors: authState.fieldErrors,
+        username: authState.userData.username,
+    });
+    assignContainerEvents();
+}
+
+function validateLoginInput(username, password) {
+    const validationErrors = {};
+
+    if (!username) {
+        validationErrors.username = "El usuario es obligatorio.";
+    }
+
+    if (!password) {
+        validationErrors.password = "La contrasena es obligatoria.";
+    }
+
+    return validationErrors;
+}
+
+function validateMfaInput(mfaCode) {
+    const validationErrors = {};
+
+    if (!/^\d{6}$/.test(mfaCode)) {
+        validationErrors.totpCode = "El codigo debe tener exactamente 6 digitos numericos.";
+    }
+
+    return validationErrors;
+}
+
+async function handleLoginSubmit(formElement) {
+    const formData = new FormData(formElement);
+    const username = String(formData.get("username") || "").trim();
+    const password = String(formData.get("password") || "");
+
+    const inputErrors = validateLoginInput(username, password);
+    if (Object.keys(inputErrors).length > 0) {
+        authState.loading = false;
+        authState.errorMessage = "";
+        authState.fieldErrors = inputErrors;
+        renderAuthScreen();
+        return;
+    }
+
+    authState.loading = true;
+    authState.userData.username = username;
+    clearErrors();
+    renderAuthScreen();
 
     try {
-        const respuesta = await verificarMfa({
-            nombreUsuario: estado.nombreUsuario,
-            totpCode,
-            preAuthToken: estado.preAuthToken,
+        const responseData = await login(username, password);
+
+        if (responseData?.mfaRequired) {
+            authState.loading = false;
+            authState.currentState = AUTH_STATES.MFA;
+            authState.mfaToken = responseData?.token || null;
+            clearErrors();
+            renderAuthScreen();
+            return;
+        }
+
+        if (!responseData?.token) {
+            throw new Error("Missing token in login response");
+        }
+
+        saveSession({
+            usuario: username,
+            token: responseData.token,
         });
 
-        // Reemplazar token temporal por el token final de sesion autenticada
-        guardarSesion({ usuario: estado.nombreUsuario, rol: respuesta.rol || null, token: respuesta.token });
         navegarA("/dashboard");
     } catch (error) {
-        estado.cargando = false;
-        const resultado = resolverMensajeError(error, "mfa");
-        mostrarMfa(resultado.mensaje);
+        authState.loading = false;
+        const uiError = normalizeUiError(error, AUTH_STATES.LOGIN);
+        authState.errorMessage = uiError.errorMessage;
+        authState.fieldErrors = uiError.fieldErrors;
+        renderAuthScreen();
     }
 }
 
-// --- Asignacion de eventos (siempre despues de inyectar HTML) ---
+async function handleMfaSubmit(formElement) {
+    const formData = new FormData(formElement);
+    const mfaCode = String(formData.get("totpCode") || "").trim();
 
-function asignarEventosLogin() {
-    const form = domContainer.querySelector("#login-form");
-    if (form) {
-        form.addEventListener("submit", handleLoginSubmit);
+    const inputErrors = validateMfaInput(mfaCode);
+    if (Object.keys(inputErrors).length > 0) {
+        authState.loading = false;
+        authState.errorMessage = "";
+        authState.fieldErrors = inputErrors;
+        renderAuthScreen();
+        return;
     }
-}
 
-function asignarEventosMfa() {
-    const form = domContainer.querySelector("#mfa-form");
-    if (form) {
-        form.addEventListener("submit", handleMfaSubmit);
+    if (!authState.mfaToken) {
+        authState.currentState = AUTH_STATES.LOGIN;
+        authState.errorMessage = "Tu sesion de verificacion expiro. Inicia sesion nuevamente.";
+        authState.fieldErrors = {};
+        authState.loading = false;
+        renderAuthScreen();
+        return;
     }
-    const btnBack = domContainer.querySelector("#btn-back");
-    if (btnBack) {
-        btnBack.addEventListener("click", () => {
-            estado.cargando = false;
-            mostrarLogin();
+
+    authState.loading = true;
+    clearErrors();
+    renderAuthScreen();
+
+    try {
+        const responseData = await verificarMfa(
+            authState.mfaToken,
+            mfaCode,
+            authState.userData.username,
+        );
+
+        if (!responseData?.token) {
+            throw new Error("Missing token in MFA response");
+        }
+
+        saveSession({
+            usuario: authState.userData.username,
+            token: responseData.token,
         });
+
+        navegarA("/dashboard");
+    } catch (error) {
+        authState.loading = false;
+        const uiError = normalizeUiError(error, AUTH_STATES.MFA);
+        authState.errorMessage = uiError.errorMessage;
+        authState.fieldErrors = uiError.fieldErrors;
+        renderAuthScreen();
     }
 }
 
-// Punto de entrada del feature: recibe el nodo del DOM donde renderizar
+function handleBackToLogin() {
+    authState.currentState = AUTH_STATES.LOGIN;
+    authState.loading = false;
+    authState.errorMessage = "";
+    authState.fieldErrors = {};
+    authState.mfaToken = null;
+    renderAuthScreen();
+}
+
+// Punto de entrada del feature: recibe el nodo del DOM donde renderizar.
 export function initAuth(container) {
     domContainer = container;
-    estado = {
-        cargando: false,
-        error: null,
-        paso: "login",
-        preAuthToken: null,
-        nombreUsuario: null,
-    };
-    mostrarLogin();
+    authState = createInitialState();
+    renderAuthScreen();
 }
