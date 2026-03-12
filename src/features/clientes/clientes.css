@@ -1,0 +1,256 @@
+/* Shell de la feature de clientes */
+.clients {
+    display: grid;
+    gap: 1rem;
+}
+
+.clients__header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.85rem;
+    padding: 0.95rem;
+    border: 1px solid #eadde0;
+    border-radius: 0.75rem;
+    background: linear-gradient(120deg, #fff7f8 0%, #fffcf7 100%);
+}
+
+.clients__header-copy {
+    display: grid;
+    gap: 0.3rem;
+}
+
+.clients__title {
+    font-size: 1.35rem;
+    font-weight: 700;
+}
+
+.clients__subtitle {
+    font-size: 0.92rem;
+    color: #6b4a52;
+}
+
+.clients__toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.55rem;
+}
+
+.clients__button {
+    min-height: 44px;
+    border-radius: 0.5rem;
+    border: 0;
+    padding: 0.55rem 0.9rem;
+    cursor: pointer;
+    font-size: 0.88rem;
+    font-weight: 600;
+}
+
+.clients__button:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+}
+
+.clients__button--primary {
+    background-color: #8a3f52;
+    color: #ffffff;
+}
+
+.clients__button--secondary {
+    background-color: #f0e4e7;
+    color: #4b2a33;
+}
+
+.clients__message {
+    border-radius: 0.5rem;
+    padding: 0.68rem 0.75rem;
+    font-size: 0.9rem;
+}
+
+.clients__message--error {
+    background-color: #ffe9e9;
+    color: #8a2030;
+}
+
+.clients__message--success {
+    background-color: #e8f5e9;
+    color: #1d5f34;
+}
+
+.clients__panel {
+    border: 1px solid #eadde0;
+    border-radius: 0.75rem;
+    background-color: #ffffff;
+    overflow: hidden;
+}
+
+.clients__table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.clients__table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 620px;
+}
+
+.clients__table-caption {
+    text-align: left;
+    padding: 0.8rem 0.9rem;
+    font-size: 0.86rem;
+    color: #6b4a52;
+    border-bottom: 1px solid #eadde0;
+}
+
+.clients__table-head {
+    background-color: #fff7f8;
+}
+
+.clients__table-head-row {
+    border-bottom: 1px solid #eadde0;
+}
+
+.clients__table-head-cell {
+    text-align: left;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #5e3a45;
+    padding: 0.65rem 0.75rem;
+    white-space: nowrap;
+}
+
+.clients__table-body {
+    background-color: #ffffff;
+}
+
+.clients__table-row {
+    border-bottom: 1px solid #f2e7ea;
+}
+
+.clients__table-row--data:hover {
+    background-color: #fffafb;
+}
+
+.clients__table-cell {
+    padding: 0.65rem 0.75rem;
+    font-size: 0.88rem;
+    color: #3c232b;
+    vertical-align: middle;
+}
+
+.clients__table-cell--name {
+    font-weight: 600;
+}
+
+.clients__table-cell--empty {
+    text-align: center;
+    color: #6b4a52;
+}
+
+.clients__modal-overlay {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(20, 8, 12, 0.5);
+    display: grid;
+    place-items: center;
+    padding: 1rem;
+    z-index: 25;
+}
+
+.clients__modal {
+    width: min(460px, 100%);
+    border-radius: 0.8rem;
+    border: 1px solid #eadde0;
+    background-color: #ffffff;
+    padding: 0.95rem;
+    display: grid;
+    gap: 0.75rem;
+}
+
+.clients__modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+.clients__modal-title {
+    font-size: 1rem;
+}
+
+.clients__icon-button {
+    border: 1px solid #d8c2c8;
+    border-radius: 0.45rem;
+    background-color: #ffffff;
+    padding: 0.4rem 0.6rem;
+    cursor: pointer;
+    font-size: 0.8rem;
+}
+
+.clients__form {
+    display: grid;
+    gap: 0.6rem;
+}
+
+.clients__field {
+    display: grid;
+    gap: 0.3rem;
+}
+
+.clients__field-label {
+    font-size: 0.84rem;
+    font-weight: 600;
+    color: #5e3a45;
+}
+
+.clients__input {
+    min-height: 44px;
+    border: 1px solid #d4bcc2;
+    border-radius: 0.5rem;
+    background-color: #ffffff;
+    padding: 0.55rem 0.68rem;
+    font-size: 0.92rem;
+}
+
+.clients__field-error {
+    min-height: 1rem;
+    font-size: 0.79rem;
+    color: #8a2030;
+}
+
+.clients__form-message {
+    font-size: 0.84rem;
+    border-radius: 0.45rem;
+    padding: 0.5rem 0.6rem;
+}
+
+.clients__form-message--error {
+    background-color: #ffe9e9;
+    color: #8a2030;
+}
+
+.clients__modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.55rem;
+}
+
+@media (max-width: 768px) {
+    .clients__header {
+        padding: 0.8rem;
+    }
+
+    .clients__toolbar {
+        width: 100%;
+    }
+
+    .clients__button {
+        flex: 1 1 auto;
+    }
+
+    .clients__modal {
+        padding: 0.75rem;
+    }
+}

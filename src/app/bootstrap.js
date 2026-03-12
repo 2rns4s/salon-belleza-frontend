@@ -1,6 +1,7 @@
 import { iniciarRouter, navegarA, registrarRuta } from "../shared/router/router.js";
 import { limpiarSesion } from "../shared/state/authStore.js";
 import { setUnauthorizedHandler } from "../shared/services/httpClient.js";
+import { mountLayout, updateLayoutUserContext } from "../shared/components/layout/layout.controller.js";
 
 function renderDashboardPlaceholder(container) {
     container.innerHTML = "<p class=\"app__text\">Autenticación completada correctamente. Panel principal pendiente de implementación.</p>";
@@ -10,24 +11,33 @@ function renderNotFound(container) {
     container.innerHTML = "<p class=\"app__text\">ruta no encontrada.</p>";
 }
 
-export function initializeApp() {
-    const appContent = document.querySelector(".app__content");
+function resolveAppContentContainer() {
+    const appRoot = document.querySelector("#app");
 
-    if (!appContent) {
-        return;
+    if (appRoot instanceof Element) {
+        const { contentContainer } = mountLayout(appRoot, {
+            salonTitle: "Sistema de Gestion del Salon de Belleza",
+        });
+
+        if (contentContainer instanceof Element) {
+            return contentContainer;
+        }
     }
 
-    setUnauthorizedHandler(() => {
-        limpiarSesion();
+    const fallbackContent = document.querySelector(".app__content");
+    return fallbackContent instanceof Element ? fallbackContent : null;
+}
 
-        const currentPath = window.location.hash.replace("#", "") || "/";
-        if (currentPath !== "/auth") {
-            navegarA("/auth");
-        }
+function registerBaseRoutes(appContent) {
+    registrarRuta("/dashboard", () => {
+        updateLayoutUserContext();
+        renderDashboardPlaceholder(appContent);
     });
 
-    registrarRuta("/dashboard", () => renderDashboardPlaceholder(appContent));
-    registrarRuta("/404", () => renderNotFound(appContent));
+    registrarRuta("/404", () => {
+        updateLayoutUserContext();
+        renderNotFound(appContent);
+    });
 
     const featureRoutes = window.appFeatureRoutes || [];
     featureRoutes.forEach((routeDefinition) => {
@@ -37,9 +47,32 @@ export function initializeApp() {
 
         const { path, handler } = routeDefinition;
         if (typeof path === "string" && typeof handler === "function") {
-            registrarRuta(path, handler);
+            registrarRuta(path, () => {
+                updateLayoutUserContext();
+                handler(appContent);
+            });
         }
     });
+}
+
+export function initializeApp() {
+    const appContent = resolveAppContentContainer();
+
+    if (!appContent) {
+        return;
+    }
+
+    setUnauthorizedHandler(() => {
+        limpiarSesion();
+        updateLayoutUserContext();
+
+        const currentPath = window.location.hash.replace("#", "") || "/";
+        if (currentPath !== "/auth") {
+            navegarA("/auth");
+        }
+    });
+
+    registerBaseRoutes(appContent);
 
     iniciarRouter();
 }

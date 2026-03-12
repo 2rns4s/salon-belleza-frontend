@@ -1,0 +1,117 @@
+/* Layout compartido para header y contenedor principal */
+.layout {
+    min-height: 100vh;
+    display: grid;
+    grid-template-rows: auto 1fr;
+    background: radial-gradient(circle at 5% 10%, #fff7f8 0%, #f8f3f4 48%, #f2ecee 100%);
+}
+
+.layout__header {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.25rem;
+    background-color: var(--color-header-vinotinto-claro);
+    color: #ffffff;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+.layout__brand {
+    display: grid;
+    gap: 0.25rem;
+}
+
+.layout__salon-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+}
+
+.layout__salon-subtitle {
+    font-size: 0.85rem;
+    opacity: 0.92;
+}
+
+.layout__session {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+.layout__user {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+}
+
+.layout__user-label {
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    opacity: 0.9;
+}
+
+.layout__user-value {
+    font-size: 0.95rem;
+}
+
+.layout__role-badge {
+    background-color: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    border-radius: 999px;
+    padding: 0.2rem 0.6rem;
+    font-size: 0.78rem;
+    font-weight: 600;
+}
+
+.layout__session-status {
+    font-size: 0.78rem;
+    opacity: 0.9;
+}
+
+.layout__logout-button {
+    min-height: 40px;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    border-radius: 0.55rem;
+    padding: 0.45rem 0.8rem;
+    background-color: rgba(255, 255, 255, 0.12);
+    color: #ffffff;
+    cursor: pointer;
+    font-size: 0.88rem;
+    font-weight: 600;
+}
+
+.layout__logout-button:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+.layout__content {
+    width: 100%;
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 1.25rem;
+    background-color: #ffffff;
+    border-left: 1px solid #f0e5e7;
+    border-right: 1px solid #f0e5e7;
+}
+
+@media (max-width: 768px) {
+    .layout__header {
+        padding: 0.9rem 0.85rem;
+    }
+
+    .layout__session {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .layout__content {
+        padding: 1rem 0.85rem;
+        border-left: 0;
+        border-right: 0;
+    }
+}

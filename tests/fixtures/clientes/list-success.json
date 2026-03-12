@@ -1,0 +1,16 @@
+[
+    {
+        "idCliente": 11,
+        "nombre": "Ana",
+        "apellido": "Lopez",
+        "documento": "10203040",
+        "telefono": "3001234567"
+    },
+    {
+        "idCliente": 12,
+        "nombre": "Carlos",
+        "apellido": "Perez",
+        "documento": "99887766",
+        "telefono": "3019998877"
+    }
+]

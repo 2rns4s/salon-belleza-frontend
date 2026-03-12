@@ -1,0 +1,10 @@
+{
+    "timestamp": "2026-03-12T16:00:00",
+    "status": 400,
+    "error": "Bad Request",
+    "message": "Hay errores de validacion",
+    "details": [
+        "telefono: Debe iniciar en 3 y contener 10 digitos",
+        "documento: Debe tener entre 8 y 10 digitos"
+    ]
+}
