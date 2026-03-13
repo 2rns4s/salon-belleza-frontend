@@ -1,0 +1,19 @@
+{
+    "idEmpleado": 23,
+    "nombre": "Marta",
+    "apellido": "Ruiz",
+    "correo": "marta.ruiz@salon.com",
+    "telefono": "3007778899",
+    "franjasLaborales": [
+        {
+            "idFranjaLaboral": 700,
+            "dia": "FRIDAY",
+            "horaInicio": "10:00:00",
+            "horaFin": "16:00:00"
+        }
+    ],
+    "serviciosIds": [
+        1,
+        2
+    ]
+}

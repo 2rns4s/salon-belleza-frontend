@@ -1,0 +1,45 @@
+[
+    {
+        "idEmpleado": 21,
+        "nombre": "Laura",
+        "apellido": "Diaz",
+        "correo": "laura.diaz@salon.com",
+        "telefono": "3001112233",
+        "franjasLaborales": [
+            {
+                "idFranjaLaboral": 501,
+                "dia": "MONDAY",
+                "horaInicio": "08:00:00",
+                "horaFin": "12:00:00"
+            },
+            {
+                "idFranjaLaboral": 502,
+                "dia": "TUESDAY",
+                "horaInicio": "13:00:00",
+                "horaFin": "18:00:00"
+            }
+        ],
+        "serviciosIds": [
+            1,
+            3
+        ]
+    },
+    {
+        "idEmpleado": 22,
+        "nombre": "Carlos",
+        "apellido": "Mora",
+        "correo": "carlos.mora@salon.com",
+        "telefono": "3004445566",
+        "franjasLaborales": [
+            {
+                "idFranjaLaboral": 503,
+                "dia": "WEDNESDAY",
+                "horaInicio": "09:00:00",
+                "horaFin": "17:00:00"
+            }
+        ],
+        "serviciosIds": [
+            2
+        ]
+    }
+]
