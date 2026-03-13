@@ -27,7 +27,7 @@
 .citas__filters {
     display: grid;
     gap: 0.75rem;
-    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 170px), 1fr));
     padding: 1rem;
     border: 1px solid #eadde0;
     border-radius: 0.75rem;
@@ -37,6 +37,7 @@
 .citas__field {
     display: grid;
     gap: 0.35rem;
+    min-width: 0;
 }
 
 .citas__field-label {
@@ -60,6 +61,10 @@
     padding: 0.55rem 0.7rem;
     background-color: #ffffff;
     font-size: 0.95rem;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
 }
 
 .citas__select--compact {
@@ -70,6 +75,8 @@
     display: flex;
     gap: 0.6rem;
     align-items: end;
+    min-width: 0;
+    flex-wrap: wrap;
 }
 
 .citas__actions--inline {
