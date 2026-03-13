@@ -61,6 +61,11 @@ export async function searchClients({ documentNumber, phone, name } = {}) {
     return mapClientsResponse(payload);
 }
 
+export async function getClientById(clientId, { signal } = {}) {
+    const payload = await httpClient(CITAS_ENDPOINTS.clientById(clientId), { signal });
+    return mapClient(payload);
+}
+
 export async function createClient(clientPayload = {}) {
     const requestBody = mapCreateClientPayload(clientPayload);
 

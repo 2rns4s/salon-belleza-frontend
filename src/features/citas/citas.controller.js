@@ -4,6 +4,7 @@ import {
     deleteAppointment,
     getAppointments,
     getAvailability,
+    getClientById,
     getEmployees,
     getServices,
     searchClients,
@@ -31,6 +32,7 @@ let serviceCatalog = [];
 let employeeCatalog = [];
 let filteredEmployees = [];
 let catalogLoadError = false;
+let knownClientsById = new Map();
 
 function getTodayDate() {
     const today = new Date();
@@ -138,10 +140,95 @@ function clearMessages() {
     state.successMessage = null;
 }
 
+function isPlaceholderClientName(clientName, clientId = 0) {
+    const normalizedName = String(clientName || "").trim();
+
+    if (!normalizedName || normalizedName === "Cliente sin nombre") {
+        return true;
+    }
+
+    if (clientId > 0 && normalizedName === `Cliente #${clientId}`) {
+        return true;
+    }
+
+    return /^Cliente\s*#\d+$/i.test(normalizedName);
+}
+
+function cacheKnownClient(clientData = {}) {
+    const clientId = Number(clientData.id);
+    if (!Number.isFinite(clientId) || clientId <= 0) {
+        return;
+    }
+
+    knownClientsById.set(clientId, {
+        id: clientId,
+        fullName: String(clientData.fullName || "").trim(),
+        phone: String(clientData.phone || "").trim(),
+    });
+}
+
+async function hydrateAppointmentsClients(appointments = [], signal) {
+    const normalizedAppointments = Array.isArray(appointments) ? appointments : [];
+    const pendingClientIds = new Set();
+
+    normalizedAppointments.forEach((appointment) => {
+        const clientId = Number(appointment?.client?.id);
+        if (!Number.isFinite(clientId) || clientId <= 0) {
+            return;
+        }
+
+        const appointmentClientName = String(appointment.client?.fullName || "").trim();
+        if (!isPlaceholderClientName(appointmentClientName, clientId)) {
+            cacheKnownClient(appointment.client);
+            return;
+        }
+
+        const cachedClient = knownClientsById.get(clientId);
+        if (cachedClient && !isPlaceholderClientName(cachedClient.fullName, clientId)) {
+            return;
+        }
+
+        pendingClientIds.add(clientId);
+    });
+
+    if (pendingClientIds.size > 0) {
+        await Promise.allSettled(
+            [...pendingClientIds].map(async (clientId) => {
+                const resolvedClient = await getClientById(clientId, { signal });
+                cacheKnownClient(resolvedClient);
+            }),
+        );
+    }
+
+    return normalizedAppointments.map((appointment) => {
+        const clientId = Number(appointment?.client?.id);
+        if (!Number.isFinite(clientId) || clientId <= 0) {
+            return appointment;
+        }
+
+        const cachedClient = knownClientsById.get(clientId);
+        if (!cachedClient || isPlaceholderClientName(cachedClient.fullName, clientId)) {
+            return appointment;
+        }
+
+        return {
+            ...appointment,
+            client: {
+                ...appointment.client,
+                id: clientId,
+                fullName: cachedClient.fullName,
+                phone: cachedClient.phone || String(appointment.client?.phone || "").trim(),
+            },
+        };
+    });
+}
+
 function renderAgendaPanelOnly() {
     renderCitasAgendaPanel({
         state,
         appointmentStatuses: APPOINTMENT_STATUSES,
+        serviceCatalog,
+        employeeCatalog,
     });
 }
 
@@ -282,7 +369,13 @@ async function loadAgendaData({ forceRefresh = false, preserveErrorMessage = fal
             return;
         }
 
-        state.appointments = appointments;
+        const hydratedAppointments = await hydrateAppointmentsClients(appointments, requestSignal);
+
+        if (requestSignal.aborted) {
+            return;
+        }
+
+        state.appointments = hydratedAppointments;
         state.availabilitySlots = availabilitySlots;
 
         if (
@@ -386,6 +479,37 @@ function handleServiceChange(serviceId) {
             state.selectedEmployeeId = "";
         }
     }
+
+    // Auto-refresca la disponibilidad cuando ya hay fecha + servicio seleccionados
+    if (state.selectedDate && state.selectedServiceId) {
+        state.selectedSlot = null;
+        scheduleDebouncedAgendaLoad();
+    }
+}
+
+function handleEmployeeChange(employeeId) {
+    if (catalogLoadError) {
+        state.selectedEmployeeId = "";
+        return;
+    }
+
+    state.selectedEmployeeId = String(employeeId || "").trim();
+
+    if (state.selectedEmployeeId) {
+        const stillEligible = filteredEmployees.some(
+            (emp) => String(emp.id) === state.selectedEmployeeId,
+        );
+
+        if (!stillEligible) {
+            state.selectedEmployeeId = "";
+        }
+    }
+
+    state.selectedSlot = null;
+
+    if (state.selectedDate && state.selectedServiceId) {
+        scheduleDebouncedAgendaLoad();
+    }
 }
 
 function handleViewModeChange(nextViewMode) {
@@ -394,6 +518,21 @@ function handleViewModeChange(nextViewMode) {
         : CITAS_VIEW_MODES.DAY;
 
     renderAgendaPanelOnly();
+}
+
+// Auto-refresca disponibilidad cuando el usuario cambia la fecha y ya hay servicio seleccionado.
+function handleDateChange(newDate) {
+    const parsedDate = String(newDate || "").trim();
+    if (!parsedDate || parsedDate === state.selectedDate) {
+        return;
+    }
+
+    state.selectedDate = parsedDate;
+    state.selectedSlot = null;
+
+    if (state.selectedDate && state.selectedServiceId) {
+        scheduleDebouncedAgendaLoad();
+    }
 }
 
 function selectSlot(slotDateTime) {
@@ -461,6 +600,7 @@ async function handleClientSearchSubmit(formData) {
 
         const items = Array.isArray(response?.items) ? response.items : [];
         state.clientSearch.results = items;
+        items.forEach((client) => cacheKnownClient(client));
 
         if (items.length === 0) {
             markSearchWithoutResults();
@@ -495,6 +635,7 @@ function handleClientSelect(clientId) {
     }
 
     state.selectedClient = selectedClient;
+    cacheKnownClient(selectedClient);
     delete state.bookingErrors.idCliente;
 
     clearMessages();
@@ -526,6 +667,7 @@ async function handleQuickAddSubmit(formData) {
 
         state.selectedClient = createdClient;
         state.clientSearch.results = [createdClient];
+        cacheKnownClient(createdClient);
         state.clientSearch.showQuickAdd = false;
 
         state.quickAddForm = {
@@ -709,6 +851,7 @@ export async function initCitas(container) {
     state = createInitialState();
     invalidateCache();
     catalogLoadError = false;
+    knownClientsById = new Map();
 
     // Cargar catalogos antes de renderizar la shell
     await loadCatalogs();
@@ -731,6 +874,8 @@ export async function initCitas(container) {
                 handleServiceChange(serviceId);
                 syncCatalogFiltersInView();
             },
+            onEmployeeChange: handleEmployeeChange,
+            onDateChange: handleDateChange,
             onClientSearchSubmit: (formData) => {
                 void handleClientSearchSubmit(formData);
             },

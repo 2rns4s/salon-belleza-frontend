@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const getAvailabilityMock = vi.fn();
 const getAppointmentsMock = vi.fn();
+const getClientByIdMock = vi.fn();
 const searchClientsMock = vi.fn();
 const createClientMock = vi.fn();
 const createAppointmentMock = vi.fn();
@@ -13,6 +14,7 @@ const getEmployeesMock = vi.fn();
 vi.mock("../../src/features/citas/citas.service.js", () => ({
     getAvailability: (...args) => getAvailabilityMock(...args),
     getAppointments: (...args) => getAppointmentsMock(...args),
+    getClientById: (...args) => getClientByIdMock(...args),
     searchClients: (...args) => searchClientsMock(...args),
     createClient: (...args) => createClientMock(...args),
     createAppointment: (...args) => createAppointmentMock(...args),
@@ -38,6 +40,7 @@ describe("citas catalog retry integration", () => {
     beforeEach(() => {
         getAvailabilityMock.mockReset();
         getAppointmentsMock.mockReset();
+        getClientByIdMock.mockReset();
         searchClientsMock.mockReset();
         createClientMock.mockReset();
         createAppointmentMock.mockReset();
@@ -45,6 +48,12 @@ describe("citas catalog retry integration", () => {
         deleteAppointmentMock.mockReset();
         getServicesMock.mockReset();
         getEmployeesMock.mockReset();
+
+        getClientByIdMock.mockImplementation(async (clientId) => ({
+            id: Number(clientId),
+            fullName: `Cliente ${clientId}`,
+            phone: "",
+        }));
 
         getAppointmentsMock.mockResolvedValue([]);
         getAvailabilityMock.mockResolvedValue([]);

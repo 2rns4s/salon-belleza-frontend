@@ -43,6 +43,24 @@ function formatSlotTime(slotDateTime) {
     return timePart.substring(0, 5);
 }
 
+function formatSlotDate(slotDateTime) {
+    if (!slotDateTime) {
+        return "Sin fecha";
+    }
+
+    const datePart = String(slotDateTime).split("T")[0] || "";
+    if (datePart.length < 10) {
+        return "Sin fecha";
+    }
+
+    const [year, month, day] = datePart.split("-");
+    if (!year || !month || !day) {
+        return "Sin fecha";
+    }
+
+    return `${day}/${month}/${year}`;
+}
+
 function formatMetric(metricValue) {
     if (typeof metricValue !== "number" || Number.isNaN(metricValue)) {
         return "--";
@@ -421,28 +439,44 @@ function renderStatusOptions(statuses = [], currentStatus = "") {
         .join("");
 }
 
-function renderAppointmentsList(appointments = [], appointmentStatuses = [], state) {
+function renderAppointmentsList(appointments = [], appointmentStatuses = [], state, catalogs = {}) {
     if (!appointments.length) {
         return '<li class="citas__list-item citas__list-item--empty">No hay citas registradas para los filtros seleccionados.</li>';
     }
+
+    const catalogServices = Array.isArray(catalogs.services) ? catalogs.services : [];
+    const catalogEmployees = Array.isArray(catalogs.employees) ? catalogs.employees : [];
 
     return appointments
         .map((appointment) => {
             const isUpdating = state.savingAction === `update-${appointment.id}`;
             const isDeleting = state.savingAction === `delete-${appointment.id}`;
 
+            const serviceEntry = appointment.service?.id
+                ? catalogServices.find((s) => s.id === appointment.service.id)
+                : null;
+            const serviceName = serviceEntry?.name || appointment.service?.name || "Servicio no definido";
+
+            const employeeEntry = appointment.employee?.id
+                ? catalogEmployees.find((e) => e.id === appointment.employee.id)
+                : null;
+            const employeeName = employeeEntry?.fullName || appointment.employee?.name || "Empleado no definido";
+
+            const clientName = appointment.client?.fullName || "Cliente sin nombre";
+
             return `
                 <li class="citas__list-item">
                     <div class="citas__item-main">
-                        <p class="citas__item-title">${escapeHtml(appointment.client.fullName || "Cliente sin nombre")}</p>
+                        <p class="citas__item-title">Cliente: ${escapeHtml(clientName)}</p>
                         <p class="citas__item-subtitle">
-                            ${escapeHtml(appointment.service.name || "Servicio no definido")}
-                            | ${escapeHtml(appointment.employee.name || "Empleado no definido")}
+                            Servicio: ${escapeHtml(serviceName)}
+                            | Empleado: ${escapeHtml(employeeName)}
                         </p>
                         <p class="citas__item-subtitle">Cita #${escapeHtml(appointment.id || "-")}</p>
                     </div>
 
                     <div class="citas__item-meta">
+                        <p class="citas__item-date">${escapeHtml(formatSlotDate(appointment.slotDateTime))}</p>
                         <p class="citas__item-time">${escapeHtml(formatSlotTime(appointment.slotDateTime))}</p>
                         <p class="citas__item-status">${escapeHtml(appointment.status || "PENDIENTE")}</p>
                     </div>
@@ -610,7 +644,7 @@ export function syncCatalogFilters({
 }
 
 // PANEL dinamico actualizado en cada carga o accion del usuario.
-export function renderAgendaPanel({ state, appointmentStatuses }) {
+export function renderAgendaPanel({ state, appointmentStatuses, serviceCatalog = [], employeeCatalog = [] }) {
     return `
         ${renderLoadingMessage(state.loadingAgenda)}
         ${renderErrorMessage(state.errorMessage)}
@@ -629,7 +663,7 @@ export function renderAgendaPanel({ state, appointmentStatuses }) {
         <section class="citas__panel">
             <h3 class="citas__panel-title">Citas registradas</h3>
             <ul class="citas__list">
-                ${renderAppointmentsList(state.appointments, appointmentStatuses, state)}
+                ${renderAppointmentsList(state.appointments, appointmentStatuses, state, { services: serviceCatalog, employees: employeeCatalog })}
             </ul>
         </section>
     `;
@@ -716,18 +750,29 @@ function registerShellListeners(handlers = {}) {
     };
 
     listenersRegistry.shellChange = (event) => {
-        const selectElement = event.target;
-        if (!(selectElement instanceof HTMLSelectElement)) {
+        const targetElement = event.target;
+
+        if (targetElement instanceof HTMLInputElement && targetElement.name === "selectedDate") {
+            handlers.onDateChange?.(String(targetElement.value || ""));
             return;
         }
 
-        if (selectElement.id === "citas-service-select") {
-            handlers.onServiceChange?.(String(selectElement.value || ""));
+        if (!(targetElement instanceof HTMLSelectElement)) {
             return;
         }
 
-        if (selectElement.id === "citas-view-mode") {
-            handlers.onViewModeChange?.(String(selectElement.value || ""));
+        if (targetElement.id === "citas-service-select") {
+            handlers.onServiceChange?.(String(targetElement.value || ""));
+            return;
+        }
+
+        if (targetElement.id === "citas-employee-select") {
+            handlers.onEmployeeChange?.(String(targetElement.value || ""));
+            return;
+        }
+
+        if (targetElement.id === "citas-view-mode") {
+            handlers.onViewModeChange?.(String(targetElement.value || ""));
         }
     };
 
@@ -820,7 +865,7 @@ function registerPanelListeners(handlers = {}) {
     agendaPanelContainer.addEventListener("click", listenersRegistry.panelClick);
 }
 
-export function renderCitasAgendaPanel({ state, appointmentStatuses }) {
+export function renderCitasAgendaPanel({ state, appointmentStatuses, serviceCatalog = [], employeeCatalog = [] }) {
     if (!agendaPanelContainer) {
         return;
     }
@@ -828,6 +873,8 @@ export function renderCitasAgendaPanel({ state, appointmentStatuses }) {
     agendaPanelContainer.innerHTML = renderAgendaPanel({
         state,
         appointmentStatuses,
+        serviceCatalog,
+        employeeCatalog,
     });
 }
 
