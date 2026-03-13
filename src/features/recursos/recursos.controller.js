@@ -1,0 +1,246 @@
+import { RECURSOS_VALIDATION, DEFAULT_RECURSOS_ERROR_MESSAGE } from "./recursos.constants.js";
+import { normalizeRecursosHttpError } from "./recursos.mappers.js";
+import { getResources, createResource, updateResource, deleteResource } from "./recursos.service.js";
+import { renderRecursosPage } from "./recursos.view.js";
+
+let domContainer = null;
+let state = createInitialState();
+
+const listenersRegistry = {
+    submit: null,
+    click: null,
+};
+
+function createEmptyForm() {
+    return { name: "", totalQuantity: "" };
+}
+
+function createInitialState() {
+    return {
+        loadingList: false,
+        savingForm: false,
+        resources: [],
+        errorMessage: "",
+        successMessage: "",
+        formModal: {
+            isOpen: false,
+            mode: "create", // "create" | "edit"
+            resourceId: null,
+            form: createEmptyForm(),
+            fieldErrors: {},
+            errorMessage: "",
+        },
+        deleteConfirm: {
+            isOpen: false,
+            resourceId: null,
+            resourceName: "",
+        },
+    };
+}
+
+function resolveRecursosContainer(container) {
+    if (container instanceof Element) return container;
+    if (typeof document === "undefined") return null;
+    const appContent = document.querySelector(".app__content");
+    return appContent instanceof Element ? appContent : null;
+}
+
+function removeContainerListeners() {
+    if (!domContainer) return;
+    if (listenersRegistry.submit) {
+        domContainer.removeEventListener("submit", listenersRegistry.submit);
+        listenersRegistry.submit = null;
+    }
+    if (listenersRegistry.click) {
+        domContainer.removeEventListener("click", listenersRegistry.click);
+        listenersRegistry.click = null;
+    }
+}
+
+function renderRecursosScreen() {
+    if (!domContainer) return;
+    domContainer.innerHTML = renderRecursosPage(state);
+}
+
+function validateResourceForm(form) {
+    const errors = {};
+    const name = String(form.name ?? "").trim();
+    const qty = Number(form.totalQuantity);
+
+    if (name.length < RECURSOS_VALIDATION.NOMBRE_MIN) {
+        errors.name = `El nombre debe tener al menos ${RECURSOS_VALIDATION.NOMBRE_MIN} caracteres.`;
+    } else if (name.length > RECURSOS_VALIDATION.NOMBRE_MAX) {
+        errors.name = `El nombre no puede superar ${RECURSOS_VALIDATION.NOMBRE_MAX} caracteres.`;
+    }
+
+    if (!form.totalQuantity && form.totalQuantity !== 0) {
+        errors.totalQuantity = "La cantidad es obligatoria.";
+    } else if (isNaN(qty) || qty < RECURSOS_VALIDATION.CANTIDAD_MIN) {
+        errors.totalQuantity = `La cantidad mínima es ${RECURSOS_VALIDATION.CANTIDAD_MIN}.`;
+    }
+
+    return errors;
+}
+
+async function loadResources() {
+    state.loadingList = true;
+    state.errorMessage = "";
+    renderRecursosScreen();
+    try {
+        state.resources = await getResources();
+    } catch (err) {
+        state.errorMessage = normalizeRecursosHttpError(err);
+    } finally {
+        state.loadingList = false;
+        renderRecursosScreen();
+    }
+}
+
+async function handleFormSubmit(event) {
+    event.preventDefault();
+    const formEl = domContainer.querySelector("#resources-form");
+    if (!formEl) return;
+
+    const formData = new FormData(formEl);
+    const formState = {
+        name: formData.get("name") ?? "",
+        totalQuantity: formData.get("totalQuantity") ?? "",
+    };
+
+    const errors = validateResourceForm(formState);
+    if (Object.keys(errors).length) {
+        state.formModal = { ...state.formModal, fieldErrors: errors, form: formState };
+        renderRecursosScreen();
+        return;
+    }
+
+    state.savingForm = true;
+    state.formModal = { ...state.formModal, fieldErrors: {}, errorMessage: "", form: formState };
+    renderRecursosScreen();
+
+    try {
+        if (state.formModal.mode === "edit" && state.formModal.resourceId != null) {
+            await updateResource(state.formModal.resourceId, formState);
+            state.successMessage = "Recurso actualizado correctamente.";
+        } else {
+            await createResource(formState);
+            state.successMessage = "Recurso creado correctamente.";
+        }
+        state.formModal = { isOpen: false, mode: "create", resourceId: null, form: createEmptyForm(), fieldErrors: {}, errorMessage: "" };
+        await loadResources();
+    } catch (err) {
+        state.formModal = { ...state.formModal, errorMessage: normalizeRecursosHttpError(err) };
+        renderRecursosScreen();
+    } finally {
+        state.savingForm = false;
+    }
+}
+
+async function handleConfirmDelete() {
+    const { resourceId } = state.deleteConfirm;
+    if (resourceId == null) return;
+
+    try {
+        await deleteResource(resourceId);
+        state.successMessage = "Recurso eliminado correctamente.";
+        state.deleteConfirm = { isOpen: false, resourceId: null, resourceName: "" };
+        await loadResources();
+    } catch (err) {
+        state.errorMessage = normalizeRecursosHttpError(err);
+        state.deleteConfirm = { isOpen: false, resourceId: null, resourceName: "" };
+        renderRecursosScreen();
+    }
+}
+
+function handleContainerClick(event) {
+    const target = event.target;
+
+    // Abrir modal de creación
+    if (target.closest("#resources-open-create-btn")) {
+        state.formModal = { isOpen: true, mode: "create", resourceId: null, form: createEmptyForm(), fieldErrors: {}, errorMessage: "" };
+        state.successMessage = "";
+        renderRecursosScreen();
+        return;
+    }
+
+    // Actualizar lista
+    if (target.closest("#resources-refresh-btn")) {
+        loadResources();
+        return;
+    }
+
+    // Abrir modal de edición
+    const editBtn = target.closest("[data-resource-edit-id]");
+    if (editBtn) {
+        const resourceId = Number(editBtn.getAttribute("data-resource-edit-id"));
+        const resource = state.resources.find((r) => r.id === resourceId);
+        if (!resource) return;
+        state.formModal = {
+            isOpen: true,
+            mode: "edit",
+            resourceId,
+            form: { name: resource.name, totalQuantity: resource.totalQuantity },
+            fieldErrors: {},
+            errorMessage: "",
+        };
+        state.successMessage = "";
+        renderRecursosScreen();
+        return;
+    }
+
+    // Abrir confirmación de eliminación
+    const deleteBtn = target.closest("[data-resource-delete-id]");
+    if (deleteBtn) {
+        const resourceId = Number(deleteBtn.getAttribute("data-resource-delete-id"));
+        const resource = state.resources.find((r) => r.id === resourceId);
+        if (!resource) return;
+        state.deleteConfirm = { isOpen: true, resourceId, resourceName: resource.name };
+        state.successMessage = "";
+        renderRecursosScreen();
+        return;
+    }
+
+    // Confirmar eliminación
+    if (target.closest("#resources-confirm-delete-btn")) {
+        handleConfirmDelete();
+        return;
+    }
+
+    // Cancelar eliminación o modal
+    if (target.closest("#resources-cancel-delete-btn")) {
+        state.deleteConfirm = { isOpen: false, resourceId: null, resourceName: "" };
+        renderRecursosScreen();
+        return;
+    }
+
+    if (target.closest("#resources-cancel-btn") || target.closest("#resources-close-modal-btn")) {
+        state.formModal = { isOpen: false, mode: "create", resourceId: null, form: createEmptyForm(), fieldErrors: {}, errorMessage: "" };
+        renderRecursosScreen();
+        return;
+    }
+
+    // Click en overlay (fuera del dialog)
+    if (target.matches("[data-resources-close='overlay']")) {
+        state.formModal = { isOpen: false, mode: "create", resourceId: null, form: createEmptyForm(), fieldErrors: {}, errorMessage: "" };
+        state.deleteConfirm = { isOpen: false, resourceId: null, resourceName: "" };
+        renderRecursosScreen();
+    }
+}
+
+function attachContainerListeners() {
+    if (!domContainer) return;
+
+    listenersRegistry.click = handleContainerClick;
+    listenersRegistry.submit = handleFormSubmit;
+
+    domContainer.addEventListener("click", listenersRegistry.click);
+    domContainer.addEventListener("submit", listenersRegistry.submit);
+}
+
+export function initRecursos(container) {
+    removeContainerListeners();
+    domContainer = resolveRecursosContainer(container);
+    state = createInitialState();
+    attachContainerListeners();
+    loadResources();
+}

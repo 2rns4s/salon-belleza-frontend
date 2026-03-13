@@ -1,0 +1,367 @@
+import { SERVICIOS_VALIDATION, RESOURCE_CATALOG_STATUS } from "./servicios.constants.js";
+import { normalizeServiciosHttpError } from "./servicios.mappers.js";
+import { getServices, createService, updateService, deleteService, getResourcesCatalog } from "./servicios.service.js";
+import { renderServiciosPage } from "./servicios.view.js";
+
+let domContainer = null;
+let state = createInitialState();
+
+const listenersRegistry = {
+    submit: null,
+    click: null,
+    change: null,
+    input: null,
+};
+
+let rowIdCounter = 0;
+
+function nextRowId() {
+    rowIdCounter += 1;
+    return `row-${rowIdCounter}`;
+}
+
+function createEmptyForm() {
+    return { name: "", duration: "", requiredResources: [] };
+}
+
+function createInitialState() {
+    return {
+        loadingList: false,
+        savingForm: false,
+        services: [],
+        errorMessage: "",
+        successMessage: "",
+        resourcesCatalog: [],
+        resourcesCatalogStatus: RESOURCE_CATALOG_STATUS.IDLE,
+        formModal: {
+            isOpen: false,
+            mode: "create",
+            serviceId: null,
+            form: createEmptyForm(),
+            fieldErrors: {},
+            errorMessage: "",
+        },
+        deleteConfirm: {
+            isOpen: false,
+            serviceId: null,
+            serviceName: "",
+        },
+    };
+}
+
+function resolveServiciosContainer(container) {
+    if (container instanceof Element) return container;
+    if (typeof document === "undefined") return null;
+    const appContent = document.querySelector(".app__content");
+    return appContent instanceof Element ? appContent : null;
+}
+
+function removeContainerListeners() {
+    if (!domContainer) return;
+    if (listenersRegistry.submit) {
+        domContainer.removeEventListener("submit", listenersRegistry.submit);
+        listenersRegistry.submit = null;
+    }
+    if (listenersRegistry.click) {
+        domContainer.removeEventListener("click", listenersRegistry.click);
+        listenersRegistry.click = null;
+    }
+    if (listenersRegistry.change) {
+        domContainer.removeEventListener("change", listenersRegistry.change);
+        listenersRegistry.change = null;
+    }
+    if (listenersRegistry.input) {
+        domContainer.removeEventListener("input", listenersRegistry.input);
+        listenersRegistry.input = null;
+    }
+}
+
+function renderServiciosScreen() {
+    if (!domContainer) return;
+    domContainer.innerHTML = renderServiciosPage(state);
+}
+
+function validateServiceForm(form) {
+    const errors = {};
+    const name = String(form.name ?? "").trim();
+    const duration = Number(form.duration);
+
+    if (name.length < SERVICIOS_VALIDATION.NOMBRE_MIN) {
+        errors.name = `El nombre debe tener al menos ${SERVICIOS_VALIDATION.NOMBRE_MIN} caracteres.`;
+    } else if (name.length > SERVICIOS_VALIDATION.NOMBRE_MAX) {
+        errors.name = `El nombre no puede superar ${SERVICIOS_VALIDATION.NOMBRE_MAX} caracteres.`;
+    }
+
+    if (!form.duration && form.duration !== 0) {
+        errors.duration = "La duración es obligatoria.";
+    } else if (isNaN(duration) || duration < SERVICIOS_VALIDATION.DURACION_MIN) {
+        errors.duration = `La duración mínima es ${SERVICIOS_VALIDATION.DURACION_MIN} minuto.`;
+    }
+
+    const rows = form.requiredResources ?? [];
+    if (!rows.length) {
+        errors.requiredResources = "Debe agregar al menos un recurso requerido.";
+    } else {
+        // Verificar duplicados por idRecurso
+        const ids = rows.map((r) => String(r.resourceId)).filter(Boolean);
+        const uniqueIds = new Set(ids);
+        if (uniqueIds.size < ids.length) {
+            errors.requiredResources = "No puedes repetir el mismo recurso en la lista.";
+        }
+        // Verificar cantidades inválidas
+        for (const row of rows) {
+            if (!row.resourceId) {
+                errors.requiredResources = "Selecciona un recurso en cada fila.";
+                break;
+            }
+            if (!row.quantity || isNaN(Number(row.quantity)) || Number(row.quantity) < 1) {
+                errors.requiredResources = "La cantidad requerida debe ser al menos 1.";
+                break;
+            }
+        }
+    }
+
+    return errors;
+}
+
+// Sincroniza el estado de requiredResources leyendo del DOM
+function syncRequiredResourcesFromDom() {
+    if (!domContainer) return;
+    const container = domContainer.querySelector("#services-required-resources-container");
+    if (!container) return;
+
+    const rows = container.querySelectorAll("[data-required-resource-row-id]");
+    const updatedRows = Array.from(rows).map((row) => {
+        const rowId = row.getAttribute("data-required-resource-row-id");
+        const resourceId = row.querySelector("[data-required-resource-field='resourceId']")?.value ?? "";
+        const quantity = row.querySelector("[data-required-resource-field='quantity']")?.value ?? "";
+        return { rowId, resourceId, quantity };
+    });
+
+    state.formModal = {
+        ...state.formModal,
+        form: { ...state.formModal.form, requiredResources: updatedRows },
+    };
+}
+
+async function loadCatalog() {
+    state.resourcesCatalogStatus = RESOURCE_CATALOG_STATUS.LOADING;
+    renderServiciosScreen();
+    try {
+        const catalog = await getResourcesCatalog();
+        state.resourcesCatalog = catalog;
+        state.resourcesCatalogStatus = catalog.length ? RESOURCE_CATALOG_STATUS.READY : RESOURCE_CATALOG_STATUS.EMPTY;
+    } catch {
+        state.resourcesCatalogStatus = RESOURCE_CATALOG_STATUS.ERROR;
+    }
+    renderServiciosScreen();
+}
+
+async function loadServices() {
+    state.loadingList = true;
+    state.errorMessage = "";
+    renderServiciosScreen();
+    try {
+        state.services = await getServices();
+    } catch (err) {
+        state.errorMessage = normalizeServiciosHttpError(err);
+    } finally {
+        state.loadingList = false;
+        renderServiciosScreen();
+    }
+}
+
+async function handleFormSubmit(event) {
+    event.preventDefault();
+    syncRequiredResourcesFromDom();
+
+    const form = state.formModal.form;
+    // Leer nombre y duración frescos del DOM
+    const nameInput = domContainer.querySelector("#services-name");
+    const durationInput = domContainer.querySelector("#services-duration");
+    const formState = {
+        name: nameInput?.value ?? form.name,
+        duration: durationInput?.value ?? form.duration,
+        requiredResources: form.requiredResources,
+    };
+
+    const errors = validateServiceForm(formState);
+    if (Object.keys(errors).length) {
+        state.formModal = { ...state.formModal, fieldErrors: errors, form: formState };
+        renderServiciosScreen();
+        return;
+    }
+
+    state.savingForm = true;
+    state.formModal = { ...state.formModal, fieldErrors: {}, errorMessage: "", form: formState };
+    renderServiciosScreen();
+
+    try {
+        if (state.formModal.mode === "edit" && state.formModal.serviceId != null) {
+            await updateService(state.formModal.serviceId, formState);
+            state.successMessage = "Servicio actualizado correctamente.";
+        } else {
+            await createService(formState);
+            state.successMessage = "Servicio creado correctamente.";
+        }
+        state.formModal = { isOpen: false, mode: "create", serviceId: null, form: createEmptyForm(), fieldErrors: {}, errorMessage: "" };
+        await loadServices();
+    } catch (err) {
+        state.formModal = { ...state.formModal, errorMessage: normalizeServiciosHttpError(err) };
+        renderServiciosScreen();
+    } finally {
+        state.savingForm = false;
+    }
+}
+
+async function handleConfirmDelete() {
+    const { serviceId } = state.deleteConfirm;
+    if (serviceId == null) return;
+
+    try {
+        await deleteService(serviceId);
+        state.successMessage = "Servicio eliminado correctamente.";
+        state.deleteConfirm = { isOpen: false, serviceId: null, serviceName: "" };
+        await loadServices();
+    } catch (err) {
+        state.errorMessage = normalizeServiciosHttpError(err);
+        state.deleteConfirm = { isOpen: false, serviceId: null, serviceName: "" };
+        renderServiciosScreen();
+    }
+}
+
+function handleContainerClick(event) {
+    const target = event.target;
+
+    if (target.closest("#services-open-create-btn")) {
+        state.formModal = { isOpen: true, mode: "create", serviceId: null, form: createEmptyForm(), fieldErrors: {}, errorMessage: "" };
+        state.successMessage = "";
+        renderServiciosScreen();
+        if (
+            state.resourcesCatalogStatus === RESOURCE_CATALOG_STATUS.IDLE
+            || state.resourcesCatalogStatus === RESOURCE_CATALOG_STATUS.ERROR
+            || state.resourcesCatalogStatus === RESOURCE_CATALOG_STATUS.EMPTY
+        ) {
+            loadCatalog();
+        }
+        return;
+    }
+
+    if (target.closest("#services-refresh-btn")) {
+        loadServices();
+        return;
+    }
+
+    // Agregar fila de recurso
+    if (target.closest("#services-add-resource-btn")) {
+        syncRequiredResourcesFromDom();
+        const newRow = { rowId: nextRowId(), resourceId: "", quantity: "" };
+        state.formModal = {
+            ...state.formModal,
+            form: { ...state.formModal.form, requiredResources: [...(state.formModal.form.requiredResources ?? []), newRow] },
+        };
+        renderServiciosScreen();
+        return;
+    }
+
+    // Quitar fila de recurso
+    const removeBtn = target.closest("[data-required-resource-remove]");
+    if (removeBtn) {
+        syncRequiredResourcesFromDom();
+        const rowId = removeBtn.getAttribute("data-required-resource-remove");
+        state.formModal = {
+            ...state.formModal,
+            form: {
+                ...state.formModal.form,
+                requiredResources: state.formModal.form.requiredResources.filter((r) => r.rowId !== rowId),
+            },
+        };
+        renderServiciosScreen();
+        return;
+    }
+
+    // Abrir modal de edición
+    const editBtn = target.closest("[data-service-edit-id]");
+    if (editBtn) {
+        const serviceId = Number(editBtn.getAttribute("data-service-edit-id"));
+        const service = state.services.find((s) => s.id === serviceId);
+        if (!service) return;
+        state.formModal = {
+            isOpen: true,
+            mode: "edit",
+            serviceId,
+            form: {
+                name: service.name,
+                duration: service.duration,
+                requiredResources: service.resources.map((r) => ({
+                    rowId: nextRowId(),
+                    resourceId: String(r.resourceId),
+                    quantity: String(r.requiredQuantity),
+                })),
+            },
+            fieldErrors: {},
+            errorMessage: "",
+        };
+        state.successMessage = "";
+        renderServiciosScreen();
+        if (
+            state.resourcesCatalogStatus === RESOURCE_CATALOG_STATUS.IDLE
+            || state.resourcesCatalogStatus === RESOURCE_CATALOG_STATUS.ERROR
+            || state.resourcesCatalogStatus === RESOURCE_CATALOG_STATUS.EMPTY
+        ) {
+            loadCatalog();
+        }
+        return;
+    }
+
+    // Abrir confirmación de eliminación
+    const deleteBtn = target.closest("[data-service-delete-id]");
+    if (deleteBtn) {
+        const serviceId = Number(deleteBtn.getAttribute("data-service-delete-id"));
+        const service = state.services.find((s) => s.id === serviceId);
+        if (!service) return;
+        state.deleteConfirm = { isOpen: true, serviceId, serviceName: service.name };
+        state.successMessage = "";
+        renderServiciosScreen();
+        return;
+    }
+
+    if (target.closest("#services-confirm-delete-btn")) {
+        handleConfirmDelete();
+        return;
+    }
+
+    if (target.closest("#services-cancel-delete-btn")) {
+        state.deleteConfirm = { isOpen: false, serviceId: null, serviceName: "" };
+        renderServiciosScreen();
+        return;
+    }
+
+    if (target.closest("#services-cancel-btn") || target.closest("#services-close-modal-btn")) {
+        state.formModal = { isOpen: false, mode: "create", serviceId: null, form: createEmptyForm(), fieldErrors: {}, errorMessage: "" };
+        renderServiciosScreen();
+        return;
+    }
+
+    if (target.matches("[data-services-close='overlay']")) {
+        state.formModal = { isOpen: false, mode: "create", serviceId: null, form: createEmptyForm(), fieldErrors: {}, errorMessage: "" };
+        state.deleteConfirm = { isOpen: false, serviceId: null, serviceName: "" };
+        renderServiciosScreen();
+    }
+}
+
+function attachContainerListeners() {
+    if (!domContainer) return;
+    listenersRegistry.click = handleContainerClick;
+    listenersRegistry.submit = handleFormSubmit;
+    domContainer.addEventListener("click", listenersRegistry.click);
+    domContainer.addEventListener("submit", listenersRegistry.submit);
+}
+
+export function initServicios(container) {
+    removeContainerListeners();
+    domContainer = resolveServiciosContainer(container);
+    state = createInitialState();
+    attachContainerListeners();
+    loadServices();
+}

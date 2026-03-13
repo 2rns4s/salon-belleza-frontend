@@ -133,6 +133,58 @@ describe("auth login integration", () => {
         expect(obtenerEstadoAuth().rol).toBe("RECEPTIONIST");
     });
 
+    it("AUTH-REDIRECT-01: claim roles con ROLE_OWNER redirige a /dashboard", async () => {
+        const { initAuth } = await import("../../src/features/auth/auth.controller.js");
+        const container = document.createElement("section");
+        document.body.appendChild(container);
+
+        loginMock.mockResolvedValue({
+            token: createJwtToken({ roles: ["ROLE_OWNER"] }),
+            mfaRequired: false,
+        });
+
+        initAuth(container);
+
+        container.querySelector("#username").value = "dueno";
+        container.querySelector("#password").value = "123456";
+
+        const loginForm = container.querySelector("#login-form");
+        bindFormField(loginForm, "username", container.querySelector("#username"));
+        bindFormField(loginForm, "password", container.querySelector("#password"));
+        loginForm.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
+
+        await flushPromises();
+
+        expect(navigateMock).toHaveBeenCalledWith("/dashboard");
+        expect(obtenerEstadoAuth().rol).toBe("OWNER");
+    });
+
+    it("AUTH-REDIRECT-01: claim authorities objeto ROLE_RECEPTIONIST redirige a /citas", async () => {
+        const { initAuth } = await import("../../src/features/auth/auth.controller.js");
+        const container = document.createElement("section");
+        document.body.appendChild(container);
+
+        loginMock.mockResolvedValue({
+            token: createJwtToken({ authorities: [{ authority: "ROLE_RECEPTIONIST" }] }),
+            mfaRequired: false,
+        });
+
+        initAuth(container);
+
+        container.querySelector("#username").value = "recepcion";
+        container.querySelector("#password").value = "123456";
+
+        const loginForm = container.querySelector("#login-form");
+        bindFormField(loginForm, "username", container.querySelector("#username"));
+        bindFormField(loginForm, "password", container.querySelector("#password"));
+        loginForm.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
+
+        await flushPromises();
+
+        expect(navigateMock).toHaveBeenCalledWith("/citas");
+        expect(obtenerEstadoAuth().rol).toBe("RECEPTIONIST");
+    });
+
     it("AUTH-REDIRECT-01: login MFA de RECEPTIONIST redirige a /citas", async () => {
         const { initAuth } = await import("../../src/features/auth/auth.controller.js");
         const container = document.createElement("section");

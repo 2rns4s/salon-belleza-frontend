@@ -6,7 +6,7 @@ import {
     obtenerToken,
 } from "../../state/authStore.js";
 import { navegarA } from "../../router/router.js";
-import { renderLayoutShell, renderLayoutUserContext } from "./layout.view.js";
+import { renderLayoutNavigation, renderLayoutShell, renderLayoutUserContext } from "./layout.view.js";
 
 const DEFAULT_LAYOUT_OPTIONS = Object.freeze({
     salonTitle: "Sistema de Gestion del Salon de Belleza",
@@ -14,6 +14,7 @@ const DEFAULT_LAYOUT_OPTIONS = Object.freeze({
 
 let layoutRoot = null;
 let sessionContextContainer = null;
+let navContextContainer = null;
 let contentContainer = null;
 let layoutOptions = { ...DEFAULT_LAYOUT_OPTIONS };
 let layoutClickHandler = null;
@@ -86,6 +87,68 @@ function decodeJwtPayload(token) {
     }
 }
 
+function sanitizeRoleValue(rawRole) {
+    if (typeof rawRole !== "string") {
+        return null;
+    }
+
+    const normalizedRole = rawRole.trim().toUpperCase();
+    if (!normalizedRole) {
+        return null;
+    }
+
+    return normalizedRole.startsWith("ROLE_") ? normalizedRole.slice(5) : normalizedRole;
+}
+
+function extractRoleFromClaim(claimValue) {
+    if (typeof claimValue === "string") {
+        return sanitizeRoleValue(claimValue);
+    }
+
+    if (claimValue && typeof claimValue === "object" && typeof claimValue.authority === "string") {
+        return sanitizeRoleValue(claimValue.authority);
+    }
+
+    if (!Array.isArray(claimValue)) {
+        return null;
+    }
+
+    for (const roleItem of claimValue) {
+        if (typeof roleItem === "string") {
+            const normalizedRole = sanitizeRoleValue(roleItem);
+            if (normalizedRole) {
+                return normalizedRole;
+            }
+        }
+
+        if (roleItem && typeof roleItem === "object" && typeof roleItem.authority === "string") {
+            const normalizedRole = sanitizeRoleValue(roleItem.authority);
+            if (normalizedRole) {
+                return normalizedRole;
+            }
+        }
+    }
+
+    return null;
+}
+
+function resolveRoleFromTokenPayload(tokenPayload) {
+    if (!tokenPayload || typeof tokenPayload !== "object") {
+        return null;
+    }
+
+    const roleClaims = [tokenPayload.rol, tokenPayload.role, tokenPayload.roles, tokenPayload.authorities];
+
+    for (const claim of roleClaims) {
+        const normalizedRole = extractRoleFromClaim(claim);
+        if (normalizedRole) {
+            return normalizedRole;
+        }
+    }
+
+    return null;
+}
+
 function resolveRoleLabel(normalizedRole) {
     if (normalizedRole === AUTH_ROLES.RECEPTIONIST) {
         return "Recepcionista";
@@ -115,21 +178,19 @@ function resolveUserContext(authStateOverride = null) {
             || "",
     ).trim();
 
-    const rawRole = authState?.rol
-        || tokenPayload?.rol
-        || tokenPayload?.role
-        || tokenPayload?.authorities?.[0]
-        || null;
-
-    const normalizedRole = normalizeAuthRole(rawRole);
+    const roleFromAuthState = normalizeAuthRole(authState?.rol);
+    const roleFromToken = normalizeAuthRole(resolveRoleFromTokenPayload(tokenPayload));
+    const normalizedRole = roleFromAuthState || roleFromToken;
 
     return {
         username: isTokenExpired ? "Invitado" : (usernameFromState || usernameFromToken || "Invitado"),
         roleLabel: isTokenExpired ? "Sin rol" : resolveRoleLabel(normalizedRole),
         hasSession: !isTokenExpired && Boolean(authState?.sesionIniciada || token),
         isTokenExpired,
+        normalizedRole: isTokenExpired ? null : normalizedRole,
     };
 }
+
 
 function enforceActiveSession(userContext) {
     if (!userContext?.isTokenExpired) {
@@ -215,6 +276,16 @@ export function updateLayoutUserContext(authState = null) {
 
     const userContext = enforceActiveSession(resolveUserContext(authState));
     sessionContextContainer.innerHTML = renderLayoutUserContext(userContext);
+
+    if (navContextContainer) {
+        const currentPath = typeof window !== "undefined"
+            ? (window.location.hash.replace("#", "") || "/")
+            : "/";
+        navContextContainer.innerHTML = renderLayoutNavigation({
+            userRole: userContext.normalizedRole,
+            currentPath,
+        });
+    }
 }
 
 export function mountLayout(container, options = {}) {
@@ -237,6 +308,7 @@ export function mountLayout(container, options = {}) {
     });
 
     sessionContextContainer = layoutRoot.querySelector("#layout-session-context");
+    navContextContainer = layoutRoot.querySelector("#layout-nav-context");
     contentContainer = layoutRoot.querySelector(".app__content");
 
     updateLayoutUserContext();
@@ -251,6 +323,7 @@ export function cleanupLayout() {
     removeLayoutListeners();
 
     sessionContextContainer = null;
+    navContextContainer = null;
     contentContainer = null;
     layoutRoot = null;
 }

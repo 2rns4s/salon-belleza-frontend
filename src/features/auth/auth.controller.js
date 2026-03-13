@@ -1,6 +1,6 @@
 import { extractRoleFromToken, login, verificarMfa } from "./auth.service.js";
 import { renderLoadingState, renderLoginPage, renderMfaPage } from "./auth.view.js";
-import { guardarSesion as saveSession, resolveLandingPathByRole } from "../../shared/state/authStore.js";
+import { AUTH_ROLES, guardarSesion as saveSession, normalizeAuthRole } from "../../shared/state/authStore.js";
 import { navegarA } from "../../shared/router/router.js";
 
 const AUTH_STATES = Object.freeze({
@@ -22,6 +22,18 @@ function createInitialState() {
         errorMessage: "",
         fieldErrors: {},
     };
+}
+
+function resolvePostLoginPath(normalizedRole) {
+    if (normalizedRole === AUTH_ROLES.RECEPTIONIST) {
+        return "/citas";
+    }
+
+    if (normalizedRole === AUTH_ROLES.OWNER) {
+        return "/dashboard";
+    }
+
+    return "/dashboard";
 }
 
 function clearErrors() {
@@ -286,14 +298,15 @@ async function handleLoginSubmit(formElement) {
         }
 
         const extractedRole = extractRoleFromToken(responseData.token);
+        const normalizedRole = normalizeAuthRole(extractedRole);
 
         saveSession({
             usuario: username,
-            rol: extractedRole,
+            rol: normalizedRole,
             token: responseData.token,
         });
 
-        navegarA(resolveLandingPathByRole(extractedRole));
+        navegarA(resolvePostLoginPath(normalizedRole));
     } catch (error) {
         authState.loading = false;
         const uiError = normalizeUiError(error, AUTH_STATES.LOGIN);
@@ -341,14 +354,15 @@ async function handleMfaSubmit(formElement) {
         }
 
         const extractedRole = extractRoleFromToken(responseData.token);
+        const normalizedRole = normalizeAuthRole(extractedRole);
 
         saveSession({
             usuario: authState.userData.username,
-            rol: extractedRole,
+            rol: normalizedRole,
             token: responseData.token,
         });
 
-        navegarA(resolveLandingPathByRole(extractedRole));
+        navegarA(resolvePostLoginPath(normalizedRole));
     } catch (error) {
         authState.loading = false;
         const uiError = normalizeUiError(error, AUTH_STATES.MFA);

@@ -20,6 +20,26 @@ describe("auth.service extractRoleFromToken", () => {
         expect(extractRoleFromToken(token)).toBe("RECEPTIONIST");
     });
 
+    it("AUTH-JWT-EXTRACT-01: claim role con prefijo ROLE_ retorna valor limpio", () => {
+        const token = createJwtToken({ role: "ROLE_OWNER" });
+        expect(extractRoleFromToken(token)).toBe("OWNER");
+    });
+
+    it("AUTH-JWT-EXTRACT-01: claim roles en arreglo retorna primer valor utilizable", () => {
+        const token = createJwtToken({ roles: ["ROLE_RECEPTIONIST", "OWNER"] });
+        expect(extractRoleFromToken(token)).toBe("RECEPTIONIST");
+    });
+
+    it("AUTH-JWT-EXTRACT-01: claim authorities con strings retorna rol limpio", () => {
+        const token = createJwtToken({ authorities: ["ROLE_RECEPCIONISTA", "ROLE_OWNER"] });
+        expect(extractRoleFromToken(token)).toBe("RECEPCIONISTA");
+    });
+
+    it("AUTH-JWT-EXTRACT-01: claim authorities con objetos retorna rol limpio", () => {
+        const token = createJwtToken({ authorities: [{ authority: "ROLE_OWNER" }] });
+        expect(extractRoleFromToken(token)).toBe("OWNER");
+    });
+
     it("AUTH-JWT-EXTRACT-01: token valido sin rol retorna null", () => {
         const token = createJwtToken({ sub: "owner" });
         expect(extractRoleFromToken(token)).toBeNull();

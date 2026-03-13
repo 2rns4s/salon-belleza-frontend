@@ -1,0 +1,399 @@
+/* Módulo: Gestión de Servicios — BEM .service-list__*, .service-form__*, .service-modal__*, .service-actions__*, .service-resource-row__*, .service-catalog-banner__* */
+
+.service-list {
+    padding: 1.5rem;
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.service-list__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.25rem;
+}
+
+.service-list__title {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--color-texto-principal);
+}
+
+.service-list__header-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.service-list__message {
+    padding: 0.65rem 0.9rem;
+    border-radius: 0.4rem;
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+}
+
+.service-list__message--error {
+    background-color: #fde8ec;
+    color: #8a1a2e;
+    border: 1px solid #f5b8c4;
+}
+
+.service-list__message--success {
+    background-color: #e8f8ef;
+    color: #1a6636;
+    border: 1px solid #b8ebd0;
+}
+
+/* Tabla */
+.service-list__table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: var(--color-superficie);
+    border-radius: 0.5rem;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.service-list__table-head {
+    background-color: var(--color-header-vinotinto-claro);
+    color: #fff;
+}
+
+.service-list__table-header {
+    padding: 0.75rem 1rem;
+    text-align: left;
+    font-weight: 600;
+    font-size: 0.88rem;
+}
+
+.service-list__table-cell {
+    padding: 0.7rem 1rem;
+    border-bottom: 1px solid #f0e5e7;
+    font-size: 0.9rem;
+    color: var(--color-texto-principal);
+}
+
+.service-list__table-cell--empty {
+    text-align: center;
+    color: #9a7a84;
+    font-style: italic;
+}
+
+.service-list__table-cell--actions {
+    display: flex;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+}
+
+/* Botones de acción */
+.service-actions__btn {
+    padding: 0.35rem 0.7rem;
+    border: none;
+    border-radius: 0.35rem;
+    cursor: pointer;
+    font-size: 0.84rem;
+    font-weight: 500;
+    transition: background-color 0.15s;
+}
+
+.service-actions__btn--create {
+    background-color: var(--color-header-vinotinto-claro);
+    color: #fff;
+}
+
+.service-actions__btn--create:hover {
+    background-color: #6e2f40;
+}
+
+.service-actions__btn--refresh {
+    background-color: #f0e5e7;
+    color: var(--color-texto-principal);
+}
+
+.service-actions__btn--refresh:hover {
+    background-color: #e4d3d7;
+}
+
+.service-actions__btn--edit {
+    background-color: #e8f0fb;
+    color: #1a3f78;
+}
+
+.service-actions__btn--edit:hover {
+    background-color: #cce0ff;
+}
+
+.service-actions__btn--delete {
+    background-color: #fde8ec;
+    color: #8a1a2e;
+}
+
+.service-actions__btn--delete:hover {
+    background-color: #fcc8d2;
+}
+
+.service-actions__btn--add-resource {
+    background-color: #e8f0fb;
+    color: #1a3f78;
+    font-size: 0.82rem;
+}
+
+.service-actions__btn--add-resource:hover {
+    background-color: #cce0ff;
+}
+
+/* Formulario */
+.service-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1.25rem;
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
+.service-form__field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+
+.service-form__label {
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--color-texto-principal);
+}
+
+.service-form__input {
+    padding: 0.55rem 0.75rem;
+    border: 1px solid #d9c8cc;
+    border-radius: 0.4rem;
+    font-size: 0.9rem;
+    color: var(--color-texto-principal);
+    background-color: #fff;
+    transition: border-color 0.15s;
+}
+
+.service-form__input:focus {
+    outline: none;
+    border-color: var(--color-header-vinotinto-claro);
+}
+
+.service-form__input--invalid {
+    border-color: #c92a2a;
+}
+
+.service-form__field-error {
+    font-size: 0.8rem;
+    color: #c92a2a;
+}
+
+.service-form__resources-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    border: 1px solid #f0e5e7;
+    border-radius: 0.4rem;
+    padding: 0.75rem;
+}
+
+.service-form__resources-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.service-form__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.service-form__btn {
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 0.4rem;
+    cursor: pointer;
+    font-size: 0.88rem;
+    font-weight: 600;
+    transition: background-color 0.15s;
+}
+
+.service-form__btn--submit {
+    background-color: var(--color-header-vinotinto-claro);
+    color: #fff;
+}
+
+.service-form__btn--submit:hover {
+    background-color: #6e2f40;
+}
+
+.service-form__btn--cancel {
+    background-color: #f0e5e7;
+    color: var(--color-texto-principal);
+}
+
+.service-form__btn--cancel:hover {
+    background-color: #e4d3d7;
+}
+
+.service-form__btn--danger {
+    background-color: #c92a2a;
+    color: #fff;
+}
+
+.service-form__btn--danger:hover {
+    background-color: #a82020;
+}
+
+/* Filas de recursos requeridos */
+.service-resource-row {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    padding: 0.4rem 0;
+    border-bottom: 1px solid #f8ecee;
+}
+
+.service-resource-row:last-child {
+    border-bottom: none;
+}
+
+.service-resource-row__select {
+    flex: 2;
+    padding: 0.45rem 0.6rem;
+    border: 1px solid #d9c8cc;
+    border-radius: 0.35rem;
+    font-size: 0.88rem;
+    color: var(--color-texto-principal);
+    background-color: #fff;
+}
+
+.service-resource-row__qty-input {
+    flex: 1;
+    padding: 0.45rem 0.6rem;
+    border: 1px solid #d9c8cc;
+    border-radius: 0.35rem;
+    font-size: 0.88rem;
+    color: var(--color-texto-principal);
+    min-width: 0;
+}
+
+.service-resource-row__remove-btn {
+    flex: 0 0 auto;
+    background-color: #fde8ec;
+    color: #8a1a2e;
+    border: none;
+    border-radius: 0.35rem;
+    padding: 0.35rem 0.6rem;
+    cursor: pointer;
+    font-size: 0.82rem;
+}
+
+.service-resource-row__remove-btn:hover {
+    background-color: #fcc8d2;
+}
+
+/* Banner de estado del catálogo */
+.service-catalog-banner {
+    font-size: 0.84rem;
+    padding: 0.4rem 0.6rem;
+    border-radius: 0.35rem;
+}
+
+.service-catalog-banner--loading {
+    background-color: #f0e5e7;
+    color: #7a5060;
+}
+
+.service-catalog-banner--error {
+    background-color: #fde8ec;
+    color: #8a1a2e;
+}
+
+.service-catalog-banner--empty {
+    background-color: #f8f3f4;
+    color: #9a7a84;
+    font-style: italic;
+}
+
+/* Modal */
+.service-modal__overlay {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.45);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+}
+
+.service-modal__dialog {
+    background-color: var(--color-superficie);
+    border-radius: 0.6rem;
+    width: 100%;
+    max-width: 560px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+    overflow: hidden;
+}
+
+.service-modal__dialog--confirm {
+    padding: 1.5rem;
+    max-width: 420px;
+}
+
+.service-modal__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.25rem;
+    background-color: var(--color-fondo-principal);
+    border-bottom: 1px solid #f0e5e7;
+}
+
+.service-modal__title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--color-texto-principal);
+}
+
+.service-modal__close-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 0.88rem;
+    color: #9a7a84;
+    padding: 0.25rem 0.5rem;
+}
+
+.service-modal__confirm-text {
+    margin-bottom: 1.25rem;
+    color: var(--color-texto-principal);
+    font-size: 0.95rem;
+}
+
+.service-modal__confirm-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+}
+
+@media (max-width: 600px) {
+    .service-list {
+        padding: 1rem;
+    }
+
+    .service-list__header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+    }
+
+    .service-resource-row {
+        flex-wrap: wrap;
+    }
+
+    .service-modal__dialog {
+        max-width: 95vw;
+    }
+}

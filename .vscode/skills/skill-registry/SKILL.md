@@ -24,16 +24,29 @@ You generate or update the **skill registry** — a catalog of all available ski
 
 ### Step 1: Scan User Skills
 
-1. Glob for `*/SKILL.md` files in the user's skills directory. Try these paths in order (use the first that exists):
-   - `~/.claude/skills/`
-   - `~/.config/opencode/skills/`
-   - The parent directory of this skill file
+1. Glob for `*/SKILL.md` files across ALL known skill directories. Check every path below — scan ALL that exist, not just the first match:
+
+   **User-level (global skills):**
+   - `~/.claude/skills/` — Claude Code
+   - `~/.config/opencode/skills/` — OpenCode
+   - `~/.gemini/skills/` — Gemini CLI
+   - `~/.cursor/skills/` — Cursor
+   - `~/.copilot/skills/` — VS Code Copilot
+   - The parent directory of this skill file (catch-all for any tool)
+
+   **Project-level (workspace skills):**
+   - `{project-root}/.claude/skills/` — Claude Code
+   - `{project-root}/.gemini/skills/` — Gemini CLI
+   - `{project-root}/.agent/skills/` — Antigravity (workspace)
+   - `{project-root}/skills/` — Generic
+
 2. **SKIP `sdd-*` and `_shared`** — those are SDD workflow skills, not coding/task skills
 3. Also **SKIP `skill-registry`** — that's this skill
-4. For each skill found, read only the frontmatter (first 10 lines) to extract:
+4. **Deduplicate** — if the same skill name appears in multiple locations, keep the project-level version (more specific). If both are user-level, keep the first found.
+5. For each skill found, read only the frontmatter (first 10 lines) to extract:
    - `name` field
    - `description` field → extract the trigger text (after "Trigger:" in the description)
-5. Build a table of: Trigger | Skill Name | Full Path
+6. Build a table of: Trigger | Skill Name | Full Path
 
 ### Step 2: Scan Project Conventions
 

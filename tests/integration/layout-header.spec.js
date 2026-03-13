@@ -75,11 +75,11 @@ describe("layout shared header integration", () => {
         expect(layoutRoot?.querySelectorAll("[style]").length).toBe(0);
     });
 
-    it("usa fallback de JWT para rol cuando authStore no tiene rol", () => {
+    it("usa fallback de JWT authorities para rol cuando authStore no tiene rol", () => {
         guardarSesion({
             usuario: "ana",
             rol: null,
-            token: createJwtToken({ role: "RECEPTIONIST", nombreUsuario: "ana" }),
+            token: createJwtToken({ authorities: [{ authority: "ROLE_RECEPTIONIST" }], nombreUsuario: "ana" }),
         });
 
         mountAppShell();
@@ -161,5 +161,49 @@ describe("layout shared header integration", () => {
         expect(obtenerToken()).toBeNull();
         expect(window.location.hash).toBe("#/auth");
         expect(document.querySelector(".layout__session-status")?.textContent).toContain("Sesion no iniciada");
+    });
+
+    it("LAYOUT-NAV-OWNER: OWNER ve Clientes, Citas, Servicios y Recursos en la navegacion", () => {
+        guardarSesion({ usuario: "owner", rol: "OWNER", token: createJwtToken({ rol: "OWNER", nombreUsuario: "owner" }) });
+        mountAppShell();
+        initializeApp();
+        expect(document.querySelector("#layout-nav-context")).not.toBeNull();
+        expect(document.querySelector("[data-layout-route='/clientes']")).not.toBeNull();
+        expect(document.querySelector("[data-layout-route='/citas']")).not.toBeNull();
+        expect(document.querySelector("[data-layout-route='/servicios']")).not.toBeNull();
+        expect(document.querySelector("[data-layout-route='/recursos']")).not.toBeNull();
+    });
+
+    it("LAYOUT-NAV-RECEPTIONIST: RECEPTIONIST ve solo Clientes y Citas, sin Servicios ni Recursos", () => {
+        guardarSesion({ usuario: "recep", rol: "RECEPTIONIST", token: createJwtToken({ rol: "RECEPTIONIST", nombreUsuario: "recep" }) });
+        mountAppShell();
+        initializeApp();
+        expect(document.querySelector("[data-layout-route='/clientes']")).not.toBeNull();
+        expect(document.querySelector("[data-layout-route='/citas']")).not.toBeNull();
+        expect(document.querySelector("[data-layout-route='/servicios']")).toBeNull();
+        expect(document.querySelector("[data-layout-route='/recursos']")).toBeNull();
+    });
+
+    it("LAYOUT-NAV-NOAUTH: sin sesion el contenedor de nav existe pero no tiene links", () => {
+        mountAppShell();
+        initializeApp();
+        const navContext = document.querySelector("#layout-nav-context");
+        expect(navContext).not.toBeNull();
+        expect(navContext?.querySelector("[data-layout-route]")).toBeNull();
+    });
+
+    it("LAYOUT-NAV-ACTIVE: el hash activo marca el link correspondiente con la clase activa", () => {
+        guardarSesion({ usuario: "owner", rol: "OWNER", token: createJwtToken({ rol: "OWNER", nombreUsuario: "owner" }) });
+        window.location.hash = "#/servicios";
+        mountAppShell();
+        initializeApp();
+        const activeLink = document.querySelector(".layout__nav-link--active");
+        expect(activeLink).not.toBeNull();
+        expect(activeLink?.getAttribute("data-layout-route")).toBe("/servicios");
+        const otherLinks = document.querySelectorAll(".layout__nav-link:not(.layout__nav-link--active)");
+        expect(otherLinks.length).toBeGreaterThan(0);
+        otherLinks.forEach((link) => {
+            expect(link.classList.contains("layout__nav-link--active")).toBe(false);
+        });
     });
 });

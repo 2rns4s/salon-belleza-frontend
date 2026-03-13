@@ -115,3 +115,43 @@
         border-right: 0;
     }
 }
+
+/* Navegacion principal basada en rol */
+.layout__navigation-container {
+    width: 100%;
+}
+
+.layout__nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    align-items: center;
+}
+
+.layout__nav-link {
+    display: inline-block;
+    padding: 0.35rem 0.65rem;
+    border-radius: 0.4rem;
+    color: rgba(255, 255, 255, 0.88);
+    text-decoration: none;
+    font-size: 0.86rem;
+    font-weight: 500;
+}
+
+.layout__nav-link:hover {
+    background-color: rgba(255, 255, 255, 0.15);
+    color: #ffffff;
+}
+
+.layout__nav-link--active {
+    background-color: rgba(255, 255, 255, 0.22);
+    color: #ffffff;
+    font-weight: 700;
+}
+
+@media (max-width: 640px) {
+    .layout__navigation-container {
+        order: 2;
+        margin-top: 0.25rem;
+    }
+}
