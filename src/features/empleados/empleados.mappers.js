@@ -3,38 +3,12 @@ import {
     DEFAULT_EMPLEADOS_ERROR_MESSAGE,
 } from "./empleados.constants.js";
 import { normalizeHttpError as normalizeSharedHttpError } from "../../shared/mappers/httpErrorNormalizer.js";
-
-function toNumber(value, fallback = 0) {
-    const parsed = Number(value);
-    return Number.isFinite(parsed) ? parsed : fallback;
-}
-
-function toTrimmedString(value) {
-    return String(value ?? "").trim();
-}
-
-function toBackendLocalTime(value) {
-    const rawValue = toTrimmedString(value);
-
-    if (!rawValue) {
-        return "";
-    }
-
-    // El backend espera HH:mm:ss en CrearFranjaRequest
-    if (/^\d{2}:\d{2}$/.test(rawValue)) {
-        return `${rawValue}:00`;
-    }
-
-    return rawValue;
-}
-
-function buildFullName(firstName, lastName) {
-    return [firstName, lastName]
-        .map((item) => toTrimmedString(item))
-        .filter(Boolean)
-        .join(" ")
-        .trim();
-}
+import {
+    toNumber,
+    toTrimmedString,
+    toBackendLocalTime,
+    buildFullName,
+} from "../../shared/mappers/commonPrimitives.js";
 
 function mapWorkShiftResponse(dto = {}) {
     return {

@@ -4,10 +4,12 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "build": "node scripts/check-syntax.mjs",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:smoke": "vitest run tests/smoke",
-    "test:integration": "vitest run tests/integration"
+    "test:integration": "vitest run tests/integration",
+    "verify": "npm run build && npm run test:smoke && npm run test:integration && npm test"
   },
   "keywords": [],
   "author": "",

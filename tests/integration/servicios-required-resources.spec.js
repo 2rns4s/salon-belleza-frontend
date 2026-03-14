@@ -138,6 +138,39 @@ describe("servicios recursos requeridos dinámicos", () => {
         expect(firstRowQty.value).toBe("3");
     });
 
+    it("SERVICIOS-BOUNDARY-READFORM-01: al agregar fila conserva nombre y duracion capturados desde DOM", async () => {
+        mockServiciosWithCatalog([
+            { idRecurso: 1, nombre: "Tijeras", cantidadTotal: 5 },
+            { idRecurso: 2, nombre: "Tinte", cantidadTotal: 6 },
+        ]);
+
+        await openCreateModal();
+
+        document.querySelector("#services-add-resource-btn")?.click();
+        await flushPromises();
+
+        document.querySelector("#services-name").value = "Servicio premium";
+        document.querySelector("#services-duration").value = "55";
+
+        const firstRow = document.querySelector("[data-required-resource-row-id]");
+        firstRow.querySelector("[data-required-resource-field='resourceId']").value = "2";
+        firstRow.querySelector("[data-required-resource-field='quantity']").value = "3";
+
+        document.querySelector("#services-add-resource-btn")?.click();
+        await flushPromises();
+
+        expect(document.querySelector("#services-name")?.value).toBe("Servicio premium");
+        expect(document.querySelector("#services-duration")?.value).toBe("55");
+
+        const rows = document.querySelectorAll("[data-required-resource-row-id]");
+        const firstRowSelect = rows[0].querySelector("[data-required-resource-field='resourceId']");
+        const firstRowQty = rows[0].querySelector("[data-required-resource-field='quantity']");
+
+        expect(rows.length).toBe(2);
+        expect(firstRowSelect.value).toBe("2");
+        expect(firstRowQty.value).toBe("3");
+    });
+
     it("SERVICIOS-VALIDATION-NOROWS: rechaza submit sin recursos requeridos", async () => {
         mockServiciosWithCatalog([{ idRecurso: 1, nombre: "Tijeras", cantidadTotal: 5 }]);
 

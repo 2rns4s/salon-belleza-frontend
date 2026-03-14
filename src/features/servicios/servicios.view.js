@@ -183,6 +183,42 @@ function renderDeleteConfirm({ deleteConfirm }) {
     `;
 }
 
+function readRequiredResourcesFromDom(container, fallbackRows = []) {
+    const rowsContainer = container?.querySelector("#services-required-resources-container");
+    if (!(rowsContainer instanceof Element)) {
+        return Array.isArray(fallbackRows)
+            ? fallbackRows.map((row) => ({ ...row }))
+            : [];
+    }
+
+    const rows = rowsContainer.querySelectorAll("[data-required-resource-row-id]");
+    if (!rows.length) {
+        return [];
+    }
+
+    return Array.from(rows).map((row) => {
+        const rowId = row.getAttribute("data-required-resource-row-id") || "";
+        const resourceId = row.querySelector("[data-required-resource-field='resourceId']")?.value ?? "";
+        const quantity = row.querySelector("[data-required-resource-field='quantity']")?.value ?? "";
+
+        return { rowId, resourceId, quantity };
+    });
+}
+
+// Lee el estado del formulario desde el DOM para mantener el controller sin scraping manual.
+export function readServicesFormState(container, fallbackForm = {}) {
+    const safeContainer = container instanceof Element ? container : null;
+
+    const nameInput = safeContainer?.querySelector("#services-name");
+    const durationInput = safeContainer?.querySelector("#services-duration");
+
+    return {
+        name: nameInput?.value ?? (fallbackForm.name ?? ""),
+        duration: durationInput?.value ?? (fallbackForm.duration ?? ""),
+        requiredResources: readRequiredResourcesFromDom(safeContainer, fallbackForm.requiredResources),
+    };
+}
+
 export function renderServiciosPage(state) {
     const {
         services = [],

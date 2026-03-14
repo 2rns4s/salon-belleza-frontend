@@ -1,7 +1,7 @@
 import { SERVICIOS_VALIDATION, RESOURCE_CATALOG_STATUS } from "./servicios.constants.js";
 import { normalizeServiciosHttpError } from "./servicios.mappers.js";
 import { getServices, createService, updateService, deleteService, getResourcesCatalog } from "./servicios.service.js";
-import { renderServiciosPage } from "./servicios.view.js";
+import { renderServiciosPage, readServicesFormState } from "./servicios.view.js";
 
 let domContainer = null;
 let state = createInitialState();
@@ -124,26 +124,6 @@ function validateServiceForm(form) {
     return errors;
 }
 
-// Sincroniza el estado de requiredResources leyendo del DOM
-function syncRequiredResourcesFromDom() {
-    if (!domContainer) return;
-    const container = domContainer.querySelector("#services-required-resources-container");
-    if (!container) return;
-
-    const rows = container.querySelectorAll("[data-required-resource-row-id]");
-    const updatedRows = Array.from(rows).map((row) => {
-        const rowId = row.getAttribute("data-required-resource-row-id");
-        const resourceId = row.querySelector("[data-required-resource-field='resourceId']")?.value ?? "";
-        const quantity = row.querySelector("[data-required-resource-field='quantity']")?.value ?? "";
-        return { rowId, resourceId, quantity };
-    });
-
-    state.formModal = {
-        ...state.formModal,
-        form: { ...state.formModal.form, requiredResources: updatedRows },
-    };
-}
-
 async function loadCatalog() {
     state.resourcesCatalogStatus = RESOURCE_CATALOG_STATUS.LOADING;
     renderServiciosScreen();
@@ -173,17 +153,8 @@ async function loadServices() {
 
 async function handleFormSubmit(event) {
     event.preventDefault();
-    syncRequiredResourcesFromDom();
-
     const form = state.formModal.form;
-    // Leer nombre y duración frescos del DOM
-    const nameInput = domContainer.querySelector("#services-name");
-    const durationInput = domContainer.querySelector("#services-duration");
-    const formState = {
-        name: nameInput?.value ?? form.name,
-        duration: durationInput?.value ?? form.duration,
-        requiredResources: form.requiredResources,
-    };
+    const formState = readServicesFormState(domContainer, form);
 
     const errors = validateServiceForm(formState);
     if (Object.keys(errors).length) {
@@ -254,11 +225,14 @@ function handleContainerClick(event) {
 
     // Agregar fila de recurso
     if (target.closest("#services-add-resource-btn")) {
-        syncRequiredResourcesFromDom();
+        const syncedForm = readServicesFormState(domContainer, state.formModal.form);
         const newRow = { rowId: nextRowId(), resourceId: "", quantity: "" };
         state.formModal = {
             ...state.formModal,
-            form: { ...state.formModal.form, requiredResources: [...(state.formModal.form.requiredResources ?? []), newRow] },
+            form: {
+                ...syncedForm,
+                requiredResources: [...(syncedForm.requiredResources ?? []), newRow],
+            },
         };
         renderServiciosScreen();
         return;
@@ -267,13 +241,13 @@ function handleContainerClick(event) {
     // Quitar fila de recurso
     const removeBtn = target.closest("[data-required-resource-remove]");
     if (removeBtn) {
-        syncRequiredResourcesFromDom();
+        const syncedForm = readServicesFormState(domContainer, state.formModal.form);
         const rowId = removeBtn.getAttribute("data-required-resource-remove");
         state.formModal = {
             ...state.formModal,
             form: {
-                ...state.formModal.form,
-                requiredResources: state.formModal.form.requiredResources.filter((r) => r.rowId !== rowId),
+                ...syncedForm,
+                requiredResources: (syncedForm.requiredResources ?? []).filter((r) => r.rowId !== rowId),
             },
         };
         renderServiciosScreen();

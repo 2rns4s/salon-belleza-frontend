@@ -600,3 +600,53 @@ Segun `GlobalExceptionHandler`, entre otras:
 ---
 
 Documento alineado con controllers y DTOs actuales en `src/main/java/...`.
+
+## 8) Patrones frontend validados (hardening interno)
+
+### 8.1 Primitives compartidas de mappers
+
+Para evitar duplicacion en parseos y normalizaciones, se centralizaron helpers comunes en:
+
+- `src/shared/mappers/commonPrimitives.js`
+
+Funciones base disponibles:
+
+- `toTrimmedString(value)`
+- `toNumber(value)`
+- `getFirstValue(...candidates)`
+- `buildFullName(firstName, lastName)`
+- `normalizeDateTimeValue(value)`
+- `toBackendLocalTime(value)`
+
+Recomendacion:
+
+- Antes de crear un helper nuevo en `*.mappers.js`, validar si el caso ya existe en `commonPrimitives.js`.
+
+### 8.2 Boundary MVC en formularios de servicios
+
+En servicios, la lectura del estado de formulario se encapsulo en la vista y el controller dejo de hacer scraping manual del DOM.
+
+Punto de entrada:
+
+- `readServicesFormState(container, fallbackForm)` en `src/features/servicios/servicios.view.js`
+
+Regla:
+
+- Los controllers deben consumir helpers de vista para extraer datos de UI, manteniendo la logica de orquestacion separada de los detalles del DOM.
+
+### 8.3 Migracion BEM de `citas*` a `appointments*` (compatibilidad)
+
+Se habilito un modo dual para clases CSS en citas:
+
+- Legacy: `citas`, `citas__*`
+- Nuevo: `appointments`, `appointments__*`
+
+Implementacion:
+
+- Alias de clases en HTML via `appendAppointmentsBEMAliases()` en `src/features/citas/citas.view.js`.
+- Alias de estilos via `src/features/citas/appointments.alias.css` importado desde `src/features/citas/citas.css`.
+
+Regla temporal:
+
+- Mientras exista compatibilidad retroactiva, mantener ambos nombres de clase en el markup de citas.
+- En una fase futura se podra retirar `citas*` cuando no existan consumidores legacy.

@@ -1,11 +1,12 @@
 import { SERVICIOS_HTTP_MESSAGES, DEFAULT_SERVICIOS_ERROR_MESSAGE } from "./servicios.constants.js";
 import { normalizeHttpError as normalizeSharedHttpError } from "../../shared/mappers/httpErrorNormalizer.js";
+import { toTrimmedString } from "../../shared/mappers/commonPrimitives.js";
 
 // Convierte RecursoEnServicioResponse al modelo de la vista
 function mapServiceResourceResponse(dto) {
     return {
         resourceId: Number(dto.idRecurso),
-        name: String(dto.nombre).trim(),
+        name: toTrimmedString(dto.nombre),
         requiredQuantity: Number(dto.cantidadRequerida),
     };
 }
@@ -14,7 +15,7 @@ function mapServiceResourceResponse(dto) {
 export function mapServiceResponse(dto) {
     return {
         id: Number(dto.idServicio),
-        name: String(dto.nombre).trim(),
+        name: toTrimmedString(dto.nombre),
         duration: Number(dto.duracion),
         resources: Array.isArray(dto.recursos) ? dto.recursos.map(mapServiceResourceResponse) : [],
     };
@@ -30,7 +31,7 @@ export function mapServicesResponse(array) {
 export function mapCatalogResourceResponse(dto) {
     return {
         id: Number(dto.idRecurso),
-        name: String(dto.nombre).trim(),
+        name: toTrimmedString(dto.nombre),
     };
 }
 
@@ -43,7 +44,7 @@ export function mapCatalogResourcesResponse(array) {
 // formState.requiredResources = [{ rowId, resourceId, quantity }] — rowId es id local, NO se envía
 export function mapCreateServicePayload(formState) {
     return {
-        nombre: String(formState.name ?? "").trim(),
+        nombre: toTrimmedString(formState.name),
         duracion: Number(formState.duration),
         recursos: (formState.requiredResources ?? []).map((row) => ({
             idRecurso: Number(row.resourceId),

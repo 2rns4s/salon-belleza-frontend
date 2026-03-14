@@ -3,22 +3,12 @@ import {
     DEFAULT_CITAS_ERROR_MESSAGE,
 } from "./citas.constants.js";
 import { normalizeHttpError as normalizeSharedHttpError } from "../../shared/mappers/httpErrorNormalizer.js";
-
-function getFirstValue(source, keys, fallback = null) {
-    for (const key of keys) {
-        const value = source?.[key];
-        if (value !== undefined && value !== null) {
-            return value;
-        }
-    }
-
-    return fallback;
-}
-
-function toNumber(value, fallback = 0) {
-    const parsed = Number(value);
-    return Number.isFinite(parsed) ? parsed : fallback;
-}
+import {
+    getFirstValue,
+    toNumber,
+    buildFullName,
+    normalizeDateTimeValue,
+} from "../../shared/mappers/commonPrimitives.js";
 
 function isClientLike(payload) {
     if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
@@ -36,39 +26,14 @@ function isAppointmentLike(payload) {
     return ["idCita", "id", "appointmentId"].some((key) => payload[key] !== undefined && payload[key] !== null);
 }
 
-function buildFullName(parts = []) {
-    return parts
-        .map((item) => String(item || "").trim())
-        .filter(Boolean)
-        .join(" ")
-        .trim();
-}
-
-function normalizeDateTime(localDateTimeValue) {
-    if (!localDateTimeValue) {
-        return "";
-    }
-
-    const rawValue = String(localDateTimeValue).trim();
-    if (!rawValue) {
-        return "";
-    }
-
-    if (rawValue.includes("T") && rawValue.split("T")[1]?.length === 5) {
-        return `${rawValue}:00`;
-    }
-
-    return rawValue;
-}
-
 function resolveDurationMinutes(appointment) {
     const explicitDuration = toNumber(getFirstValue(appointment, ["duracionMinutos", "durationMinutes"], 0), 0);
     if (explicitDuration > 0) {
         return explicitDuration;
     }
 
-    const startDate = new Date(normalizeDateTime(getFirstValue(appointment, ["fechaInicio", "fechaHora", "startDateTime"], "")));
-    const endDate = new Date(normalizeDateTime(getFirstValue(appointment, ["fechaFin", "endDateTime"], "")));
+    const startDate = new Date(normalizeDateTimeValue(getFirstValue(appointment, ["fechaInicio", "fechaHora", "startDateTime"], "")));
+    const endDate = new Date(normalizeDateTimeValue(getFirstValue(appointment, ["fechaFin", "endDateTime"], "")));
 
     if (Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime())) {
         return 0;
@@ -200,7 +165,7 @@ export function mapAvailabilityResponse(payload) {
     if (Array.isArray(payload)) {
         return payload
             .map((item) => {
-                const slotDateTime = normalizeDateTime(getFirstValue(item, ["fechaHora", "slotDateTime"], ""));
+                const slotDateTime = normalizeDateTimeValue(getFirstValue(item, ["fechaHora", "slotDateTime"], ""));
                 const employeeAvailable = getFirstValue(item, ["disponibilidadEmpleado", "employeeAvailable"], true) !== false;
                 const resourceAvailable = getFirstValue(item, ["disponibilidadRecurso", "resourceAvailable"], true) !== false;
 
@@ -229,7 +194,7 @@ export function mapAppointment(appointment = {}) {
 
     return {
         id: toNumber(getFirstValue(normalizedAppointment, ["idCita", "id", "appointmentId"], 0), 0),
-        slotDateTime: normalizeDateTime(
+        slotDateTime: normalizeDateTimeValue(
             getFirstValue(normalizedAppointment, ["fechaInicio", "fechaHora", "startDateTime", "slotDateTime"], ""),
         ),
         durationMinutes: resolveDurationMinutes(normalizedAppointment),
@@ -294,7 +259,7 @@ export function mapCreateAppointmentPayload(appointmentInput = {}) {
         idCliente: toNumber(getFirstValue(appointmentInput, ["clientId", "idCliente"], 0), 0),
         idServicio: toNumber(getFirstValue(appointmentInput, ["serviceId", "idServicio"], 0), 0),
         idEmpleado: toNumber(getFirstValue(appointmentInput, ["employeeId", "idEmpleado"], 0), 0),
-        fechaInicio: normalizeDateTime(getFirstValue(appointmentInput, ["startDateTime", "fechaInicio"], "")),
+        fechaInicio: normalizeDateTimeValue(getFirstValue(appointmentInput, ["startDateTime", "fechaInicio"], "")),
     };
 }
 

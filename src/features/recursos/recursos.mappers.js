@@ -1,11 +1,12 @@
 import { RECURSOS_HTTP_MESSAGES, DEFAULT_RECURSOS_ERROR_MESSAGE } from "./recursos.constants.js";
 import { normalizeHttpError as normalizeSharedHttpError } from "../../shared/mappers/httpErrorNormalizer.js";
+import { toTrimmedString } from "../../shared/mappers/commonPrimitives.js";
 
 // Convierte un RecursoResponse del backend al modelo de la vista
 export function mapResourceResponse(dto) {
     return {
         id: Number(dto.idRecurso),
-        name: String(dto.nombre).trim(),
+        name: toTrimmedString(dto.nombre),
         totalQuantity: Number(dto.cantidadTotal),
     };
 }
@@ -19,7 +20,7 @@ export function mapResourcesResponse(array) {
 // Construye el payload para POST /api/v1/recursos
 export function mapCreateResourcePayload(formState) {
     return {
-        nombre: String(formState.name ?? "").trim(),
+        nombre: toTrimmedString(formState.name),
         cantidadTotal: Number(formState.totalQuantity),
     };
 }

@@ -3,31 +3,11 @@ import {
     DEFAULT_CLIENTES_ERROR_MESSAGE,
 } from "./clientes.constants.js";
 import { normalizeHttpError as normalizeSharedHttpError } from "../../shared/mappers/httpErrorNormalizer.js";
-
-function getFirstValue(source, keys, fallback = null) {
-    for (const key of keys) {
-        const value = source?.[key];
-
-        if (value !== undefined && value !== null) {
-            return value;
-        }
-    }
-
-    return fallback;
-}
-
-function toNumber(value, fallback = 0) {
-    const parsed = Number(value);
-    return Number.isFinite(parsed) ? parsed : fallback;
-}
-
-function buildFullName(firstName, lastName) {
-    return [firstName, lastName]
-        .map((part) => String(part || "").trim())
-        .filter(Boolean)
-        .join(" ")
-        .trim();
-}
+import {
+    getFirstValue,
+    toNumber,
+    buildFullName,
+} from "../../shared/mappers/commonPrimitives.js";
 
 function mapCreateFieldName(fieldName) {
     const normalizedField = String(fieldName || "").trim().toLowerCase();

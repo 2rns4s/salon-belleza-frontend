@@ -18,6 +18,45 @@ function escapeHtml(rawValue) {
         .replaceAll("'", "&#39;");
 }
 
+function toAppointmentsBEMClassName(cssClassName) {
+    if (cssClassName === "citas") {
+        return "appointments";
+    }
+
+    if (cssClassName.startsWith("citas__")) {
+        return cssClassName.replace("citas__", "appointments__");
+    }
+
+    return "";
+}
+
+// Mantiene clases legacy (citas) y agrega alias en ingles (appointments) durante la migracion.
+function appendAppointmentsBEMAliases(htmlTemplate) {
+    return String(htmlTemplate).replace(/class="([^"]+)"/g, (fullMatch, classTokens) => {
+        const currentClasses = String(classTokens)
+            .split(/\s+/)
+            .map((cssClassName) => cssClassName.trim())
+            .filter(Boolean);
+
+        if (!currentClasses.length) {
+            return fullMatch;
+        }
+
+        const mergedClasses = [...currentClasses];
+
+        currentClasses
+            .map(toAppointmentsBEMClassName)
+            .filter(Boolean)
+            .forEach((aliasClassName) => {
+                if (!mergedClasses.includes(aliasClassName)) {
+                    mergedClasses.push(aliasClassName);
+                }
+            });
+
+        return `class="${mergedClasses.join(" ")}"`;
+    });
+}
+
 function getFieldError(fieldErrors, aliases = []) {
     for (const alias of aliases) {
         const errorMessage = fieldErrors?.[alias];
@@ -545,7 +584,7 @@ export function renderCitasShell({
     const serviceDisabled = catalogLoadError ? " disabled" : "";
     const employeeDisabled = catalogLoadError || !state.selectedServiceId ? " disabled" : "";
 
-    return `
+    return appendAppointmentsBEMAliases(`
         <section class="citas">
             <header class="citas__header">
                 <h2 class="citas__title">Agenda de citas</h2>
@@ -605,7 +644,7 @@ export function renderCitasShell({
 
             <div id="citas-agenda-panel"></div>
         </section>
-    `;
+    `);
 }
 
 export function syncCatalogFilters({
@@ -645,7 +684,7 @@ export function syncCatalogFilters({
 
 // PANEL dinamico actualizado en cada carga o accion del usuario.
 export function renderAgendaPanel({ state, appointmentStatuses, serviceCatalog = [], employeeCatalog = [] }) {
-    return `
+    return appendAppointmentsBEMAliases(`
         ${renderLoadingMessage(state.loadingAgenda)}
         ${renderErrorMessage(state.errorMessage)}
         ${renderSuccessMessage(state.successMessage)}
@@ -666,7 +705,7 @@ export function renderAgendaPanel({ state, appointmentStatuses, serviceCatalog =
                 ${renderAppointmentsList(state.appointments, appointmentStatuses, state, { services: serviceCatalog, employees: employeeCatalog })}
             </ul>
         </section>
-    `;
+    `);
 }
 
 function resolveCitasContainer(container) {
@@ -810,59 +849,75 @@ function registerPanelListeners(handlers = {}) {
             return;
         }
 
-        const slotButton = target.closest(".citas__slot");
-        if (slotButton) {
-            event.preventDefault();
-            handlers.onSlotSelect?.(slotButton.getAttribute("data-slot-datetime"));
-            return;
-        }
-
-        const selectClientButton = target.closest(".citas__client-select-btn");
-        if (selectClientButton) {
-            event.preventDefault();
-            const clientId = Number(selectClientButton.getAttribute("data-client-id") || 0);
-            handlers.onClientSelect?.(clientId);
-            return;
-        }
-
-        const showQuickAddButton = target.closest("#citas-show-quick-add-btn");
-        if (showQuickAddButton) {
-            event.preventDefault();
-            handlers.onShowQuickAdd?.();
-            return;
-        }
-
-        const createButton = target.closest("#citas-create-appointment-btn");
-        if (createButton) {
-            event.preventDefault();
-            handlers.onCreateAppointment?.();
-            return;
-        }
-
-        const updateButton = target.closest(".citas__appointment-update-btn");
-        if (updateButton) {
-            event.preventDefault();
-
-            const appointmentId = Number(updateButton.getAttribute("data-appointment-id") || 0);
-            const statusSelect = agendaPanelContainer.querySelector(`#citas-status-${appointmentId}`);
-            const nextStatus = statusSelect instanceof HTMLSelectElement
-                ? String(statusSelect.value || "")
-                : "";
-
-            handlers.onUpdateAppointment?.(appointmentId, nextStatus);
-            return;
-        }
-
-        const deleteButton = target.closest(".citas__appointment-delete-btn");
-        if (deleteButton) {
-            event.preventDefault();
-            const appointmentId = Number(deleteButton.getAttribute("data-appointment-id") || 0);
-            handlers.onDeleteAppointment?.(appointmentId);
-        }
+        handlePanelClick(target, event, handlers);
     };
 
     agendaPanelContainer.addEventListener("submit", listenersRegistry.panelSubmit);
     agendaPanelContainer.addEventListener("click", listenersRegistry.panelClick);
+}
+
+function parseNumericAttributeValue(element, attributeName) {
+    if (!element) {
+        return 0;
+    }
+
+    return Number(element.getAttribute(attributeName) || 0);
+}
+
+function resolveAppointmentStatusValue(appointmentId) {
+    if (!agendaPanelContainer) {
+        return "";
+    }
+
+    const statusSelect = agendaPanelContainer.querySelector(`#citas-status-${appointmentId}`);
+    return statusSelect instanceof HTMLSelectElement
+        ? String(statusSelect.value || "")
+        : "";
+}
+
+function handlePanelClick(target, event, handlers = {}) {
+    const slotButton = target.closest(".citas__slot");
+    if (slotButton) {
+        event.preventDefault();
+        handlers.onSlotSelect?.(slotButton.getAttribute("data-slot-datetime"));
+        return;
+    }
+
+    const selectClientButton = target.closest(".citas__client-select-btn");
+    if (selectClientButton) {
+        event.preventDefault();
+        handlers.onClientSelect?.(parseNumericAttributeValue(selectClientButton, "data-client-id"));
+        return;
+    }
+
+    const showQuickAddButton = target.closest("#citas-show-quick-add-btn");
+    if (showQuickAddButton) {
+        event.preventDefault();
+        handlers.onShowQuickAdd?.();
+        return;
+    }
+
+    const createButton = target.closest("#citas-create-appointment-btn");
+    if (createButton) {
+        event.preventDefault();
+        handlers.onCreateAppointment?.();
+        return;
+    }
+
+    const updateButton = target.closest(".citas__appointment-update-btn");
+    if (updateButton) {
+        event.preventDefault();
+
+        const appointmentId = parseNumericAttributeValue(updateButton, "data-appointment-id");
+        handlers.onUpdateAppointment?.(appointmentId, resolveAppointmentStatusValue(appointmentId));
+        return;
+    }
+
+    const deleteButton = target.closest(".citas__appointment-delete-btn");
+    if (deleteButton) {
+        event.preventDefault();
+        handlers.onDeleteAppointment?.(parseNumericAttributeValue(deleteButton, "data-appointment-id"));
+    }
 }
 
 export function renderCitasAgendaPanel({ state, appointmentStatuses, serviceCatalog = [], employeeCatalog = [] }) {

@@ -1,3 +1,5 @@
+@import "./appointments.alias.css";
+
 /* Layout principal de la feature de citas */
 .citas {
     display: grid;

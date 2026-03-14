@@ -40,6 +40,8 @@ describe("citas module smoke", () => {
         await flushPromises();
 
         expect(document.querySelector(".citas__title")?.textContent).toContain("Agenda de citas");
+        expect(document.querySelector(".appointments")).toBeTruthy();
+        expect(document.querySelector(".appointments__title")?.textContent).toContain("Agenda de citas");
         expect(fetchSpy).toHaveBeenCalled();
     });
 });
