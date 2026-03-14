@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { createErrorResponseFixture } from "../fixtures/shared/error-response.fixture.js";
 
 const getAvailabilityMock = vi.fn();
 const getAppointmentsMock = vi.fn();
@@ -145,6 +146,74 @@ describe("citas - CRUD, quick-add y conflictos 409", () => {
         expect(container.querySelector("#quickAddLastName").value).toBe("Perez");
         expect(container.querySelector("#quickAddPhone").value).toBe("300");
         expect(container.querySelectorAll(".citas__slot--selected").length).toBe(1);
+    });
+
+    it("quick-add 400 con details[] mapea errores por campo y conserva slot seleccionado", async () => {
+        const { initCitas } = await import("../../src/features/citas/citas.controller.js");
+
+        searchClientsMock.mockResolvedValue({ items: [], total: 0 });
+        createClientMock.mockRejectedValue({
+            status: 400,
+            data: createErrorResponseFixture(400, {
+                message: "Hay errores de validacion.",
+                details: [
+                    "nombre: El nombre es obligatorio",
+                    "telefono: Telefono invalido",
+                ],
+            }),
+        });
+
+        await initCitas(container);
+        submitFilters(container);
+        await waitForController();
+
+        clickFirstAvailableSlot(container);
+        searchClient(container, { documentNumber: "10203040" });
+        await waitForController(120);
+
+        const quickAddForm = container.querySelector("#citas-quick-add-form");
+        expect(quickAddForm).not.toBeNull();
+
+        quickAddForm.querySelector("input[name='firstName']").value = "";
+        quickAddForm.querySelector("input[name='lastName']").value = "Perez";
+        quickAddForm.querySelector("input[name='phone']").value = "300";
+        quickAddForm.querySelector("input[name='documentNumber']").value = "10203040";
+        quickAddForm.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
+
+        await waitForController(120);
+
+        const banner = container.querySelector(".citas__message--error");
+        expect(banner).not.toBeNull();
+        expect(banner.textContent).toContain("validacion");
+
+        expect(container.textContent).toContain("El nombre es obligatorio");
+        expect(container.textContent).toContain("Telefono invalido");
+        expect(container.querySelectorAll(".citas__slot--selected").length).toBe(1);
+    });
+
+    it("busqueda cliente 404 con details[] habilita quick-add y conserva el slot", async () => {
+        const { initCitas } = await import("../../src/features/citas/citas.controller.js");
+
+        searchClientsMock.mockRejectedValue({
+            status: 404,
+            data: createErrorResponseFixture(404, {
+                message: "No se encontraron resultados para la busqueda realizada.",
+                details: ["documento: sin coincidencias"],
+            }),
+        });
+
+        await initCitas(container);
+        submitFilters(container);
+        await waitForController();
+
+        clickFirstAvailableSlot(container);
+        searchClient(container, { documentNumber: "00000000" });
+        await waitForController(120);
+
+        expect(container.querySelector("#citas-quick-add-form")).not.toBeNull();
+        expect(container.querySelector("#quickAddDocumentNumber")?.value).toBe("00000000");
+        expect(container.querySelectorAll(".citas__slot--selected").length).toBe(1);
+        expect(container.querySelector(".citas__message--error")).toBeNull();
     });
 
     it("conflicto 409 bloquea confirmacion y reconcilia agenda+disponibilidad", async () => {

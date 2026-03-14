@@ -2,6 +2,7 @@ import {
     CITAS_HTTP_MESSAGES,
     DEFAULT_CITAS_ERROR_MESSAGE,
 } from "./citas.constants.js";
+import { normalizeHttpError as normalizeSharedHttpError } from "../../shared/mappers/httpErrorNormalizer.js";
 
 function getFirstValue(source, keys, fallback = null) {
     for (const key of keys) {
@@ -342,158 +343,32 @@ export function mapEmployeesCatalogResponse(payload) {
     return rawItems.map((item) => mapEmployeeCatalogItem(item)).filter((e) => e.id > 0);
 }
 
-function extractFieldErrors(errorData) {
-    if (!errorData || typeof errorData !== "object") {
-        return null;
-    }
-
-    if (errorData.fieldErrors && typeof errorData.fieldErrors === "object") {
-        return errorData.fieldErrors;
-    }
-
-    if (errorData.errors && typeof errorData.errors === "object" && !Array.isArray(errorData.errors)) {
-        return errorData.errors;
-    }
-
-    if (Array.isArray(errorData.errors)) {
-        const fieldErrors = {};
-
-        errorData.errors.forEach((item) => {
-            const fieldName = item?.field;
-            const fieldMessage = item?.message || item?.defaultMessage;
-
-            if (fieldName && fieldMessage) {
-                fieldErrors[fieldName] = fieldMessage;
-            }
-        });
-
-        if (Object.keys(fieldErrors).length > 0) {
-            return fieldErrors;
-        }
-    }
-
-    if (Array.isArray(errorData.details)) {
-        const fieldErrors = {};
-
-        errorData.details.forEach((detail) => {
-            if (typeof detail !== "string") {
-                return;
-            }
-
-            const [rawField, ...messageParts] = detail.split(":");
-            const fieldName = rawField?.trim();
-            const fieldMessage = messageParts.join(":").trim();
-
-            if (fieldName && fieldMessage) {
-                fieldErrors[fieldName] = fieldMessage;
-            }
-        });
-
-        if (Object.keys(fieldErrors).length > 0) {
-            return fieldErrors;
-        }
-    }
-
-    return null;
-}
-
-function resolveErrorMessage(errorData, fallbackMessage) {
-    if (typeof errorData === "string") {
-        return errorData;
-    }
-
-    if (!errorData || typeof errorData !== "object") {
-        return fallbackMessage;
-    }
-
-    return (
-        errorData.mensaje
-        || errorData.message
-        || errorData.error
-        || errorData.detail
-        || fallbackMessage
-    );
-}
-
 export function normalizeHttpError(error) {
-    const status = toNumber(error?.status, 0);
-    const errorData = error?.data;
+    const normalizedError = normalizeSharedHttpError(error, {
+        statusMessages: {
+            ...CITAS_HTTP_MESSAGES,
+            401: "Tu sesion expiro. Inicia sesion nuevamente.",
+        },
+        defaultMessage: DEFAULT_CITAS_ERROR_MESSAGE,
+        networkMessage: "No se pudo conectar con el servidor.",
+        resolveFallbackMessage: ({ status, fallbackMessage }) => {
+            if (status >= 500) {
+                return "Ocurrio un error interno del servidor.";
+            }
 
-    if (status === 0) {
-        return {
-            status,
-            code: "NETWORK",
-            message: "No se pudo conectar con el servidor.",
-            fieldErrors: null,
-            raw: error,
-        };
-    }
+            return fallbackMessage;
+        },
+    });
 
-    if (status === 400) {
-        return {
-            status,
-            code: "VALIDATION",
-            message: resolveErrorMessage(errorData, CITAS_HTTP_MESSAGES[400]),
-            fieldErrors: extractFieldErrors(errorData),
-            raw: error,
-        };
-    }
-
-    if (status === 401) {
-        return {
-            status,
-            code: "UNAUTHORIZED",
-            message: resolveErrorMessage(errorData, "Tu sesion expiro. Inicia sesion nuevamente."),
-            fieldErrors: null,
-            raw: error,
-        };
-    }
-
-    if (status === 403) {
-        return {
-            status,
-            code: "FORBIDDEN",
-            message: resolveErrorMessage(errorData, CITAS_HTTP_MESSAGES[403]),
-            fieldErrors: null,
-            raw: error,
-        };
-    }
-
-    if (status === 404) {
-        return {
-            status,
-            code: "NOT_FOUND",
-            message: resolveErrorMessage(errorData, CITAS_HTTP_MESSAGES[404]),
-            fieldErrors: null,
-            raw: error,
-        };
-    }
-
-    if (status === 409) {
-        return {
-            status,
-            code: "CONFLICT",
-            message: resolveErrorMessage(errorData, CITAS_HTTP_MESSAGES[409]),
-            fieldErrors: extractFieldErrors(errorData),
-            raw: error,
-        };
-    }
-
-    if (status >= 500) {
-        return {
-            status,
-            code: "SERVER",
-            message: resolveErrorMessage(errorData, "Ocurrio un error interno del servidor."),
-            fieldErrors: null,
-            raw: error,
-        };
-    }
+    const hasFieldErrors = Object.keys(normalizedError.fieldErrors).length > 0;
+    const includeFieldErrors = normalizedError.status === 400 || normalizedError.status === 409;
 
     return {
-        status,
-        code: "UNKNOWN",
-        message: resolveErrorMessage(errorData, DEFAULT_CITAS_ERROR_MESSAGE),
-        fieldErrors: null,
-        raw: error,
+        status: normalizedError.status,
+        code: normalizedError.code,
+        message: normalizedError.message,
+        details: normalizedError.details,
+        fieldErrors: includeFieldErrors && hasFieldErrors ? normalizedError.fieldErrors : null,
+        raw: normalizedError.raw,
     };
 }

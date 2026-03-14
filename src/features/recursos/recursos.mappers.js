@@ -1,4 +1,5 @@
 import { RECURSOS_HTTP_MESSAGES, DEFAULT_RECURSOS_ERROR_MESSAGE } from "./recursos.constants.js";
+import { normalizeHttpError as normalizeSharedHttpError } from "../../shared/mappers/httpErrorNormalizer.js";
 
 // Convierte un RecursoResponse del backend al modelo de la vista
 export function mapResourceResponse(dto) {
@@ -30,9 +31,15 @@ export function mapUpdateResourcePayload(formState) {
 
 // Normaliza errores HTTP a un string legible para el usuario
 export function normalizeRecursosHttpError(error) {
-    const status = error?.status ?? error?.response?.status;
-    if (status && RECURSOS_HTTP_MESSAGES[status]) {
-        return RECURSOS_HTTP_MESSAGES[status];
+    const normalizedError = normalizeSharedHttpError(error, {
+        statusMessages: RECURSOS_HTTP_MESSAGES,
+        defaultMessage: DEFAULT_RECURSOS_ERROR_MESSAGE,
+        preferStatusMessage: true,
+    });
+
+    if (normalizedError.status && RECURSOS_HTTP_MESSAGES[normalizedError.status]) {
+        return RECURSOS_HTTP_MESSAGES[normalizedError.status];
     }
-    return error?.message || DEFAULT_RECURSOS_ERROR_MESSAGE;
+
+    return error?.message || normalizedError.message;
 }

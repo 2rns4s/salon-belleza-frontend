@@ -2,6 +2,7 @@ import {
     CLIENTES_HTTP_MESSAGES,
     DEFAULT_CLIENTES_ERROR_MESSAGE,
 } from "./clientes.constants.js";
+import { normalizeHttpError as normalizeSharedHttpError } from "../../shared/mappers/httpErrorNormalizer.js";
 
 function getFirstValue(source, keys, fallback = null) {
     for (const key of keys) {
@@ -26,71 +27,6 @@ function buildFullName(firstName, lastName) {
         .filter(Boolean)
         .join(" ")
         .trim();
-}
-
-function extractBackendMessage(errorData, fallbackMessage) {
-    if (!errorData || typeof errorData !== "object") {
-        return fallbackMessage;
-    }
-
-    return (
-        errorData.mensaje
-        || errorData.message
-        || errorData.error
-        || errorData.detail
-        || fallbackMessage
-    );
-}
-
-function parseFieldErrors(errorData) {
-    if (!errorData || typeof errorData !== "object") {
-        return {};
-    }
-
-    if (errorData.fieldErrors && typeof errorData.fieldErrors === "object") {
-        return { ...errorData.fieldErrors };
-    }
-
-    if (errorData.errors && typeof errorData.errors === "object" && !Array.isArray(errorData.errors)) {
-        return { ...errorData.errors };
-    }
-
-    if (Array.isArray(errorData.errors)) {
-        const errorMap = {};
-
-        errorData.errors.forEach((item) => {
-            const fieldName = item?.field;
-            const fieldMessage = item?.message || item?.defaultMessage;
-
-            if (fieldName && fieldMessage) {
-                errorMap[fieldName] = fieldMessage;
-            }
-        });
-
-        return errorMap;
-    }
-
-    if (Array.isArray(errorData.details)) {
-        const errorMap = {};
-
-        errorData.details.forEach((detail) => {
-            if (typeof detail !== "string") {
-                return;
-            }
-
-            const [rawField, ...rawMessageParts] = detail.split(":");
-            const fieldName = rawField?.trim();
-            const fieldMessage = rawMessageParts.join(":").trim();
-
-            if (fieldName && fieldMessage) {
-                errorMap[fieldName] = fieldMessage;
-            }
-        });
-
-        return errorMap;
-    }
-
-    return {};
 }
 
 function mapCreateFieldName(fieldName) {
@@ -166,21 +102,15 @@ export function mapCreateClientPayload(clientInput = {}) {
 }
 
 export function normalizeClientesHttpError(error) {
-    const status = Number(error?.status || 0);
-
-    if (!status) {
-        return {
-            status: 0,
-            message: "No se pudo conectar con el servidor. Verifica backend y CORS.",
-            fieldErrors: {},
-        };
-    }
-
-    const fallbackMessage = CLIENTES_HTTP_MESSAGES[status] || DEFAULT_CLIENTES_ERROR_MESSAGE;
+    const normalizedError = normalizeSharedHttpError(error, {
+        statusMessages: CLIENTES_HTTP_MESSAGES,
+        defaultMessage: DEFAULT_CLIENTES_ERROR_MESSAGE,
+        networkMessage: "No se pudo conectar con el servidor. Verifica backend y CORS.",
+    });
 
     return {
-        status,
-        message: extractBackendMessage(error?.data, fallbackMessage),
-        fieldErrors: parseFieldErrors(error?.data),
+        status: normalizedError.status,
+        message: normalizedError.message,
+        fieldErrors: normalizedError.fieldErrors,
     };
 }

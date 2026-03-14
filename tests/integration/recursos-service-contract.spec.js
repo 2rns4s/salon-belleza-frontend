@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { createErrorResponseFixture } from "../fixtures/shared/error-response.fixture.js";
 
 function createJsonResponse({ ok = true, status = 200, data = {} } = {}) {
     return {
@@ -79,5 +80,25 @@ describe("recursos service contract", () => {
         const [url, options] = fetchSpy.mock.calls[0];
         expect(url).toBe("http://localhost:8080/api/v1/recursos/3");
         expect(options.method).toBe("DELETE");
+    });
+
+    it("RECURSOS-SVC-05: POST 400 propaga ErrorResponse con details[] para validacion", async () => {
+        const badRequestError = createErrorResponseFixture(400, {
+            message: "Error en los datos enviados",
+            details: ["cantidadTotal: debe ser mayor o igual a 1"],
+        });
+
+        vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
+            createJsonResponse({ ok: false, status: 400, data: badRequestError }),
+        );
+
+        const { createResource } = await import("../../src/features/recursos/recursos.service.js");
+
+        await expect(
+            createResource({ name: "Tijeras", totalQuantity: 0 }),
+        ).rejects.toMatchObject({
+            status: 400,
+            data: badRequestError,
+        });
     });
 });

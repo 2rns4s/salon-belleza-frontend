@@ -1,4 +1,5 @@
 import { SERVICIOS_HTTP_MESSAGES, DEFAULT_SERVICIOS_ERROR_MESSAGE } from "./servicios.constants.js";
+import { normalizeHttpError as normalizeSharedHttpError } from "../../shared/mappers/httpErrorNormalizer.js";
 
 // Convierte RecursoEnServicioResponse al modelo de la vista
 function mapServiceResourceResponse(dto) {
@@ -58,9 +59,15 @@ export function mapUpdateServicePayload(formState) {
 
 // Normaliza errores HTTP a un string legible para el usuario
 export function normalizeServiciosHttpError(error) {
-    const status = error?.status ?? error?.response?.status;
-    if (status && SERVICIOS_HTTP_MESSAGES[status]) {
-        return SERVICIOS_HTTP_MESSAGES[status];
+    const normalizedError = normalizeSharedHttpError(error, {
+        statusMessages: SERVICIOS_HTTP_MESSAGES,
+        defaultMessage: DEFAULT_SERVICIOS_ERROR_MESSAGE,
+        preferStatusMessage: true,
+    });
+
+    if (normalizedError.status && SERVICIOS_HTTP_MESSAGES[normalizedError.status]) {
+        return SERVICIOS_HTTP_MESSAGES[normalizedError.status];
     }
-    return error?.message || DEFAULT_SERVICIOS_ERROR_MESSAGE;
+
+    return error?.message || normalizedError.message;
 }

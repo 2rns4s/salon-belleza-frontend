@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { createErrorResponseFixture } from "../fixtures/shared/error-response.fixture.js";
 
 function createJsonResponse({ ok = true, status = 200, data = {} } = {}) {
     return {
@@ -126,5 +127,29 @@ describe("servicios service contract", () => {
         expect(result).toHaveLength(2);
         expect(result[0]).toEqual({ id: 1, name: "Tijeras" });
         expect(result[1]).toEqual({ id: 2, name: "Tinte" });
+    });
+
+    it("SERVICIOS-SVC-06: POST 409 propaga ErrorResponse con details[] sin perder status", async () => {
+        const conflictError = createErrorResponseFixture(409, {
+            message: "Ya existe un servicio con ese nombre",
+            details: ["nombre: ya existe un servicio con ese nombre"],
+        });
+
+        vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
+            createJsonResponse({ ok: false, status: 409, data: conflictError }),
+        );
+
+        const { createService } = await import("../../src/features/servicios/servicios.service.js");
+
+        await expect(
+            createService({
+                name: "Corte de cabello",
+                duration: 30,
+                requiredResources: [{ rowId: "local-1", resourceId: 1, quantity: 1 }],
+            }),
+        ).rejects.toMatchObject({
+            status: 409,
+            data: conflictError,
+        });
     });
 });

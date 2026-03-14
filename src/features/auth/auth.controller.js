@@ -2,6 +2,7 @@ import { extractRoleFromToken, login, verificarMfa } from "./auth.service.js";
 import { renderLoadingState, renderLoginPage, renderMfaPage } from "./auth.view.js";
 import { AUTH_ROLES, guardarSesion as saveSession, normalizeAuthRole } from "../../shared/state/authStore.js";
 import { navegarA } from "../../shared/router/router.js";
+import { normalizeHttpError as normalizeSharedHttpError } from "../../shared/mappers/httpErrorNormalizer.js";
 
 const AUTH_STATES = Object.freeze({
     LOGIN: "login",
@@ -41,70 +42,6 @@ function clearErrors() {
     authState.fieldErrors = {};
 }
 
-function parseFieldErrors(errorData) {
-    if (!errorData || typeof errorData !== "object") {
-        return null;
-    }
-
-    if (errorData.fieldErrors && typeof errorData.fieldErrors === "object") {
-        return errorData.fieldErrors;
-    }
-
-    if (errorData.errors && typeof errorData.errors === "object" && !Array.isArray(errorData.errors)) {
-        return errorData.errors;
-    }
-
-    if (Array.isArray(errorData.errors)) {
-        const errorMap = {};
-
-        errorData.errors.forEach((item) => {
-            const fieldName = item?.field;
-            const fieldMessage = item?.message || item?.defaultMessage;
-            if (fieldName && fieldMessage) {
-                errorMap[fieldName] = fieldMessage;
-            }
-        });
-
-        return Object.keys(errorMap).length ? errorMap : null;
-    }
-
-    if (Array.isArray(errorData.details)) {
-        const errorMap = {};
-
-        errorData.details.forEach((detail) => {
-            if (typeof detail !== "string") {
-                return;
-            }
-
-            const [rawField, ...rawMessageParts] = detail.split(":");
-            const fieldName = rawField?.trim();
-            const fieldMessage = rawMessageParts.join(":").trim();
-
-            if (fieldName && fieldMessage) {
-                errorMap[fieldName] = fieldMessage;
-            }
-        });
-
-        return Object.keys(errorMap).length ? errorMap : null;
-    }
-
-    return null;
-}
-
-function extractBackendMessage(errorData, fallbackMessage) {
-    if (!errorData || typeof errorData !== "object") {
-        return fallbackMessage;
-    }
-
-    return (
-        errorData.mensaje
-        || errorData.message
-        || errorData.error
-        || errorData.detail
-        || fallbackMessage
-    );
-}
-
 function isGenericAuthMessage(message) {
     const normalizedMessage = (message || "").toLowerCase();
 
@@ -116,12 +53,12 @@ function isGenericAuthMessage(message) {
     );
 }
 
-function resolveUnauthorizedMessage(errorData, context) {
+function resolveUnauthorizedMessage(normalizedMessage, context) {
     const defaultMessage = context === AUTH_STATES.MFA
         ? "Codigo de verificacion invalido o expirado. Intenta nuevamente."
         : "Credenciales invalidas o acceso no autorizado.";
 
-    const backendMessage = extractBackendMessage(errorData, defaultMessage);
+    const backendMessage = String(normalizedMessage || defaultMessage);
 
     if (context === AUTH_STATES.MFA && isGenericAuthMessage(backendMessage)) {
         return defaultMessage;
@@ -131,39 +68,39 @@ function resolveUnauthorizedMessage(errorData, context) {
 }
 
 function normalizeUiError(error, context = AUTH_STATES.LOGIN) {
-    if (!error || error.status === undefined || error.status === null || error.status === 0) {
+    const normalizedError = normalizeSharedHttpError(error, {
+        statusMessages: {
+            400: "Hay errores de validacion. Revisa los campos.",
+            401: "Credenciales invalidas o acceso no autorizado.",
+            403: "Credenciales invalidas o acceso no autorizado.",
+        },
+        defaultMessage: "Error inesperado del servidor. Por favor intenta mas tarde.",
+        networkMessage: "No se pudo conectar con el servidor. Verifica backend y configuracion CORS.",
+        resolveFallbackMessage: ({ status, fallbackMessage }) => {
+            if (status >= 500) {
+                return "Error interno del servidor. Intenta nuevamente.";
+            }
+
+            return fallbackMessage;
+        },
+    });
+
+    if (normalizedError.status === 400) {
         return {
-            errorMessage: "No se pudo conectar con el servidor. Verifica backend y configuracion CORS.",
-            fieldErrors: {},
+            errorMessage: normalizedError.message,
+            fieldErrors: normalizedError.fieldErrors,
         };
     }
 
-    if (error.status === 400) {
-        const backendFieldErrors = parseFieldErrors(error.data);
-        const errorMessage = extractBackendMessage(error.data, "Hay errores de validacion. Revisa los campos.");
-
+    if (normalizedError.status === 401 || normalizedError.status === 403) {
         return {
-            errorMessage,
-            fieldErrors: backendFieldErrors || {},
-        };
-    }
-
-    if (error.status === 401 || error.status === 403) {
-        return {
-            errorMessage: resolveUnauthorizedMessage(error.data, context),
-            fieldErrors: {},
-        };
-    }
-
-    if (error.status >= 500) {
-        return {
-            errorMessage: extractBackendMessage(error.data, "Error interno del servidor. Intenta nuevamente."),
+            errorMessage: resolveUnauthorizedMessage(normalizedError.message, context),
             fieldErrors: {},
         };
     }
 
     return {
-        errorMessage: extractBackendMessage(error.data, "Error inesperado del servidor. Por favor intenta mas tarde."),
+        errorMessage: normalizedError.message,
         fieldErrors: {},
     };
 }

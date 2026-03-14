@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { createErrorResponseFixture } from "../fixtures/shared/error-response.fixture.js";
 
 function createJsonResponse({ ok = true, status = 200, data = {} } = {}) {
     return {
@@ -68,6 +69,35 @@ describe("http 401 global handling", () => {
         expect(callbackExecutions).toBe(1);
     });
 
+    it("skipUnauthorizedHandler evita callback pero preserva rechazo 401 con ErrorResponse", async () => {
+        const { httpClient, setUnauthorizedHandler } = await import("../../src/shared/services/httpClient.js");
+
+        const unauthorizedError = createErrorResponseFixture(401, {
+            message: "Token expirado",
+            details: ["auth: token invalido o expirado"],
+        });
+
+        let callbackExecutions = 0;
+        setUnauthorizedHandler(async () => {
+            callbackExecutions += 1;
+        });
+
+        vi.spyOn(globalThis, "fetch").mockImplementation(() => (
+            Promise.resolve(createJsonResponse({
+                ok: false,
+                status: 401,
+                data: unauthorizedError,
+            }))
+        ));
+
+        await expect(httpClient("/api/v1/citas", { skipUnauthorizedHandler: true })).rejects.toMatchObject({
+            status: 401,
+            data: unauthorizedError,
+        });
+
+        expect(callbackExecutions).toBe(0);
+    });
+
     it("clears session and redirects to /auth when bootstrap global callback handles 401", async () => {
         const { guardarSesion, obtenerEstadoAuth, obtenerToken } = await import("../../src/shared/state/authStore.js");
         const { httpClient } = await import("../../src/shared/services/httpClient.js");
@@ -104,5 +134,29 @@ describe("http 401 global handling", () => {
         expect(obtenerEstadoAuth().sesionIniciada).toBe(false);
         expect(obtenerToken()).toBeNull();
         expect(window.location.hash).toBe("#/auth");
+    });
+
+    it("propaga details[] del ErrorResponse cuando falla con 401", async () => {
+        const { httpClient, setUnauthorizedHandler } = await import("../../src/shared/services/httpClient.js");
+
+        setUnauthorizedHandler(async () => {});
+
+        const unauthorizedError = createErrorResponseFixture(401, {
+            message: "Token expirado",
+            details: ["auth: token invalido o expirado"],
+        });
+
+        vi.spyOn(globalThis, "fetch").mockImplementation(() => (
+            Promise.resolve(createJsonResponse({
+                ok: false,
+                status: 401,
+                data: unauthorizedError,
+            }))
+        ));
+
+        await expect(httpClient("/api/v1/clientes")).rejects.toMatchObject({
+            status: 401,
+            data: unauthorizedError,
+        });
     });
 });

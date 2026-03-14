@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { createErrorResponseFixture } from "../fixtures/shared/error-response.fixture.js";
 
 const getAvailabilityMock = vi.fn();
 const getAppointmentsMock = vi.fn();
@@ -93,5 +94,35 @@ describe("citas catalog retry integration", () => {
         expect(getEmployeesMock).toHaveBeenCalledTimes(2);
         expect(serviceSelect.disabled).toBe(false);
         expect(getOptionTexts(serviceSelect)).toContain("Lavado Premium");
+    });
+
+    it("si catálogo falla con ErrorResponse 401, mantiene selects bloqueados y muestra estado de error", async () => {
+        const { initCitas } = await import("../../src/features/citas/citas.controller.js");
+
+        getServicesMock.mockRejectedValueOnce({
+            status: 401,
+            data: createErrorResponseFixture(401, {
+                message: "Token expirado",
+                details: ["auth: token invalido o expirado"],
+            }),
+        });
+
+        getEmployeesMock.mockRejectedValueOnce({
+            status: 401,
+            data: createErrorResponseFixture(401),
+        });
+
+        await initCitas(container);
+        await waitForController(80);
+
+        const serviceSelect = container.querySelector("#citas-service-select");
+        const employeeSelect = container.querySelector("#citas-employee-select");
+
+        expect(getServicesMock).toHaveBeenCalledTimes(1);
+        expect(getEmployeesMock).toHaveBeenCalledTimes(1);
+        expect(serviceSelect.disabled).toBe(true);
+        expect(employeeSelect.disabled).toBe(true);
+        expect(getOptionTexts(serviceSelect)).toContain("Error al cargar");
+        expect(getOptionTexts(employeeSelect)).toContain("Error al cargar");
     });
 });

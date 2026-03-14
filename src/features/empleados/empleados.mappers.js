@@ -2,6 +2,7 @@ import {
     EMPLEADOS_HTTP_MESSAGES,
     DEFAULT_EMPLEADOS_ERROR_MESSAGE,
 } from "./empleados.constants.js";
+import { normalizeHttpError as normalizeSharedHttpError } from "../../shared/mappers/httpErrorNormalizer.js";
 
 function toNumber(value, fallback = 0) {
     const parsed = Number(value);
@@ -50,42 +51,6 @@ function mapCreateWorkShiftPayload(shift = {}) {
         horaInicio: toBackendLocalTime(shift.startTime ?? shift.horaInicio),
         horaFin: toBackendLocalTime(shift.endTime ?? shift.horaFin),
     };
-}
-
-function extractErrorMessage(errorData, fallbackMessage) {
-    if (typeof errorData === "string") {
-        return errorData;
-    }
-
-    if (!errorData || typeof errorData !== "object") {
-        return fallbackMessage;
-    }
-
-    return (
-        errorData.message
-        || errorData.mensaje
-        || errorData.error
-        || errorData.detail
-        || fallbackMessage
-    );
-}
-
-function extractErrorDetails(errorData) {
-    if (!errorData || typeof errorData !== "object") {
-        return [];
-    }
-
-    if (Array.isArray(errorData.details)) {
-        return errorData.details
-            .map((detail) => toTrimmedString(detail))
-            .filter(Boolean);
-    }
-
-    if (typeof errorData.detail === "string" && toTrimmedString(errorData.detail)) {
-        return [toTrimmedString(errorData.detail)];
-    }
-
-    return [];
 }
 
 // Convierte EmpleadoResponse del backend al modelo de la vista
@@ -175,13 +140,14 @@ export function mapUpdateEmployeePayload(formState = {}) {
 
 // Normaliza error HTTP con message + details[] del ErrorResponse
 export function normalizeEmpleadosHttpError(error) {
-    const status = toNumber(error?.status ?? error?.response?.status, 0);
-    const fallbackMessage = EMPLEADOS_HTTP_MESSAGES[status] || DEFAULT_EMPLEADOS_ERROR_MESSAGE;
-    const errorData = error?.data ?? error?.response?.data;
+    const normalizedError = normalizeSharedHttpError(error, {
+        statusMessages: EMPLEADOS_HTTP_MESSAGES,
+        defaultMessage: DEFAULT_EMPLEADOS_ERROR_MESSAGE,
+    });
 
     return {
-        status,
-        message: extractErrorMessage(errorData, fallbackMessage),
-        details: extractErrorDetails(errorData),
+        status: normalizedError.status,
+        message: normalizedError.message,
+        details: normalizedError.details,
     };
 }

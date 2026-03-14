@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { limpiarSesion, obtenerEstadoAuth } from "../../src/shared/state/authStore.js";
+import { createErrorResponseFixture } from "../fixtures/shared/error-response.fixture.js";
 
 const loginMock = vi.fn();
 const verifyMfaMock = vi.fn();
@@ -273,5 +274,37 @@ describe("auth login integration", () => {
 
         expect(navigateMock).toHaveBeenCalledWith("/dashboard");
         expect(obtenerEstadoAuth().rol).toBeNull();
+    });
+
+    it("AUTH-ERROR-401-01: login 401 muestra mensaje de backend y no redirige", async () => {
+        const { initAuth } = await import("../../src/features/auth/auth.controller.js");
+        const container = document.createElement("section");
+        document.body.appendChild(container);
+
+        loginMock.mockRejectedValue({
+            status: 401,
+            data: createErrorResponseFixture(401, {
+                message: "Credenciales invalidas o acceso no autorizado.",
+                details: ["nombreUsuario: usuario no encontrado"],
+            }),
+        });
+
+        initAuth(container);
+
+        container.querySelector("#username").value = "usuario-invalido";
+        container.querySelector("#password").value = "credencial-mala";
+
+        const loginForm = container.querySelector("#login-form");
+        bindFormField(loginForm, "username", container.querySelector("#username"));
+        bindFormField(loginForm, "password", container.querySelector("#password"));
+        loginForm.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
+
+        await flushPromises();
+
+        const errorBanner = container.querySelector(".auth__error");
+        expect(errorBanner).not.toBeNull();
+        expect(errorBanner.textContent).toContain("Credenciales invalidas o acceso no autorizado");
+        expect(navigateMock).not.toHaveBeenCalled();
+        expect(obtenerEstadoAuth().sesionIniciada).toBe(false);
     });
 });
