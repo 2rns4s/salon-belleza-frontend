@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { initializeApp } from "../../src/app/bootstrap.js";
 import { guardarSesion, limpiarSesion, obtenerEstadoAuth, obtenerToken } from "../../src/shared/state/authStore.js";
+import { setAuthToken } from "../../src/shared/storage/authTokenStorage.js";
 
 function encodeBase64Url(value) {
     return btoa(value)
@@ -163,6 +164,18 @@ describe("layout shared header integration", () => {
         expect(document.querySelector(".layout__session-status")?.textContent).toContain("Sesion no iniciada");
     });
 
+    it("LAYOUT-REHYDRATE-INVALID-01: token malformado persistido limpia sesion y redirige a /auth", () => {
+        setAuthToken("invalid-token");
+
+        mountAppShell();
+        initializeApp();
+
+        expect(obtenerEstadoAuth().sesionIniciada).toBe(false);
+        expect(obtenerToken()).toBeNull();
+        expect(window.location.hash).toBe("#/auth");
+        expect(document.querySelector(".layout__session-status")?.textContent).toContain("Sesion no iniciada");
+    });
+
     it("LAYOUT-NAV-OWNER: OWNER ve Clientes, Citas, Usuarios, Empleados, Servicios y Recursos en la navegacion", () => {
         guardarSesion({ usuario: "owner", rol: "OWNER", token: createJwtToken({ rol: "OWNER", nombreUsuario: "owner" }) });
         mountAppShell();
@@ -209,5 +222,25 @@ describe("layout shared header integration", () => {
         otherLinks.forEach((link) => {
             expect(link.classList.contains("layout__nav-link--active")).toBe(false);
         });
+    });
+
+    it("LAYOUT-REHYDRATE-OWNER-01: rehidrata sesion en memoria desde token persistido al iniciar app", () => {
+        setAuthToken(
+            createJwtToken({
+                rol: "OWNER",
+                nombreUsuario: "owner-reload",
+                exp: Math.floor(Date.now() / 1000) + 3600,
+            }),
+        );
+
+        mountAppShell();
+        initializeApp();
+
+        const authState = obtenerEstadoAuth();
+
+        expect(authState.sesionIniciada).toBe(true);
+        expect(authState.rol).toBe("OWNER");
+        expect(authState.usuario).toBe("owner-reload");
+        expect(document.querySelector(".layout__role-badge")?.textContent).toContain("Propietario");
     });
 });

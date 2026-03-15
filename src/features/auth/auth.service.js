@@ -46,9 +46,7 @@ function decodeJwtPayload(token) {
                 .join(""),
         );
 
-        const payload = JSON.parse(decodedPayload);
-        console.log("Decoded JWT payload:", payload);
-        return payload;
+        return JSON.parse(decodedPayload);
     } catch {
         return null;
     }

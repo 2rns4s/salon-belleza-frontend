@@ -1,5 +1,5 @@
 import { iniciarRouter, navegarA, registrarRuta } from "../shared/router/router.js";
-import { limpiarSesion } from "../shared/state/authStore.js";
+import { limpiarSesion, obtenerToken, rehydrateAuthSession } from "../shared/state/authStore.js";
 import { setUnauthorizedHandler } from "../shared/services/httpClient.js";
 import { mountLayout, updateLayoutUserContext } from "../shared/components/layout/layout.controller.js";
 import "../features/usuarios/usuarios.routes.js";
@@ -57,6 +57,17 @@ function registerBaseRoutes(appContent) {
 }
 
 export function initializeApp() {
+    const tokenBeforeRehydration = obtenerToken();
+    rehydrateAuthSession();
+    const tokenAfterRehydration = obtenerToken();
+
+    if (tokenBeforeRehydration && !tokenAfterRehydration) {
+        const currentPath = window.location.hash.replace("#", "") || "/";
+        if (currentPath !== "/auth") {
+            navegarA("/auth");
+        }
+    }
+
     const appContent = resolveAppContentContainer();
 
     if (!appContent) {

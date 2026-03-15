@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { extractRoleFromToken } from "../../src/features/auth/auth.service.js";
 
 function encodeBase64Url(value) {
@@ -13,6 +13,10 @@ function createJwtToken(payload = {}) {
     const body = encodeBase64Url(JSON.stringify(payload));
     return `${header}.${body}.signature`;
 }
+
+afterEach(() => {
+    vi.restoreAllMocks();
+});
 
 describe("auth.service extractRoleFromToken", () => {
     it("AUTH-JWT-EXTRACT-01: token valido con rol retorna el rol", () => {
@@ -48,5 +52,12 @@ describe("auth.service extractRoleFromToken", () => {
     it("AUTH-JWT-EXTRACT-01: token malformado retorna null sin excepcion", () => {
         expect(extractRoleFromToken("invalid-token")).toBeNull();
         expect(extractRoleFromToken("part1.part2")).toBeNull();
+    });
+
+    it("AUTH-JWT-EXTRACT-02: no emite logs a consola al decodificar el JWT", () => {
+        const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+
+        expect(extractRoleFromToken(createJwtToken({ rol: "OWNER" }))).toBe("OWNER");
+        expect(consoleSpy).not.toHaveBeenCalled();
     });
 });

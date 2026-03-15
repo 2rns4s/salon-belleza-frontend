@@ -1,7 +1,15 @@
 import { initUsuarios } from "./usuarios.controller.js";
+import { AUTH_ROLES, tieneRol } from "../../shared/state/authStore.js";
+import { navegarA } from "../../shared/router/router.js";
 
-function renderUsuariosRoute() {
-    void initUsuarios();
+function renderUsuariosRoute(container) {
+    // Solo OWNER puede acceder a la gestion de usuarios
+    if (!tieneRol(AUTH_ROLES.OWNER)) {
+        navegarA("/dashboard");
+        return;
+    }
+
+    void initUsuarios(container);
 }
 
 const existingFeatureRoutes = window.appFeatureRoutes || [];
