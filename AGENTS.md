@@ -1,31 +1,32 @@
-# Orquestador - Sistema de Gestión Salón de Belleza
+# Agent Teams Lite — Agent Skills Index
 
-Eres un Arquitecto de Software Senior y Revisor de Código. Evalúa los archivos en este commit basándote EXCLUSIVAMENTE en las reglas globales a continuación y en las skills específicas cargadas según el tipo de archivo.
+When working on this project, read `.atl/skill-registry.md` first and then load the relevant skill(s) BEFORE writing any code.
 
-**IMPORTANTE:** Tu respuesta DEBE comenzar OBLIGATORIAMENTE con `STATUS: PASSED` o `STATUS: FAILED` en la primera línea.
+## How to Use
 
-## Índice de Skills (Carga Condicional)
-Lee el contexto OBLIGATORIO de las siguientes skills SOLO si los archivos del commit coinciden con el patrón:
+1. Read `.atl/skill-registry.md` to resolve the current active skill locations
+2. Check the trigger column to find skills that match your current task
+3. Load the skill by reading the `SKILL.md` file at the listed path
+4. Follow ALL patterns and rules from the loaded skill
+5. Multiple skills can apply simultaneously
 
-| Patrón de Archivo | Skill (Reglas a aplicar) | Ruta de Referencia |
-|-------------------|--------------------------|--------------------|
-| `*.controller.js` | Vanilla Controller       | `.vscode/skills/vanilla-controller/SKILL.md` |
-| `*.view.js`       | Vanilla View             | `.vscode/skills/vanilla-view/SKILL.md` |
-| `*.service.js`    | Vanilla Service          | `.vscode/skills/vanilla-service/SKILL.md` |
-| `*.css`           | Vanilla CSS BEM          | `.vscode/skills/vanilla-css-bem/SKILL.md` |
+## Skills
 
-## Reglas Globales (Aplicables a TODO el código)
-
-### 1. Scope Rule (Regla de Alcance)
-- REQUIRE: Archivos dentro de la misma feature (ej. `src/features/auth/`) deben importarse entre sí o desde `src/shared/`.
-- REJECT if: Un archivo en `src/features/X/` importa algo de la feature `src/features/Y/`.
-- PREFER: Archivos globales como `src/app/` o `src/main.js` pueden importar los controladores de inicio de las features para orquestar la app.
-
-### 2. Idioma y Convenciones (Regla Híbrida)
-- REQUIRE: Código y CSS (Nombres de archivos, funciones, variables, constantes, clases CSS BEM) deben estar en INGLÉS (ej. `getAppointments`, `btn--primary`).
-- PREFER: Textos visibles en la Interfaz de Usuario (HTML) y Comentarios de código deben estar en ESPAÑOL. NO marques error si ves español en un string renderizable o en un comentario.
-
-### 3. Instrucciones Generales para la Revisión
-- Sé indulgente. Solo usa `STATUS: FAILED` si hay violaciones críticas de arquitectura (marcadas con REJECT if aquí o en las skills) o violaciones de idioma flagrantes.
-- NO inventes reglas de BEM estrictas si la clase ya está en inglés y es descriptiva.
-- Si decides fallar el commit, explica qué regla se rompió, dónde está el error, y muestra el código corregido.
+| Skill | Trigger | Path |
+|-------|---------|------|
+| `sdd-init` | When initializing SDD in a project, or user says "sdd init". | `~/.copilot/skills/sdd-init/SKILL.md` |
+| `sdd-explore` | When thinking through a feature, investigating the codebase, or clarifying requirements. | `~/.copilot/skills/sdd-explore/SKILL.md` |
+| `sdd-propose` | When creating or updating a change proposal with intent, scope, and approach. | `~/.copilot/skills/sdd-propose/SKILL.md` |
+| `sdd-spec` | When writing or updating specifications with requirements and scenarios. | `~/.copilot/skills/sdd-spec/SKILL.md` |
+| `sdd-design` | When writing or updating technical design with architecture decisions. | `~/.copilot/skills/sdd-design/SKILL.md` |
+| `sdd-tasks` | When breaking down a change into implementation task checklist. | `~/.copilot/skills/sdd-tasks/SKILL.md` |
+| `sdd-apply` | When implementing tasks, writing actual code following specs and design. | `~/.copilot/skills/sdd-apply/SKILL.md` |
+| `sdd-verify` | When validating that implementation matches specs, design, and tasks. | `~/.copilot/skills/sdd-verify/SKILL.md` |
+| `sdd-archive` | When archiving a completed change after implementation and verification. | `~/.copilot/skills/sdd-archive/SKILL.md` |
+| `skill-registry` | When creating or updating the skill registry for the project. | `~/.copilot/skills/skill-registry/SKILL.md` |
+| `issue-creation` | When creating a GitHub issue, reporting a bug, or requesting a feature. | `~/.copilot/skills/issue-creation/SKILL.md` |
+| `branch-pr` | When creating a pull request, opening a PR, or preparing changes for review. | `~/.copilot/skills/branch-pr/SKILL.md` |
+| `vanilla-controller` | Cuando el archivo termina en `.controller.js`. | `~/.copilot/skills/vanilla-controller/SKILL.md` |
+| `vanilla-css-bem` | Archivos `.css`. | `~/.copilot/skills/vanilla-css-bem/SKILL.md` |
+| `vanilla-service` | Archivos `.service.js`. | `~/.copilot/skills/vanilla-service/SKILL.md` |
+| `vanilla-view` | Archivos `.view.js`. | `~/.copilot/skills/vanilla-view/SKILL.md` |
