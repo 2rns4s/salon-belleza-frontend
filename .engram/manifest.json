@@ -80,6 +80,14 @@
       "sessions": 1,
       "memories": 7,
       "prompts": 0
+    },
+    {
+      "id": "dcd9dee6",
+      "created_by": "daniel",
+      "created_at": "2026-03-15T18:16:46Z",
+      "sessions": 4,
+      "memories": 17,
+      "prompts": 0
     }
   ]
 }

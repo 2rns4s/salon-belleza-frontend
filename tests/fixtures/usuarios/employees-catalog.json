@@ -1,0 +1,23 @@
+[
+    {
+        "idEmpleado": 10,
+        "nombre": "Juan",
+        "apellido": "Torres",
+        "correo": "juan.torres@salon.com",
+        "telefono": "3001234567"
+    },
+    {
+        "idEmpleado": 11,
+        "nombre": "Mariana",
+        "apellido": "Rodriguez",
+        "correo": "mariana.r@salon.com",
+        "telefono": "3009876543"
+    },
+    {
+        "idEmpleado": 12,
+        "nombre": "Pedro",
+        "apellido": "Gomez",
+        "correo": "pedro.g@salon.com",
+        "telefono": "3005551234"
+    }
+]

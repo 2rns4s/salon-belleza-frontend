@@ -2,6 +2,7 @@ import { iniciarRouter, navegarA, registrarRuta } from "../shared/router/router.
 import { limpiarSesion } from "../shared/state/authStore.js";
 import { setUnauthorizedHandler } from "../shared/services/httpClient.js";
 import { mountLayout, updateLayoutUserContext } from "../shared/components/layout/layout.controller.js";
+import "../features/usuarios/usuarios.routes.js";
 
 function renderDashboardPlaceholder(container) {
     container.innerHTML = "<p class=\"app__text\">Autenticación completada correctamente. Panel principal pendiente de implementación.</p>";

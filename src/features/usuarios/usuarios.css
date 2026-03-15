@@ -1,0 +1,399 @@
+/* ============================================================
+   Módulo de Usuarios — Estilos BEM
+   Bloque: .usuarios
+   ============================================================ */
+
+/* Contenedor principal del módulo */
+.usuarios {
+    display: grid;
+    gap: 1rem;
+    --usuarios-surface: var(--color-superficie);
+    --usuarios-border: var(--color-vinotinto-border);
+    --usuarios-soft: var(--color-vinotinto-soft);
+    --usuarios-muted: var(--color-vinotinto-muted);
+    --usuarios-subtle: var(--color-vinotinto-subtle);
+    --usuarios-contrast: var(--color-vinotinto-contrast);
+    --usuarios-gradient-start: var(--color-vinotinto-gradient-start);
+    --usuarios-gradient-end: var(--color-vinotinto-gradient-end);
+    --usuarios-surface-alt: var(--color-surface-alt);
+    --usuarios-surface-hover: var(--color-surface-hover);
+    --usuarios-text-secondary: var(--color-texto-secundario);
+    --usuarios-input-border: var(--color-input-border);
+    --usuarios-focus-ring: var(--color-focus-ring);
+    --usuarios-overlay: var(--color-overlay-scrim);
+    --usuarios-shadow: var(--color-shadow-elevated);
+    --usuarios-error-bg: var(--color-feedback-error-bg);
+    --usuarios-error-text: var(--color-feedback-error-text);
+    --usuarios-error-border: var(--color-feedback-error-border);
+    --usuarios-success-bg: var(--color-feedback-success-bg);
+    --usuarios-success-text: var(--color-feedback-success-text);
+    --usuarios-success-border: var(--color-feedback-success-border);
+    --usuarios-owner: var(--color-role-owner);
+    --usuarios-receptionist: var(--color-role-receptionist);
+    --usuarios-active: var(--color-status-active);
+    --usuarios-inactive: var(--color-status-inactive);
+    --usuarios-danger: var(--color-action-danger);
+    --usuarios-danger-hover: var(--color-action-danger-hover);
+    --usuarios-header: var(--color-header-vinotinto-claro);
+    --usuarios-header-hover: var(--color-vinotinto-hover);
+    --usuarios-inverse: var(--color-texto-inverso);
+    --usuarios-warning: var(--color-warning-text);
+}
+
+/* --- Cabecera del módulo --- */
+.usuarios__header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.85rem;
+    padding: 0.95rem;
+    border: 1px solid var(--usuarios-border);
+    border-radius: 0.75rem;
+    background: linear-gradient(120deg, var(--usuarios-gradient-start) 0%, var(--usuarios-gradient-end) 100%);
+}
+
+.usuarios__header-copy {
+    display: grid;
+    gap: 0.3rem;
+}
+
+.usuarios__title {
+    font-size: 1.35rem;
+    font-weight: 700;
+}
+
+.usuarios__subtitle {
+    font-size: 0.92rem;
+    color: var(--usuarios-muted);
+}
+
+.usuarios__toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.55rem;
+}
+
+/* --- Mensajes de feedback globales --- */
+.usuarios__message {
+    padding: 0.65rem 1rem;
+    border-radius: 0.5rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.usuarios__message--error {
+    background-color: var(--usuarios-error-bg);
+    color: var(--usuarios-error-text);
+    border: 1px solid var(--usuarios-error-border);
+}
+
+.usuarios__message--success {
+    background-color: var(--usuarios-success-bg);
+    color: var(--usuarios-success-text);
+    border: 1px solid var(--usuarios-success-border);
+}
+
+/* --- Panel y tabla --- */
+.usuarios__panel {
+    background: var(--usuarios-surface);
+    border: 1px solid var(--usuarios-border);
+    border-radius: 0.75rem;
+    overflow: hidden;
+}
+
+.usuarios__table-wrapper {
+    overflow-x: auto;
+}
+
+.usuarios__table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+}
+
+.usuarios__table-caption {
+    caption-side: top;
+    text-align: left;
+    padding: 0.75rem 1rem;
+    font-size: 0.85rem;
+    color: var(--usuarios-muted);
+    font-weight: 600;
+}
+
+.usuarios__table-head {
+    background-color: var(--usuarios-surface-alt);
+}
+
+.usuarios__table-head-row {
+    border-bottom: 2px solid var(--usuarios-border);
+}
+
+.usuarios__table-head-cell {
+    padding: 0.65rem 0.9rem;
+    text-align: left;
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: var(--usuarios-contrast);
+    white-space: nowrap;
+}
+
+.usuarios__table-row {
+    border-bottom: 1px solid var(--usuarios-soft);
+    transition: background-color 0.15s ease;
+}
+
+.usuarios__table-row--data:hover {
+    background-color: var(--usuarios-surface-hover);
+}
+
+.usuarios__table-row--empty,
+.usuarios__table-row--loading {
+    color: var(--usuarios-subtle);
+}
+
+.usuarios__table-cell {
+    padding: 0.65rem 0.9rem;
+    vertical-align: middle;
+}
+
+.usuarios__table-cell--empty {
+    text-align: center;
+    font-style: italic;
+}
+
+.usuarios__table-cell--badge {
+    white-space: nowrap;
+}
+
+.usuarios__table-cell--actions {
+    white-space: nowrap;
+    display: flex;
+    gap: 0.4rem;
+    align-items: center;
+}
+
+/* --- Badges de rol y estado --- */
+.usuarios__badge {
+    display: inline-block;
+    padding: 0.2rem 0.55rem;
+    border-radius: 0.35rem;
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.usuarios__badge--owner {
+    background-color: var(--usuarios-owner);
+    color: var(--usuarios-inverse);
+}
+
+.usuarios__badge--receptionist {
+    background-color: var(--usuarios-receptionist);
+    color: var(--usuarios-inverse);
+}
+
+.usuarios__badge--active {
+    background-color: var(--usuarios-active);
+    color: var(--usuarios-inverse);
+}
+
+.usuarios__badge--inactive {
+    background-color: var(--usuarios-inactive);
+    color: var(--usuarios-inverse);
+}
+
+/* --- Botones --- */
+.usuarios__btn {
+    min-height: 36px;
+    border-radius: 0.5rem;
+    border: 0;
+    padding: 0.45rem 0.85rem;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 600;
+    line-height: 1;
+    transition: opacity 0.15s ease;
+}
+
+.usuarios__btn:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+.usuarios__btn--primary {
+    background-color: var(--usuarios-header);
+    color: var(--usuarios-inverse);
+}
+
+.usuarios__btn--primary:hover:not(:disabled) {
+    background-color: var(--usuarios-header-hover);
+}
+
+.usuarios__btn--secondary {
+    background-color: var(--usuarios-soft);
+    color: var(--usuarios-header);
+}
+
+.usuarios__btn--secondary:hover:not(:disabled) {
+    background-color: var(--usuarios-border);
+}
+
+.usuarios__btn--danger {
+    background-color: var(--usuarios-danger);
+    color: var(--usuarios-inverse);
+}
+
+.usuarios__btn--danger:hover:not(:disabled) {
+    background-color: var(--usuarios-danger-hover);
+}
+
+/* --- Overlay y modal --- */
+.usuarios__modal-overlay {
+    position: fixed;
+    inset: 0;
+    background-color: var(--usuarios-overlay);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    padding: 1rem;
+}
+
+.usuarios__modal {
+    background: var(--usuarios-surface);
+    border-radius: 0.85rem;
+    box-shadow: 0 8px 28px var(--usuarios-shadow);
+    max-width: 480px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.usuarios__modal--confirm {
+    max-width: 380px;
+}
+
+.usuarios__modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.25rem 0.75rem;
+    border-bottom: 1px solid var(--usuarios-border);
+}
+
+.usuarios__modal-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--usuarios-contrast);
+}
+
+.usuarios__modal-body {
+    padding: 1rem 1.25rem;
+}
+
+.usuarios__modal-text {
+    color: var(--usuarios-text-secondary);
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+.usuarios__modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.55rem;
+    padding: 0.75rem 1.25rem 1rem;
+    border-top: 1px solid var(--usuarios-border);
+}
+
+/* --- Formulario dentro del modal --- */
+.usuarios__form {
+    display: grid;
+    gap: 0.85rem;
+    padding: 1rem 1.25rem;
+}
+
+.usuarios__form-group {
+    display: grid;
+    gap: 0.3rem;
+}
+
+.usuarios__form-group--checkbox {
+    flex-direction: row;
+    align-items: center;
+}
+
+.usuarios__form-label {
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--usuarios-contrast);
+}
+
+.usuarios__form-label--checkbox {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+}
+
+.usuarios__form-input,
+.usuarios__form-select {
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--usuarios-input-border);
+    border-radius: 0.45rem;
+    font-size: 0.9rem;
+    font-family: inherit;
+    background: var(--usuarios-surface);
+    transition: border-color 0.15s ease;
+    box-sizing: border-box;
+}
+
+.usuarios__form-input:focus,
+.usuarios__form-select:focus {
+    outline: none;
+    border-color: var(--usuarios-header);
+    box-shadow: 0 0 0 2px var(--usuarios-focus-ring);
+}
+
+.usuarios__form-checkbox {
+    width: 1rem;
+    height: 1rem;
+    cursor: pointer;
+}
+
+.usuarios__form-error {
+    font-size: 0.8rem;
+    color: var(--usuarios-error-text);
+    min-height: 1rem;
+}
+
+.usuarios__form-feedback {
+    padding: 0.55rem 0.85rem;
+    border-radius: 0.4rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.usuarios__form-feedback--error {
+    background-color: var(--usuarios-error-bg);
+    color: var(--usuarios-error-text);
+    border: 1px solid var(--usuarios-error-border);
+}
+
+/* --- Estado del catálogo de empleados --- */
+.usuarios__catalog-status {
+    font-size: 0.85rem;
+    color: var(--usuarios-subtle);
+    font-style: italic;
+    padding: 0.3rem 0;
+}
+
+.usuarios__catalog-status--error {
+    color: var(--usuarios-error-text);
+}
+
+.usuarios__catalog-status--empty {
+    color: var(--usuarios-warning);
+}

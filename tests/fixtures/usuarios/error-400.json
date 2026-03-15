@@ -1,0 +1,10 @@
+{
+    "timestamp": "2026-03-15T10:00:00",
+    "status": 400,
+    "error": "Bad Request",
+    "message": "Error en los datos enviados",
+    "details": [
+        "nombreUsuario: debe tener entre 4 y 50 caracteres",
+        "contrasena: debe tener entre 8 y 100 caracteres"
+    ]
+}

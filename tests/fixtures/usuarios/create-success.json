@@ -1,0 +1,8 @@
+{
+    "idUsuario": 3,
+    "nombreUsuario": "nuevo.user",
+    "rol": "RECEPTIONIST",
+    "idEmpleado": 12,
+    "activo": true,
+    "mfaEnabled": false
+}

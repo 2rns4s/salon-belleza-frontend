@@ -1,0 +1,18 @@
+[
+    {
+        "idUsuario": 1,
+        "nombreUsuario": "admin.principal",
+        "rol": "OWNER",
+        "idEmpleado": 10,
+        "activo": true,
+        "mfaEnabled": true
+    },
+    {
+        "idUsuario": 2,
+        "nombreUsuario": "recep.central",
+        "rol": "RECEPTIONIST",
+        "idEmpleado": 11,
+        "activo": true,
+        "mfaEnabled": false
+    }
+]
