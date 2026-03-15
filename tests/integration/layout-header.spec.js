@@ -163,24 +163,26 @@ describe("layout shared header integration", () => {
         expect(document.querySelector(".layout__session-status")?.textContent).toContain("Sesion no iniciada");
     });
 
-    it("LAYOUT-NAV-OWNER: OWNER ve Clientes, Citas, Empleados, Servicios y Recursos en la navegacion", () => {
+    it("LAYOUT-NAV-OWNER: OWNER ve Clientes, Citas, Usuarios, Empleados, Servicios y Recursos en la navegacion", () => {
         guardarSesion({ usuario: "owner", rol: "OWNER", token: createJwtToken({ rol: "OWNER", nombreUsuario: "owner" }) });
         mountAppShell();
         initializeApp();
         expect(document.querySelector("#layout-nav-context")).not.toBeNull();
         expect(document.querySelector("[data-layout-route='/clientes']")).not.toBeNull();
         expect(document.querySelector("[data-layout-route='/citas']")).not.toBeNull();
+        expect(document.querySelector("[data-layout-route='/usuarios']")).not.toBeNull();
         expect(document.querySelector("[data-layout-route='/empleados']")).not.toBeNull();
         expect(document.querySelector("[data-layout-route='/servicios']")).not.toBeNull();
         expect(document.querySelector("[data-layout-route='/recursos']")).not.toBeNull();
     });
 
-    it("LAYOUT-NAV-RECEPTIONIST: RECEPTIONIST ve solo Clientes y Citas, sin Empleados, Servicios ni Recursos", () => {
+    it("LAYOUT-NAV-RECEPTIONIST: RECEPTIONIST ve solo Clientes y Citas, sin Usuarios, Empleados, Servicios ni Recursos", () => {
         guardarSesion({ usuario: "recep", rol: "RECEPTIONIST", token: createJwtToken({ rol: "RECEPTIONIST", nombreUsuario: "recep" }) });
         mountAppShell();
         initializeApp();
         expect(document.querySelector("[data-layout-route='/clientes']")).not.toBeNull();
         expect(document.querySelector("[data-layout-route='/citas']")).not.toBeNull();
+        expect(document.querySelector("[data-layout-route='/usuarios']")).toBeNull();
         expect(document.querySelector("[data-layout-route='/empleados']")).toBeNull();
         expect(document.querySelector("[data-layout-route='/servicios']")).toBeNull();
         expect(document.querySelector("[data-layout-route='/recursos']")).toBeNull();

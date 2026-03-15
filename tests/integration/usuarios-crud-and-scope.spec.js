@@ -585,6 +585,102 @@ describe("usuarios integration — CRUD completo", () => {
         expect(controllerSource).toContain("httpClient(USUARIOS_ENDPOINTS.employees)");
     });
 
+    // ------------------------------------------------------------------
+    // ESTABILIDAD DEL MODAL
+    // ------------------------------------------------------------------
+
+    it("USUARIOS-MODAL-STABLE-CREATE-01: click en input interno no cierra el modal de creación", async () => {
+        getUsersMock.mockResolvedValue([]);
+        httpClientMock.mockResolvedValue(employeesCatalogFixture);
+
+        const { initUsuarios } = await import("../../src/features/usuarios/usuarios.controller.js");
+        await initUsuarios(container);
+        await flushPromises();
+
+        container.querySelector("[data-action='open-create-modal']").dispatchEvent(new Event("click", { bubbles: true }));
+        await flushPromises();
+
+        const overlay = container.querySelector(".usuarios__modal-overlay");
+        expect(overlay).not.toBeNull();
+
+        // Click dentro del input (burbujea hasta el overlay)
+        const usernameInput = overlay.querySelector("#usuarios-username");
+        expect(usernameInput).not.toBeNull();
+        usernameInput.dispatchEvent(new Event("click", { bubbles: true }));
+        await flushPromises();
+
+        // El modal sigue abierto
+        expect(container.querySelector(".usuarios__modal-overlay")).not.toBeNull();
+    });
+
+    it("USUARIOS-MODAL-STABLE-CREATE-02: botón de cerrar explícito sí cierra el modal de creación", async () => {
+        getUsersMock.mockResolvedValue([]);
+        httpClientMock.mockResolvedValue(employeesCatalogFixture);
+
+        const { initUsuarios } = await import("../../src/features/usuarios/usuarios.controller.js");
+        await initUsuarios(container);
+        await flushPromises();
+
+        container.querySelector("[data-action='open-create-modal']").dispatchEvent(new Event("click", { bubbles: true }));
+        await flushPromises();
+
+        expect(container.querySelector(".usuarios__modal-overlay")).not.toBeNull();
+
+        // Hace click en el botón de cerrar (no en el overlay)
+        const closeBtn = container.querySelector(".usuarios__modal [data-action='close-create-modal']");
+        expect(closeBtn).not.toBeNull();
+        closeBtn.dispatchEvent(new Event("click", { bubbles: true }));
+        await flushPromises();
+
+        // El modal se cerró
+        expect(container.querySelector(".usuarios__modal-overlay")).toBeNull();
+    });
+
+    it("USUARIOS-MODAL-STABLE-EDIT-01: click en input interno no cierra el modal de edición", async () => {
+        getUsersMock.mockResolvedValue(listSuccessFixture.map(mapUserFixture));
+
+        const { initUsuarios } = await import("../../src/features/usuarios/usuarios.controller.js");
+        await initUsuarios(container);
+        await flushPromises();
+
+        container.querySelector("[data-action='open-edit-modal'][data-user-id='1']").dispatchEvent(new Event("click", { bubbles: true }));
+        await flushPromises();
+
+        const overlay = container.querySelector(".usuarios__modal-overlay");
+        expect(overlay).not.toBeNull();
+
+        // Click dentro de un input del modal (burbujea hasta el overlay)
+        const editInput = overlay.querySelector("#usuarios-edit-username");
+        expect(editInput).not.toBeNull();
+        editInput.dispatchEvent(new Event("click", { bubbles: true }));
+        await flushPromises();
+
+        // El modal sigue abierto
+        expect(container.querySelector(".usuarios__modal-overlay")).not.toBeNull();
+    });
+
+    it("USUARIOS-MODAL-STABLE-EDIT-02: botón de cerrar explícito sí cierra el modal de edición", async () => {
+        getUsersMock.mockResolvedValue(listSuccessFixture.map(mapUserFixture));
+
+        const { initUsuarios } = await import("../../src/features/usuarios/usuarios.controller.js");
+        await initUsuarios(container);
+        await flushPromises();
+
+        container.querySelector("[data-action='open-edit-modal'][data-user-id='1']").dispatchEvent(new Event("click", { bubbles: true }));
+        await flushPromises();
+
+        expect(container.querySelector(".usuarios__modal-overlay")).not.toBeNull();
+
+        // Hace click en el botón de cerrar explícito (dentro del diálogo)
+        const closeBtn = container.querySelector(".usuarios__modal [data-action='close-edit-modal']");
+        expect(closeBtn).not.toBeNull();
+        closeBtn.dispatchEvent(new Event("click", { bubbles: true }));
+        await flushPromises();
+
+        // El modal se cerró
+        expect(container.querySelector(".usuarios__modal-overlay")).toBeNull();
+    });
+
     it("USUARIOS-ROLES-01: el formulario solo acepta OWNER y RECEPTIONIST como roles válidos", async () => {
         getUsersMock.mockResolvedValue([]);
         httpClientMock.mockResolvedValue(employeesCatalogFixture);

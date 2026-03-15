@@ -56,6 +56,7 @@ export function renderLayoutNavigation({ userRole, currentPath = "" }) {
 
     if (userRole === "OWNER") {
         links.push(
+            { path: "/usuarios", label: "Usuarios" },
             { path: "/empleados", label: "Empleados" },
             { path: "/servicios", label: "Servicios" },
             { path: "/recursos", label: "Recursos" },

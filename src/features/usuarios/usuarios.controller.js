@@ -139,12 +139,13 @@ function assignContainerListeners() {
             return;
         }
 
-        // No propagar el clic en botones del modal al overlay
+        // Si el elemento resuelto con data-action es el overlay del modal,
+        // pero el click se originó dentro del diálogo interno, ignorarlo
         if (
-            !(btn.classList.contains("usuarios__modal-overlay"))
-            && btn.closest(".usuarios__modal-overlay")
+            btn.classList.contains("usuarios__modal-overlay")
+            && event.target.closest(".usuarios__modal")
         ) {
-            // El clic viene de un elemento hijo: solo procesar si tiene data-action
+            return;
         }
 
         const action = btn.dataset.action;
