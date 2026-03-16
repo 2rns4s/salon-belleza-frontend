@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { initializeApp } from "../../src/app/bootstrap.js";
-import { guardarSesion, limpiarSesion, obtenerEstadoAuth, obtenerToken } from "../../src/shared/state/authStore.js";
+import { guardarSesion, limpiarSesion, obtenerEstadoAuth, obtenerToken, tieneRol } from "../../src/shared/state/authStore.js";
 import { setAuthToken } from "../../src/shared/storage/authTokenStorage.js";
 
 function encodeBase64Url(value) {
@@ -241,6 +241,7 @@ describe("layout shared header integration", () => {
         expect(authState.sesionIniciada).toBe(true);
         expect(authState.rol).toBe("OWNER");
         expect(authState.usuario).toBe("owner-reload");
+        expect(tieneRol("OWNER")).toBe(true);
         expect(document.querySelector(".layout__role-badge")?.textContent).toContain("Propietario");
     });
 });

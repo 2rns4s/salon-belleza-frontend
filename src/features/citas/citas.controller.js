@@ -19,10 +19,25 @@ import {
     CITAS_UI_MESSAGES,
     CITAS_VIEW_MODES,
 } from "./citas.constants.js";
-import { cleanupCitasView, mountCitasView, renderCitasAgendaPanel, syncCatalogFilters } from "./citas.view.js";
+import {
+    renderAgendaPanel,
+    renderCitasShell,
+    renderEmployeeOptions,
+    renderServiceOptions,
+} from "./citas.view.js";
 
 let currentAbortController = null;
 let filterDebounceTimer = null;
+let domContainer = null;
+let agendaPanelContainer = null;
+
+const listenersRegistry = {
+    shellSubmit: null,
+    shellClick: null,
+    shellChange: null,
+    panelSubmit: null,
+    panelClick: null,
+};
 
 const availabilityCache = new Map();
 const CATALOG_LOAD_ERROR_MESSAGE = "Error al cargar los catalogos. Pulsa Recargar para reintentar.";
@@ -89,6 +104,305 @@ function createInitialState() {
 }
 
 let state = createInitialState();
+
+function resolveCitasContainer(container) {
+    if (container instanceof Element) {
+        return container;
+    }
+
+    if (typeof document === "undefined") {
+        return null;
+    }
+
+    const appContent = document.querySelector(".app__content");
+    return appContent instanceof Element ? appContent : null;
+}
+
+function removeShellListeners() {
+    if (!domContainer) {
+        return;
+    }
+
+    if (listenersRegistry.shellSubmit) {
+        domContainer.removeEventListener("submit", listenersRegistry.shellSubmit);
+        listenersRegistry.shellSubmit = null;
+    }
+
+    if (listenersRegistry.shellClick) {
+        domContainer.removeEventListener("click", listenersRegistry.shellClick, true);
+        listenersRegistry.shellClick = null;
+    }
+
+    if (listenersRegistry.shellChange) {
+        domContainer.removeEventListener("change", listenersRegistry.shellChange);
+        listenersRegistry.shellChange = null;
+    }
+}
+
+function removePanelListeners() {
+    if (!agendaPanelContainer) {
+        return;
+    }
+
+    if (listenersRegistry.panelSubmit) {
+        agendaPanelContainer.removeEventListener("submit", listenersRegistry.panelSubmit);
+        listenersRegistry.panelSubmit = null;
+    }
+
+    if (listenersRegistry.panelClick) {
+        agendaPanelContainer.removeEventListener("click", listenersRegistry.panelClick);
+        listenersRegistry.panelClick = null;
+    }
+}
+
+function registerShellListeners(handlers = {}) {
+    if (!domContainer) {
+        return;
+    }
+
+    listenersRegistry.shellSubmit = (event) => {
+        const formElement = event.target;
+        if (!(formElement instanceof HTMLFormElement) || formElement.id !== "citas-filter-form") {
+            return;
+        }
+
+        event.preventDefault();
+        handlers.onFilterSubmit?.(new FormData(formElement));
+    };
+
+    listenersRegistry.shellClick = (event) => {
+        const target = event.target;
+        if (!(target instanceof Element)) {
+            return;
+        }
+
+        const refreshButton = target.closest("#citas-refresh-btn");
+        if (!refreshButton) {
+            return;
+        }
+
+        event.preventDefault();
+        handlers.onRefreshClick?.();
+    };
+
+    listenersRegistry.shellChange = (event) => {
+        const targetElement = event.target;
+
+        if (targetElement instanceof HTMLInputElement && targetElement.name === "selectedDate") {
+            handlers.onDateChange?.(String(targetElement.value || ""));
+            return;
+        }
+
+        if (!(targetElement instanceof HTMLSelectElement)) {
+            return;
+        }
+
+        if (targetElement.id === "citas-service-select") {
+            handlers.onServiceChange?.(String(targetElement.value || ""));
+            return;
+        }
+
+        if (targetElement.id === "citas-employee-select") {
+            handlers.onEmployeeChange?.(String(targetElement.value || ""));
+            return;
+        }
+
+        if (targetElement.id === "citas-view-mode") {
+            handlers.onViewModeChange?.(String(targetElement.value || ""));
+        }
+    };
+
+    domContainer.addEventListener("submit", listenersRegistry.shellSubmit);
+    domContainer.addEventListener("click", listenersRegistry.shellClick, true);
+    domContainer.addEventListener("change", listenersRegistry.shellChange);
+}
+
+function parseNumericAttributeValue(element, attributeName) {
+    if (!element) {
+        return 0;
+    }
+
+    return Number(element.getAttribute(attributeName) || 0);
+}
+
+function resolveAppointmentStatusValue(appointmentId) {
+    if (!agendaPanelContainer) {
+        return "";
+    }
+
+    const statusSelect = agendaPanelContainer.querySelector(`#citas-status-${appointmentId}`);
+    return statusSelect instanceof HTMLSelectElement
+        ? String(statusSelect.value || "")
+        : "";
+}
+
+function handlePanelClick(target, event, handlers = {}) {
+    const slotButton = target.closest(".citas__slot");
+    if (slotButton) {
+        event.preventDefault();
+        handlers.onSlotSelect?.(slotButton.getAttribute("data-slot-datetime"));
+        return;
+    }
+
+    const selectClientButton = target.closest(".citas__client-select-btn");
+    if (selectClientButton) {
+        event.preventDefault();
+        handlers.onClientSelect?.(parseNumericAttributeValue(selectClientButton, "data-client-id"));
+        return;
+    }
+
+    const showQuickAddButton = target.closest("#citas-show-quick-add-btn");
+    if (showQuickAddButton) {
+        event.preventDefault();
+        handlers.onShowQuickAdd?.();
+        return;
+    }
+
+    const createButton = target.closest("#citas-create-appointment-btn");
+    if (createButton) {
+        event.preventDefault();
+        handlers.onCreateAppointment?.();
+        return;
+    }
+
+    const updateButton = target.closest(".citas__appointment-update-btn");
+    if (updateButton) {
+        event.preventDefault();
+
+        const appointmentId = parseNumericAttributeValue(updateButton, "data-appointment-id");
+        handlers.onUpdateAppointment?.(appointmentId, resolveAppointmentStatusValue(appointmentId));
+        return;
+    }
+
+    const deleteButton = target.closest(".citas__appointment-delete-btn");
+    if (deleteButton) {
+        event.preventDefault();
+        handlers.onDeleteAppointment?.(parseNumericAttributeValue(deleteButton, "data-appointment-id"));
+    }
+}
+
+function registerPanelListeners(handlers = {}) {
+    if (!agendaPanelContainer) {
+        return;
+    }
+
+    listenersRegistry.panelSubmit = (event) => {
+        const formElement = event.target;
+        if (!(formElement instanceof HTMLFormElement)) {
+            return;
+        }
+
+        if (formElement.id === "citas-client-search-form") {
+            event.preventDefault();
+            handlers.onClientSearchSubmit?.(new FormData(formElement));
+            return;
+        }
+
+        if (formElement.id === "citas-quick-add-form") {
+            event.preventDefault();
+            handlers.onQuickAddSubmit?.(new FormData(formElement));
+        }
+    };
+
+    listenersRegistry.panelClick = (event) => {
+        const target = event.target;
+        if (!(target instanceof Element)) {
+            return;
+        }
+
+        handlePanelClick(target, event, handlers);
+    };
+
+    agendaPanelContainer.addEventListener("submit", listenersRegistry.panelSubmit);
+    agendaPanelContainer.addEventListener("click", listenersRegistry.panelClick);
+}
+
+function cleanupCitasView() {
+    removePanelListeners();
+    removeShellListeners();
+
+    if (domContainer instanceof Element) {
+        domContainer.innerHTML = "";
+    }
+
+    agendaPanelContainer = null;
+    domContainer = null;
+}
+
+function mountCitasView({
+    container,
+    state: nextState,
+    viewModes,
+    appointmentStatuses,
+    serviceCatalog,
+    filteredEmployees,
+    catalogLoadError,
+    handlers,
+}) {
+    cleanupCitasView();
+
+    domContainer = resolveCitasContainer(container);
+    if (!domContainer) {
+        return false;
+    }
+
+    domContainer.innerHTML = renderCitasShell({
+        state: nextState,
+        viewModes,
+        serviceCatalog,
+        filteredEmployees,
+        catalogLoadError,
+    });
+
+    agendaPanelContainer = domContainer.querySelector("#citas-agenda-panel");
+
+    registerShellListeners(handlers);
+    registerPanelListeners(handlers);
+
+    if (agendaPanelContainer) {
+        agendaPanelContainer.innerHTML = renderAgendaPanel({
+            state: nextState,
+            appointmentStatuses,
+        });
+    }
+
+    return true;
+}
+
+function syncCatalogFilters({
+    serviceCatalog: nextServiceCatalog = [],
+    filteredEmployees: nextFilteredEmployees = [],
+    selectedServiceId = "",
+    selectedEmployeeId = "",
+    catalogLoadError: hasCatalogError = false,
+} = {}) {
+    if (!domContainer) {
+        return;
+    }
+
+    const serviceSelect = domContainer.querySelector("#citas-service-select");
+    if (serviceSelect instanceof HTMLSelectElement) {
+        serviceSelect.innerHTML = renderServiceOptions({
+            services: nextServiceCatalog,
+            selectedServiceId,
+            hasCatalogError,
+        });
+        serviceSelect.disabled = hasCatalogError;
+        serviceSelect.value = String(selectedServiceId || "");
+    }
+
+    const employeeSelect = domContainer.querySelector("#citas-employee-select");
+    if (employeeSelect instanceof HTMLSelectElement) {
+        employeeSelect.innerHTML = renderEmployeeOptions({
+            employees: nextFilteredEmployees,
+            selectedEmployeeId,
+            hasService: Boolean(selectedServiceId),
+            hasCatalogError,
+        });
+        employeeSelect.disabled = hasCatalogError || !selectedServiceId;
+        employeeSelect.value = String(selectedEmployeeId || "");
+    }
+}
 
 function getCacheKey(date, serviceId, employeeId) {
     return `${date}|${serviceId || "none"}|${employeeId || "none"}`;
@@ -224,21 +538,15 @@ async function hydrateAppointmentsClients(appointments = [], signal) {
 }
 
 function renderAgendaPanelOnly() {
-    renderCitasAgendaPanel({
+    if (!agendaPanelContainer) {
+        return;
+    }
+
+    agendaPanelContainer.innerHTML = renderAgendaPanel({
         state,
         appointmentStatuses: APPOINTMENT_STATUSES,
         serviceCatalog,
         employeeCatalog,
-    });
-}
-
-function syncCatalogFiltersInView() {
-    syncCatalogFilters({
-        serviceCatalog,
-        filteredEmployees,
-        selectedServiceId: state.selectedServiceId,
-        selectedEmployeeId: state.selectedEmployeeId,
-        catalogLoadError,
     });
 }
 
@@ -453,7 +761,13 @@ async function handleRefreshClick() {
     clearMessages();
 
     await loadCatalogs();
-    syncCatalogFiltersInView();
+    syncCatalogFilters({
+        serviceCatalog,
+        filteredEmployees,
+        selectedServiceId: state.selectedServiceId,
+        selectedEmployeeId: state.selectedEmployeeId,
+        catalogLoadError,
+    });
 
     await loadAgendaData({ forceRefresh: true });
 }
@@ -872,7 +1186,13 @@ export async function initCitas(container) {
             onViewModeChange: handleViewModeChange,
             onServiceChange: (serviceId) => {
                 handleServiceChange(serviceId);
-                syncCatalogFiltersInView();
+                syncCatalogFilters({
+                    serviceCatalog,
+                    filteredEmployees,
+                    selectedServiceId: state.selectedServiceId,
+                    selectedEmployeeId: state.selectedEmployeeId,
+                    catalogLoadError,
+                });
             },
             onEmployeeChange: handleEmployeeChange,
             onDateChange: handleDateChange,

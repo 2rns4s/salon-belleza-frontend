@@ -65,4 +65,56 @@ describe("usuarios route guard integration", () => {
         expect(initUsuariosMock).toHaveBeenCalledTimes(1);
         expect(initUsuariosMock).toHaveBeenCalledWith(appContent);
     });
+
+    it("AUTH-REHYDRATE-E2E-01: token OWNER persistido habilita /empleados tras recarga sin redireccion", async () => {
+        const initEmpleadosMock = vi.fn();
+
+        vi.doMock("../../src/features/empleados/empleados.controller.js", () => ({
+            initEmpleados: initEmpleadosMock,
+        }));
+
+        const { limpiarSesion, tieneRol } = await import("../../src/shared/state/authStore.js");
+        const { setAuthToken } = await import("../../src/shared/storage/authTokenStorage.js");
+
+        await import("../../src/features/empleados/empleados.routes.js");
+        const { initializeApp } = await import("../../src/app/bootstrap.js");
+
+        limpiarSesion();
+        setAuthToken(createJwtWithRole("OWNER", "owner-reload-empleados"));
+
+        document.body.innerHTML = '<div id="app" class="app"></div>';
+        window.location.hash = "#/empleados";
+
+        initializeApp();
+
+        expect(tieneRol("OWNER")).toBe(true);
+        expect(window.location.hash).toBe("#/empleados");
+        expect(initEmpleadosMock).toHaveBeenCalledTimes(1);
+    });
+
+    it("AUTH-REHYDRATE-E2E-02: token OWNER persistido habilita /servicios tras recarga sin redireccion", async () => {
+        const initServiciosMock = vi.fn();
+
+        vi.doMock("../../src/features/servicios/servicios.controller.js", () => ({
+            initServicios: initServiciosMock,
+        }));
+
+        const { limpiarSesion, tieneRol } = await import("../../src/shared/state/authStore.js");
+        const { setAuthToken } = await import("../../src/shared/storage/authTokenStorage.js");
+
+        await import("../../src/features/servicios/servicios.routes.js");
+        const { initializeApp } = await import("../../src/app/bootstrap.js");
+
+        limpiarSesion();
+        setAuthToken(createJwtWithRole("OWNER", "owner-reload-servicios"));
+
+        document.body.innerHTML = '<div id="app" class="app"></div>';
+        window.location.hash = "#/servicios";
+
+        initializeApp();
+
+        expect(tieneRol("OWNER")).toBe(true);
+        expect(window.location.hash).toBe("#/servicios");
+        expect(initServiciosMock).toHaveBeenCalledTimes(1);
+    });
 });
