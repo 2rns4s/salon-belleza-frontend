@@ -16,4 +16,4 @@ node_modules/
 .env
 
 # Ignorar artefactos locales de orquestación
-.atl/coverage/
+coverage/
