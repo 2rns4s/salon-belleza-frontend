@@ -12,6 +12,10 @@ const deleteAppointmentMock = vi.fn();
 const getServicesMock = vi.fn();
 const getEmployeesMock = vi.fn();
 
+const TEST_DATE = "2099-03-11";
+const TEST_SLOT_0900 = `${TEST_DATE}T09:00:00`;
+const TEST_SLOT_0930 = `${TEST_DATE}T09:30:00`;
+
 vi.mock("../../src/features/citas/citas.service.js", () => ({
     getAvailability: (...args) => getAvailabilityMock(...args),
     getAppointments: (...args) => getAppointmentsMock(...args),
@@ -31,7 +35,7 @@ function waitForController(ms = 280) {
     });
 }
 
-function submitFilters(container, { date = "2026-03-11", serviceId = "5", employeeId = "2" } = {}) {
+function submitFilters(container, { date = TEST_DATE, serviceId = "5", employeeId = "2" } = {}) {
     const form = container.querySelector("#citas-filter-form");
     form.querySelector("input[name='selectedDate']").value = date;
 
@@ -87,8 +91,8 @@ describe("citas - CRUD, quick-add y conflictos 409", () => {
         ]);
 
         getAvailabilityMock.mockResolvedValue([
-            { slotDateTime: "2026-03-11T09:00:00", isSelectable: true },
-            { slotDateTime: "2026-03-11T09:30:00", isSelectable: true },
+            { slotDateTime: TEST_SLOT_0900, isSelectable: true },
+            { slotDateTime: TEST_SLOT_0930, isSelectable: true },
         ]);
         getAppointmentsMock.mockResolvedValue([]);
         searchClientsMock.mockResolvedValue({ items: [], total: 0 });
@@ -274,7 +278,7 @@ describe("citas - CRUD, quick-add y conflictos 409", () => {
 
         const baseAppointment = {
             id: 91,
-            slotDateTime: "2026-03-11T09:00:00",
+            slotDateTime: TEST_SLOT_0900,
             service: {
                 id: 5,
                 name: "Lavado Premium",

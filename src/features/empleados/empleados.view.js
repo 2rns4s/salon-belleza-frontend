@@ -273,8 +273,49 @@ function renderCreateSections({ form, fieldErrors, servicesCatalogStatus, servic
         <section class="employee-form__section">
             <header class="employee-form__section-header">
                 <h4 class="employee-form__section-title">Franjas laborales</h4>
-                <button class="employees__button employees__button--secondary" id="employees-add-shift-btn" type="button">+ Agregar franja</button>
+                <div class="employee-shifts__actions">
+                    <button class="employees__button employees__button--secondary employees__button--small" id="employees-add-week-btn" type="button">+ Semana completa</button>
+                    <button class="employees__button employees__button--secondary" id="employees-add-shift-btn" type="button">+ Agregar franja</button>
+                </div>
             </header>
+
+            <div class="employees__field-grid">
+                <label class="employees__field" for="employees-template-day-scope">
+                    <span class="employees__field-label">Dia</span>
+                    <select class="employees__input" id="employees-template-day-scope">
+                        <option value="">Seleccionar dia</option>
+                        <option value="WEEKDAYS">Lunes a viernes</option>
+                        ${WEEK_DAY_OPTIONS.map((option) => `<option value="${escapeHtml(option.value)}">${escapeHtml(option.label)}</option>`).join("")}
+                    </select>
+                </label>
+
+                <label class="employees__field" for="employees-template-start-time">
+                    <span class="employees__field-label">Inicio jornada</span>
+                    <input class="employees__input" id="employees-template-start-time" type="time" value="09:00" />
+                </label>
+
+                <label class="employees__field" for="employees-template-break-start-time">
+                    <span class="employees__field-label">Inicio descanso (opcional)</span>
+                    <input class="employees__input" id="employees-template-break-start-time" type="time" value="" />
+                </label>
+
+                <label class="employees__field" for="employees-template-break-end-time">
+                    <span class="employees__field-label">Fin descanso (opcional)</span>
+                    <input class="employees__input" id="employees-template-break-end-time" type="time" value="" />
+                </label>
+
+                <label class="employees__field" for="employees-template-end-time">
+                    <span class="employees__field-label">Fin jornada</span>
+                    <input class="employees__input" id="employees-template-end-time" type="time" value="17:00" />
+                </label>
+            </div>
+
+            <div class="employees__toolbar">
+                <button class="employees__button employees__button--secondary" id="employees-apply-template-btn" type="button">
+                    Aplicar plantilla de jornada
+                </button>
+            </div>
+            <p class="employee-form__hint">Si indicas descanso, se generan dos franjas para el mismo dia automaticamente.</p>
 
             <div class="employee-shifts__rows" id="employees-shifts-container">
                 ${renderShiftRows(form.workShifts || [])}

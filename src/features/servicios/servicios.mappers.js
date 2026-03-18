@@ -58,17 +58,22 @@ export function mapUpdateServicePayload(formState) {
     return mapCreateServicePayload(formState);
 }
 
-// Normaliza errores HTTP a un string legible para el usuario
+// Normaliza errores HTTP a objeto estructurado para el dashboard
 export function normalizeServiciosHttpError(error) {
     const normalizedError = normalizeSharedHttpError(error, {
         statusMessages: SERVICIOS_HTTP_MESSAGES,
         defaultMessage: DEFAULT_SERVICIOS_ERROR_MESSAGE,
-        preferStatusMessage: true,
     });
 
-    if (normalizedError.status && SERVICIOS_HTTP_MESSAGES[normalizedError.status]) {
-        return SERVICIOS_HTTP_MESSAGES[normalizedError.status];
-    }
+    const hasFieldErrors = Object.keys(normalizedError.fieldErrors).length > 0;
+    const includeFieldErrors = normalizedError.status === 400 || normalizedError.status === 409;
 
-    return error?.message || normalizedError.message;
+    return {
+        status: normalizedError.status,
+        code: normalizedError.code,
+        message: normalizedError.message,
+        details: normalizedError.details,
+        fieldErrors: includeFieldErrors && hasFieldErrors ? normalizedError.fieldErrors : null,
+        raw: normalizedError.raw,
+    };
 }

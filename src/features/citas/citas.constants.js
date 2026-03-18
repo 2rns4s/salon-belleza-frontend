@@ -38,6 +38,7 @@ export const APPOINTMENT_STATUSES = Object.freeze([
 export const SLOT_GRANULARITY_MINUTES = 30;
 
 export const CITAS_FILTER_DEBOUNCE_MS = 180;
+export const CITAS_SEARCH_DEBOUNCE_MS = 300;
 export const CITAS_CACHE_TTL_MS = 20_000;
 
 export const CITAS_PERFORMANCE_THRESHOLDS_MS = Object.freeze({
@@ -61,6 +62,7 @@ export const CITAS_UI_MESSAGES = Object.freeze({
     appointmentCreated: "Cita creada correctamente.",
     appointmentUpdated: "Estado de cita actualizado correctamente.",
     appointmentDeleted: "Cita eliminada correctamente.",
+    pastDateError: "No se pueden agendar citas en fechas pasadas",
 });
 
 export const DEFAULT_CITAS_ERROR_MESSAGE = "Ocurrio un error inesperado. Intenta nuevamente.";

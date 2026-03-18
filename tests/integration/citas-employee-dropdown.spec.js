@@ -30,6 +30,12 @@ function flushPromises() {
     });
 }
 
+function waitForController(ms = 260) {
+    return new Promise((resolve) => {
+        setTimeout(resolve, ms);
+    });
+}
+
 function changeService(container, serviceId) {
     const serviceSelect = container.querySelector("#citas-service-select");
     serviceSelect.value = String(serviceId);
@@ -97,6 +103,12 @@ describe("citas employee dropdown integration", () => {
         expect(getOptionTexts(serviceSelect)).toContain("Lavado Premium");
         expect(employeeSelect.disabled).toBe(true);
         expect(getOptionTexts(employeeSelect)).toContain("Selecciona un servicio primero");
+
+        const bookingEmployeeSelect = container.querySelector("#citas-booking-employee-select");
+        expect(bookingEmployeeSelect).not.toBeNull();
+        expect(bookingEmployeeSelect.disabled).toBe(true);
+        expect(getOptionTexts(bookingEmployeeSelect)).toContain("Selecciona un servicio primero");
+
         expect(getServicesMock).toHaveBeenCalledTimes(1);
         expect(getEmployeesMock).toHaveBeenCalledTimes(1);
     });
@@ -116,6 +128,16 @@ describe("citas employee dropdown integration", () => {
         expect(options).toContain("Ana Lopez");
         expect(options).toContain("Carla Ruiz");
         expect(options).not.toContain("Bruno Diaz");
+
+        await waitForController();
+
+        const bookingEmployeeSelect = container.querySelector("#citas-booking-employee-select");
+        const bookingOptions = getOptionTexts(bookingEmployeeSelect);
+
+        expect(bookingEmployeeSelect.disabled).toBe(false);
+        expect(bookingOptions).toContain("Ana Lopez");
+        expect(bookingOptions).toContain("Carla Ruiz");
+        expect(bookingOptions).not.toContain("Bruno Diaz");
     });
 
     it("CITAS-EMPLOYEE-DROPDOWN-01: limpia seleccion incompatible y maneja vacios", async () => {

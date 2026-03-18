@@ -119,9 +119,15 @@ export function normalizeEmpleadosHttpError(error) {
         defaultMessage: DEFAULT_EMPLEADOS_ERROR_MESSAGE,
     });
 
+    const hasFieldErrors = Object.keys(normalizedError.fieldErrors).length > 0;
+    const includeFieldErrors = normalizedError.status === 400 || normalizedError.status === 409;
+
     return {
         status: normalizedError.status,
+        code: normalizedError.code,
         message: normalizedError.message,
         details: normalizedError.details,
+        fieldErrors: includeFieldErrors && hasFieldErrors ? normalizedError.fieldErrors : null,
+        raw: normalizedError.raw,
     };
 }

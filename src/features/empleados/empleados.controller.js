@@ -10,6 +10,16 @@ import {
 import { renderEmpleadosPage } from "./empleados.view.js";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const WORK_DAY_VALUES = Object.freeze([
+    "MONDAY",
+    "TUESDAY",
+    "WEDNESDAY",
+    "THURSDAY",
+    "FRIDAY",
+    "SATURDAY",
+    "SUNDAY",
+]);
+const WEEKDAY_VALUES = Object.freeze(["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY"]);
 
 let domContainer = null;
 let state = createInitialState();
@@ -28,9 +38,23 @@ function nextShiftRowId() {
 function createEmptyShift() {
     return {
         rowId: nextShiftRowId(),
-        day: "",
-        startTime: "",
-        endTime: "",
+        day: "MONDAY",
+        startTime: "09:00",
+        endTime: "17:00",
+    };
+}
+
+function isValidWorkDay(dayValue) {
+    const normalizedDay = String(dayValue || "").trim().toUpperCase();
+    return WORK_DAY_VALUES.includes(normalizedDay);
+}
+
+function buildShiftRow(day, startTime, endTime) {
+    return {
+        rowId: nextShiftRowId(),
+        day: String(day || "").trim().toUpperCase(),
+        startTime: normalizeTimeInputValue(startTime),
+        endTime: normalizeTimeInputValue(endTime),
     };
 }
 
@@ -116,6 +140,7 @@ function normalizeErrorFeedback(error) {
         details: Array.isArray(normalizedError?.details)
             ? normalizedError.details.filter((detail) => String(detail || "").trim())
             : [],
+        fieldErrors: normalizedError?.fieldErrors || null,
     };
 }
 
@@ -147,6 +172,97 @@ function toMinutes(timeValue) {
     }
 
     return (hours * 60) + minutes;
+}
+
+function buildWorkShiftsFromTemplate({
+    dayScope,
+    startTime,
+    breakStartTime,
+    breakEndTime,
+    endTime,
+} = {}) {
+    const normalizedDayScope = String(dayScope || "").trim().toUpperCase();
+    const normalizedStartTime = normalizeTimeInputValue(startTime);
+    const normalizedBreakStartTime = normalizeTimeInputValue(breakStartTime);
+    const normalizedBreakEndTime = normalizeTimeInputValue(breakEndTime);
+    const normalizedEndTime = normalizeTimeInputValue(endTime);
+
+    if (!normalizedDayScope) {
+        return {
+            shifts: [],
+            errorMessage: "Selecciona al menos un dia para aplicar la plantilla.",
+        };
+    }
+
+    if (!normalizedStartTime || !normalizedEndTime) {
+        return {
+            shifts: [],
+            errorMessage: "Completa hora de inicio y fin para aplicar la plantilla.",
+        };
+    }
+
+    const startMinutes = toMinutes(normalizedStartTime);
+    const endMinutes = toMinutes(normalizedEndTime);
+
+    if (startMinutes < 0 || endMinutes < 0 || startMinutes >= endMinutes) {
+        return {
+            shifts: [],
+            errorMessage: "La hora de inicio debe ser menor a la hora de fin.",
+        };
+    }
+
+    const hasBreak = Boolean(normalizedBreakStartTime || normalizedBreakEndTime);
+    if (hasBreak && (!normalizedBreakStartTime || !normalizedBreakEndTime)) {
+        return {
+            shifts: [],
+            errorMessage: "Para usar descanso debes indicar inicio y fin del descanso.",
+        };
+    }
+
+    if (hasBreak) {
+        const breakStartMinutes = toMinutes(normalizedBreakStartTime);
+        const breakEndMinutes = toMinutes(normalizedBreakEndTime);
+
+        if (
+            breakStartMinutes < 0
+            || breakEndMinutes < 0
+            || !(startMinutes < breakStartMinutes
+            && breakStartMinutes < breakEndMinutes
+            && breakEndMinutes < endMinutes)
+        ) {
+            return {
+                shifts: [],
+                errorMessage: "El descanso debe quedar dentro del horario y con rangos validos.",
+            };
+        }
+    }
+
+    const targetDays = normalizedDayScope === "WEEKDAYS"
+        ? WEEKDAY_VALUES
+        : [normalizedDayScope];
+
+    if (!targetDays.every((day) => isValidWorkDay(day))) {
+        return {
+            shifts: [],
+            errorMessage: "Selecciona un dia valido para la plantilla.",
+        };
+    }
+
+    const generatedShifts = targetDays.flatMap((day) => {
+        if (!hasBreak) {
+            return [buildShiftRow(day, normalizedStartTime, normalizedEndTime)];
+        }
+
+        return [
+            buildShiftRow(day, normalizedStartTime, normalizedBreakStartTime),
+            buildShiftRow(day, normalizedBreakEndTime, normalizedEndTime),
+        ];
+    });
+
+    return {
+        shifts: generatedShifts,
+        errorMessage: "",
+    };
 }
 
 function validateEmployeeForm(formState, mode) {
@@ -202,6 +318,11 @@ function validateEmployeeForm(formState, mode) {
 
                 if (!day || !startTime || !endTime) {
                     errors.workShifts = `Completa dia, hora inicio y hora fin en la franja ${index + 1}.`;
+                    break;
+                }
+
+                if (!isValidWorkDay(day)) {
+                    errors.workShifts = `Selecciona un dia valido en la franja ${index + 1}.`;
                     break;
                 }
 
@@ -417,9 +538,11 @@ async function handleFormSubmit(event) {
 
         await loadEmployees({ preserveSuccessMessage: true });
     } catch (error) {
+        const normalizedError = normalizeErrorFeedback(error);
         state.formModal = {
             ...state.formModal,
-            errorFeedback: normalizeErrorFeedback(error),
+            errorFeedback: normalizedError,
+            fieldErrors: normalizedError.fieldErrors || {},
         };
         renderEmpleadosScreen();
     } finally {
@@ -485,6 +608,86 @@ function handleContainerClick(event) {
             form: {
                 ...state.formModal.form,
                 workShifts: [...workShifts, createEmptyShift()],
+            },
+            fieldErrors: {
+                ...state.formModal.fieldErrors,
+                workShifts: "",
+            },
+        };
+
+        renderEmpleadosScreen();
+        return;
+    }
+
+    if (target.closest("#employees-add-week-btn")) {
+        syncFormFromDom();
+
+        const workShifts = Array.isArray(state.formModal.form.workShifts)
+            ? state.formModal.form.workShifts
+            : [];
+
+        const weekShifts = [
+            { day: "MONDAY", startTime: "09:00", endTime: "17:00" },
+            { day: "TUESDAY", startTime: "09:00", endTime: "17:00" },
+            { day: "WEDNESDAY", startTime: "09:00", endTime: "17:00" },
+            { day: "THURSDAY", startTime: "09:00", endTime: "17:00" },
+            { day: "FRIDAY", startTime: "09:00", endTime: "17:00" },
+        ].map((shift) => ({ ...shift, rowId: nextShiftRowId() }));
+
+        state.formModal = {
+            ...state.formModal,
+            form: {
+                ...state.formModal.form,
+                workShifts: [...workShifts, ...weekShifts],
+            },
+            fieldErrors: {
+                ...state.formModal.fieldErrors,
+                workShifts: "",
+            },
+        };
+
+        renderEmpleadosScreen();
+        return;
+    }
+
+    if (target.closest("#employees-apply-template-btn")) {
+        syncFormFromDom();
+
+        const templateDayScopeSelect = domContainer.querySelector("#employees-template-day-scope");
+        const templateStartTimeInput = domContainer.querySelector("#employees-template-start-time");
+        const templateBreakStartInput = domContainer.querySelector("#employees-template-break-start-time");
+        const templateBreakEndInput = domContainer.querySelector("#employees-template-break-end-time");
+        const templateEndTimeInput = domContainer.querySelector("#employees-template-end-time");
+
+        const templateResult = buildWorkShiftsFromTemplate({
+            dayScope: templateDayScopeSelect?.value,
+            startTime: templateStartTimeInput?.value,
+            breakStartTime: templateBreakStartInput?.value,
+            breakEndTime: templateBreakEndInput?.value,
+            endTime: templateEndTimeInput?.value,
+        });
+
+        if (!templateResult.shifts.length) {
+            state.formModal = {
+                ...state.formModal,
+                fieldErrors: {
+                    ...state.formModal.fieldErrors,
+                    workShifts: templateResult.errorMessage,
+                },
+            };
+            renderEmpleadosScreen();
+            return;
+        }
+
+        const currentShifts = Array.isArray(state.formModal.form.workShifts)
+            ? state.formModal.form.workShifts
+            : [];
+
+        state.formModal = {
+            ...state.formModal,
+            form: {
+                ...state.formModal.form,
+                workShifts: [...currentShifts, ...templateResult.shifts],
             },
             fieldErrors: {
                 ...state.formModal.fieldErrors,

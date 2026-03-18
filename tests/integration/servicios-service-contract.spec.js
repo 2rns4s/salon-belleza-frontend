@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createErrorResponseFixture } from "../fixtures/shared/error-response.fixture.js";
+import { normalizeServiciosHttpError } from "../../src/features/servicios/servicios.mappers.js";
 
 function createJsonResponse({ ok = true, status = 200, data = {} } = {}) {
     return {
@@ -151,5 +152,31 @@ describe("servicios service contract", () => {
             status: 409,
             data: conflictError,
         });
+    });
+
+    it("SERVICIOS-MAPPER-01: normalize incluye fieldErrors en 409 y los omite en no-validación", () => {
+        const normalizedConflict = normalizeServiciosHttpError({
+            status: 409,
+            data: createErrorResponseFixture(409, {
+                details: ["nombre: ya existe un servicio con ese nombre"],
+            }),
+        });
+
+        expect(normalizedConflict.status).toBe(409);
+        expect(normalizedConflict.code).toBe("CONFLICT");
+        expect(normalizedConflict.fieldErrors).toEqual({
+            nombre: "ya existe un servicio con ese nombre",
+        });
+
+        const normalizedServer = normalizeServiciosHttpError({
+            status: 500,
+            data: createErrorResponseFixture(500, {
+                details: ["nombre: detalle irrelevante en server error"],
+            }),
+        });
+
+        expect(normalizedServer.status).toBe(500);
+        expect(normalizedServer.code).toBe("SERVER");
+        expect(normalizedServer.fieldErrors).toBeNull();
     });
 });

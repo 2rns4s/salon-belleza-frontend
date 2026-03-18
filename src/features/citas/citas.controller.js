@@ -11,11 +11,15 @@ import {
     updateAppointment,
 } from "./citas.service.js";
 import { normalizeHttpError } from "./citas.mappers.js";
+import { validateDateNotPast, validateDateTimeNotPast } from "../../utils/dateValidator.js";
+import { createAppointmentStateMachine } from "../../utils/stateMachine.js";
+import { createCache } from "../../hooks/useCache.js";
 import {
     APPOINTMENT_STATUSES,
     CITAS_CACHE_TTL_MS,
     CITAS_FILTER_DEBOUNCE_MS,
     CITAS_PERFORMANCE_THRESHOLDS_MS,
+    CITAS_SEARCH_DEBOUNCE_MS,
     CITAS_UI_MESSAGES,
     CITAS_VIEW_MODES,
 } from "./citas.constants.js";
@@ -37,9 +41,23 @@ const listenersRegistry = {
     shellChange: null,
     panelSubmit: null,
     panelClick: null,
+    panelChange: null,
+    panelInput: null,
 };
 
-const availabilityCache = new Map();
+// Debounce utility for search
+function debounce(fn, delayMs) {
+    let timeoutId = null;
+    return (...args) => {
+        if (timeoutId) {
+            clearTimeout(timeoutId);
+        }
+        timeoutId = setTimeout(() => fn(...args), delayMs);
+    };
+}
+
+// LRU cache with TTL for availability (100 entries, 5 min TTL)
+const availabilityCache = createCache({ maxSize: 100, ttlMs: CITAS_CACHE_TTL_MS * 15 }); // 5 min = 300000ms
 const CATALOG_LOAD_ERROR_MESSAGE = "Error al cargar los catalogos. Pulsa Recargar para reintentar.";
 
 // Catalogo de servicios y empleados cargado al inicializar.
@@ -48,6 +66,58 @@ let employeeCatalog = [];
 let filteredEmployees = [];
 let catalogLoadError = false;
 let knownClientsById = new Map();
+let clientSearchRequestSeq = 0;
+
+function captureClientSearchFocusState() {
+    if (typeof document === "undefined") {
+        return null;
+    }
+
+    const activeElement = document.activeElement;
+    if (!(activeElement instanceof HTMLInputElement)) {
+        return null;
+    }
+
+    const searchForm = activeElement.closest("#citas-client-search-form");
+    if (!searchForm) {
+        return null;
+    }
+
+    return {
+        name: String(activeElement.name || "").trim(),
+        selectionStart: activeElement.selectionStart,
+        selectionEnd: activeElement.selectionEnd,
+    };
+}
+
+function restoreClientSearchFocusState(focusState) {
+    if (!agendaPanelContainer || !focusState?.name) {
+        return;
+    }
+
+    const inputElement = agendaPanelContainer.querySelector(
+        `#citas-client-search-form input[name="${focusState.name}"]`,
+    );
+
+    if (!(inputElement instanceof HTMLInputElement)) {
+        return;
+    }
+
+    inputElement.focus();
+
+    if (
+        Number.isInteger(focusState.selectionStart)
+        && Number.isInteger(focusState.selectionEnd)
+    ) {
+        inputElement.setSelectionRange(focusState.selectionStart, focusState.selectionEnd);
+    }
+}
+
+function renderAgendaPanelPreservingClientSearchFocus() {
+    const focusState = captureClientSearchFocusState();
+    renderAgendaPanelOnly();
+    restoreClientSearchFocusState(focusState);
+}
 
 function getTodayDate() {
     const today = new Date();
@@ -100,6 +170,7 @@ function createInitialState() {
             agendaLoadMs: null,
             availabilityRefreshMs: null,
         },
+        appointmentsTab: "active", // "active" or "history"
     };
 }
 
@@ -152,6 +223,16 @@ function removePanelListeners() {
     if (listenersRegistry.panelClick) {
         agendaPanelContainer.removeEventListener("click", listenersRegistry.panelClick);
         listenersRegistry.panelClick = null;
+    }
+
+    if (listenersRegistry.panelChange) {
+        agendaPanelContainer.removeEventListener("change", listenersRegistry.panelChange);
+        listenersRegistry.panelChange = null;
+    }
+
+    if (listenersRegistry.panelInput) {
+        agendaPanelContainer.removeEventListener("input", listenersRegistry.panelInput);
+        listenersRegistry.panelInput = null;
     }
 }
 
@@ -207,6 +288,11 @@ function registerShellListeners(handlers = {}) {
             return;
         }
 
+        if (targetElement.id === "citas-booking-employee-select") {
+            handlers.onEmployeeChange?.(String(targetElement.value || ""));
+            return;
+        }
+
         if (targetElement.id === "citas-view-mode") {
             handlers.onViewModeChange?.(String(targetElement.value || ""));
         }
@@ -258,10 +344,18 @@ function handlePanelClick(target, event, handlers = {}) {
         return;
     }
 
-    const createButton = target.closest("#citas-create-appointment-btn");
+        const createButton = target.closest("#citas-create-appointment-btn");
     if (createButton) {
         event.preventDefault();
         handlers.onCreateAppointment?.();
+        return;
+    }
+
+    const sectionTab = target.closest(".citas__section-tab");
+    if (sectionTab) {
+        event.preventDefault();
+        const viewType = sectionTab.getAttribute("data-citas-view");
+        handlers.onSectionTabClick?.(viewType);
         return;
     }
 
@@ -313,8 +407,38 @@ function registerPanelListeners(handlers = {}) {
         handlePanelClick(target, event, handlers);
     };
 
+    // Debounced search handler for client search form
+    const debouncedSearch = debounce((formData, options = {}) => {
+        handlers.onClientSearchSubmit?.(formData, options);
+    }, CITAS_SEARCH_DEBOUNCE_MS);
+
+    listenersRegistry.panelInput = (event) => {
+        const target = event.target;
+        if (!(target instanceof HTMLInputElement)) {
+            return;
+        }
+
+        // El autocompletado en vivo aplica solo al campo nombre.
+        if (target.name !== "name") {
+            return;
+        }
+
+        // Only handle inputs in the client search form
+        const searchForm = target.closest("#citas-client-search-form");
+        if (!searchForm) {
+            return;
+        }
+
+        // Get form data from the search form
+        const formData = new FormData(searchForm);
+        debouncedSearch(formData, { triggeredByInput: true });
+    };
+
+    listenersRegistry.panelChange = null;
+
     agendaPanelContainer.addEventListener("submit", listenersRegistry.panelSubmit);
     agendaPanelContainer.addEventListener("click", listenersRegistry.panelClick);
+    agendaPanelContainer.addEventListener("input", listenersRegistry.panelInput);
 }
 
 function cleanupCitasView() {
@@ -363,6 +487,10 @@ function mountCitasView({
         agendaPanelContainer.innerHTML = renderAgendaPanel({
             state: nextState,
             appointmentStatuses,
+            serviceCatalog,
+            employeeCatalog,
+            filteredEmployees,
+            catalogLoadError,
         });
     }
 
@@ -409,24 +537,13 @@ function getCacheKey(date, serviceId, employeeId) {
 }
 
 function readAvailabilityCache(cacheKey) {
-    const cachedEntry = availabilityCache.get(cacheKey);
-    if (!cachedEntry) {
-        return null;
-    }
-
-    if (cachedEntry.expiresAt <= Date.now()) {
-        availabilityCache.delete(cacheKey);
-        return null;
-    }
-
-    return cachedEntry.slots;
+    // createCache handles TTL automatically - returns null if expired
+    return availabilityCache.get(cacheKey);
 }
 
 function writeAvailabilityCache(cacheKey, slots) {
-    availabilityCache.set(cacheKey, {
-        slots,
-        expiresAt: Date.now() + CITAS_CACHE_TTL_MS,
-    });
+    // createCache handles TTL automatically
+    availabilityCache.set(cacheKey, slots);
 }
 
 function invalidateCache() {
@@ -547,6 +664,8 @@ function renderAgendaPanelOnly() {
         appointmentStatuses: APPOINTMENT_STATUSES,
         serviceCatalog,
         employeeCatalog,
+        filteredEmployees,
+        catalogLoadError,
     });
 }
 
@@ -834,6 +953,13 @@ function handleViewModeChange(nextViewMode) {
     renderAgendaPanelOnly();
 }
 
+function handleSectionTabClick(viewType) {
+    if (viewType === "active" || viewType === "history") {
+        state.appointmentsTab = viewType;
+        renderAgendaPanelOnly();
+    }
+}
+
 // Auto-refresca disponibilidad cuando el usuario cambia la fecha y ya hay servicio seleccionado.
 function handleDateChange(newDate) {
     const parsedDate = String(newDate || "").trim();
@@ -883,27 +1009,44 @@ function markSearchWithoutResults() {
     prefillQuickAddFromSearch();
 }
 
-async function handleClientSearchSubmit(formData) {
+async function handleClientSearchSubmit(formData, { triggeredByInput = false } = {}) {
+    const requestSeq = ++clientSearchRequestSeq;
+
     state.clientSearch.documentNumber = String(formData.get("documentNumber") || "").trim();
     state.clientSearch.phone = String(formData.get("phone") || "").trim();
     state.clientSearch.name = String(formData.get("name") || "").trim();
-    state.clientSearch.searched = true;
+    state.clientSearch.searched = !triggeredByInput;
     state.clientSearch.errorMessage = null;
 
     clearMessages();
 
     if (!state.clientSearch.documentNumber && !state.clientSearch.phone && !state.clientSearch.name) {
-        state.clientSearch.errorMessage = CITAS_UI_MESSAGES.searchCriteriaRequired;
-        renderAgendaPanelOnly();
+        state.loadingClients = false;
+        state.clientSearch.results = [];
+        state.clientSearch.showQuickAdd = false;
+        state.clientSearch.errorMessage = triggeredByInput
+            ? null
+            : CITAS_UI_MESSAGES.searchCriteriaRequired;
+
+        if (triggeredByInput) {
+            renderAgendaPanelPreservingClientSearchFocus();
+        } else {
+            renderAgendaPanelOnly();
+        }
+
         return;
     }
+
+    state.clientSearch.searched = true;
 
     state.loadingClients = true;
     state.clientSearch.results = [];
     state.clientSearch.showQuickAdd = false;
     state.quickAddErrors = {};
 
-    renderAgendaPanelOnly();
+    if (!triggeredByInput) {
+        renderAgendaPanelOnly();
+    }
 
     try {
         const response = await searchClients({
@@ -911,6 +1054,10 @@ async function handleClientSearchSubmit(formData) {
             phone: state.clientSearch.phone,
             name: state.clientSearch.name,
         });
+
+        if (requestSeq !== clientSearchRequestSeq) {
+            return;
+        }
 
         const items = Array.isArray(response?.items) ? response.items : [];
         state.clientSearch.results = items;
@@ -929,6 +1076,10 @@ async function handleClientSearchSubmit(formData) {
             }
         }
     } catch (error) {
+        if (requestSeq !== clientSearchRequestSeq) {
+            return;
+        }
+
         const normalizedError = normalizeHttpError(error);
 
         if (normalizedError.status === 404) {
@@ -937,8 +1088,17 @@ async function handleClientSearchSubmit(formData) {
             state.errorMessage = normalizedError.message;
         }
     } finally {
+        if (requestSeq !== clientSearchRequestSeq) {
+            return;
+        }
+
         state.loadingClients = false;
-        renderAgendaPanelOnly();
+
+        if (triggeredByInput) {
+            renderAgendaPanelPreservingClientSearchFocus();
+        } else {
+            renderAgendaPanelOnly();
+        }
     }
 }
 
@@ -1011,6 +1171,12 @@ function validateCreateAppointmentInput() {
 
     if (!state.selectedSlot) {
         validationErrors.fechaInicio = CITAS_UI_MESSAGES.slotRequired;
+    } else {
+        // Validate that the slot date is not in the past
+        const dateValidation = validateDateTimeNotPast(state.selectedSlot);
+        if (!dateValidation.valid) {
+            validationErrors.fechaInicio = dateValidation.error;
+        }
     }
 
     if (!state.selectedClient?.id) {
@@ -1098,6 +1264,39 @@ async function handleCreateAppointment() {
 
 async function handleUpdateAppointment(appointmentId, nextStatus) {
     if (!appointmentId || !nextStatus || state.savingAction || state.conflictBlocked) {
+        return;
+    }
+
+    // Find current appointment to get its current status
+    const currentAppointment = state.appointments.find(
+        (apt) => String(apt.id) === String(appointmentId)
+    );
+
+    if (!currentAppointment) {
+        state.errorMessage = "Cita no encontrada";
+        renderAgendaPanelOnly();
+        return;
+    }
+
+    const currentStatus = currentAppointment.status;
+    
+    // Validate state transition using state machine
+    const stateMachine = createAppointmentStateMachine();
+    // Note: We can't set the initial state directly, so we check transitions manually
+    
+    // Define valid transitions
+    const validTransitions = {
+        PENDIENTE: ["CONFIRMADA", "CANCELADA"],
+        CONFIRMADA: ["REALIZADA", "CANCELADA"],
+        CANCELADA: [],
+        REALIZADA: [],
+    };
+
+    const allowedTransitions = validTransitions[currentStatus] || [];
+    
+    if (!allowedTransitions.includes(nextStatus)) {
+        state.errorMessage = `No se puede cambiar el estado de "${currentStatus}" a "${nextStatus}". Transiciones permitidas: ${allowedTransitions.join(", ") || "ninguna"}`;
+        renderAgendaPanelOnly();
         return;
     }
 
@@ -1196,8 +1395,8 @@ export async function initCitas(container) {
             },
             onEmployeeChange: handleEmployeeChange,
             onDateChange: handleDateChange,
-            onClientSearchSubmit: (formData) => {
-                void handleClientSearchSubmit(formData);
+            onClientSearchSubmit: (formData, options = {}) => {
+                void handleClientSearchSubmit(formData, options);
             },
             onQuickAddSubmit: (formData) => {
                 void handleQuickAddSubmit(formData);
@@ -1205,6 +1404,7 @@ export async function initCitas(container) {
             onSlotSelect: selectSlot,
             onClientSelect: handleClientSelect,
             onShowQuickAdd: handleShowQuickAdd,
+            onSectionTabClick: handleSectionTabClick,
             onCreateAppointment: () => {
                 void handleCreateAppointment();
             },

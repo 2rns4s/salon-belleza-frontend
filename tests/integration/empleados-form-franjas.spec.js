@@ -82,6 +82,11 @@ function expectAnyFieldErrorContains(expectedText) {
     expect(errors.some((message) => message.includes(expectedText))).toBe(true);
 }
 
+function expectValidDayOfWeek(dayValue) {
+    const validDays = ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"];
+    expect(validDays.includes(String(dayValue || "").toUpperCase())).toBe(true);
+}
+
 async function openCreateModal() {
     const { initEmpleados } = await import("../../src/features/empleados/empleados.controller.js");
     initEmpleados(document.querySelector(".app__content"));
@@ -222,5 +227,78 @@ describe("empleados franjas laborales dinamicas", () => {
 
         const postCall = fetchSpy.mock.calls.find(([url, options]) => String(url).includes("/api/v1/empleados") && options?.method === "POST");
         expect(postCall).toBeUndefined();
+    });
+
+    it("EMPLEADOS-FRANJAS-TEMPLATE-01: plantilla con descanso crea dos franjas para el mismo dia", async () => {
+        const fetchSpy = mockEmployeesWithCatalog([{ idServicio: 1, nombre: "Corte" }]);
+        await openCreateModal();
+
+        fillCreateMainFields();
+        selectFirstService();
+
+        // Elimina la franja por defecto para validar solo la plantilla.
+        document.querySelector("[data-employee-shift-remove]")?.dispatchEvent(new Event("click", { bubbles: true }));
+        await flushPromises();
+
+        document.querySelector("#employees-template-day-scope").value = "MONDAY";
+        document.querySelector("#employees-template-start-time").value = "09:00";
+        document.querySelector("#employees-template-break-start-time").value = "12:00";
+        document.querySelector("#employees-template-break-end-time").value = "13:00";
+        document.querySelector("#employees-template-end-time").value = "18:00";
+
+        document.querySelector("#employees-apply-template-btn")?.dispatchEvent(new Event("click", { bubbles: true }));
+        await flushPromises();
+
+        const shiftRows = document.querySelectorAll("[data-employee-shift-row-id]");
+        expect(shiftRows.length).toBe(2);
+
+        document.querySelector("#employees-form")?.dispatchEvent(new Event("submit", { bubbles: true }));
+        await flushPromises();
+        await flushPromises();
+        await flushPromises();
+
+        const postCall = fetchSpy.mock.calls.find(([url, options]) => String(url).includes("/api/v1/empleados") && options?.method === "POST");
+        expect(postCall).toBeTruthy();
+
+        const postBody = JSON.parse(postCall[1].body);
+        expect(postBody.franjasLaborales).toEqual([
+            {
+                dia: "MONDAY",
+                horaInicio: "09:00:00",
+                horaFin: "12:00:00",
+            },
+            {
+                dia: "MONDAY",
+                horaInicio: "13:00:00",
+                horaFin: "18:00:00",
+            },
+        ]);
+    });
+
+    it("EMPLEADOS-FRANJAS-WEEK-01: semana completa usa valores validos de DayOfWeek", async () => {
+        const fetchSpy = mockEmployeesWithCatalog([{ idServicio: 1, nombre: "Corte" }]);
+        await openCreateModal();
+
+        fillCreateMainFields();
+        selectFirstService();
+
+        document.querySelector("#employees-add-week-btn")?.dispatchEvent(new Event("click", { bubbles: true }));
+        await flushPromises();
+
+        document.querySelector("#employees-form")?.dispatchEvent(new Event("submit", { bubbles: true }));
+        await flushPromises();
+        await flushPromises();
+        await flushPromises();
+
+        const postCall = fetchSpy.mock.calls.find(([url, options]) => String(url).includes("/api/v1/empleados") && options?.method === "POST");
+        expect(postCall).toBeTruthy();
+
+        const postBody = JSON.parse(postCall[1].body);
+        expect(Array.isArray(postBody.franjasLaborales)).toBe(true);
+        expect(postBody.franjasLaborales.length).toBeGreaterThan(0);
+
+        postBody.franjasLaborales.forEach((shift) => {
+            expectValidDayOfWeek(shift.dia);
+        });
     });
 });

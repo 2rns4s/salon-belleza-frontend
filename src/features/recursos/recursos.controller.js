@@ -83,17 +83,23 @@ function validateResourceForm(form) {
 }
 
 async function loadResources() {
+    let hasLoadedList = false;
+
     state.loadingList = true;
     state.errorMessage = "";
     renderRecursosScreen();
     try {
         state.resources = await getResources();
+        hasLoadedList = true;
     } catch (err) {
-        state.errorMessage = normalizeRecursosHttpError(err);
+        const normalizedError = normalizeRecursosHttpError(err);
+        state.errorMessage = normalizedError.message;
     } finally {
         state.loadingList = false;
         renderRecursosScreen();
     }
+
+    return hasLoadedList;
 }
 
 async function handleFormSubmit(event) {
@@ -119,17 +125,57 @@ async function handleFormSubmit(event) {
     renderRecursosScreen();
 
     try {
+        let savedResource = null;
+
         if (state.formModal.mode === "edit" && state.formModal.resourceId != null) {
-            await updateResource(state.formModal.resourceId, formState);
+            savedResource = await updateResource(state.formModal.resourceId, formState);
             state.successMessage = "Recurso actualizado correctamente.";
         } else {
-            await createResource(formState);
+            savedResource = await createResource(formState);
             state.successMessage = "Recurso creado correctamente.";
         }
-        state.formModal = { isOpen: false, mode: "create", resourceId: null, form: createEmptyForm(), fieldErrors: {}, errorMessage: "" };
-        await loadResources();
+
+        const listLoaded = await loadResources();
+        if (!listLoaded) {
+            state.formModal = {
+                ...state.formModal,
+                form: formState,
+                errorMessage: "Se guardo el recurso, pero no se pudo refrescar el listado. Pulsa Actualizar para confirmar.",
+            };
+            renderRecursosScreen();
+            return;
+        }
+
+        if (
+            state.formModal.mode === "create"
+            && savedResource?.id
+            && !state.resources.some((resource) => Number(resource.id) === Number(savedResource.id))
+        ) {
+            state.formModal = {
+                ...state.formModal,
+                form: formState,
+                errorMessage: "No se pudo confirmar la creacion en el listado. Pulsa Actualizar para validar.",
+            };
+            renderRecursosScreen();
+            return;
+        }
+
+        state.formModal = {
+            isOpen: false,
+            mode: "create",
+            resourceId: null,
+            form: createEmptyForm(),
+            fieldErrors: {},
+            errorMessage: "",
+        };
+        renderRecursosScreen();
     } catch (err) {
-        state.formModal = { ...state.formModal, errorMessage: normalizeRecursosHttpError(err) };
+        const normalizedError = normalizeRecursosHttpError(err);
+        state.formModal = { 
+            ...state.formModal, 
+            errorMessage: normalizedError.message,
+            fieldErrors: normalizedError.fieldErrors || {}
+        };
         renderRecursosScreen();
     } finally {
         state.savingForm = false;
@@ -146,7 +192,8 @@ async function handleConfirmDelete() {
         state.deleteConfirm = { isOpen: false, resourceId: null, resourceName: "" };
         await loadResources();
     } catch (err) {
-        state.errorMessage = normalizeRecursosHttpError(err);
+        const normalizedError = normalizeRecursosHttpError(err);
+        state.errorMessage = normalizedError.message;
         state.deleteConfirm = { isOpen: false, resourceId: null, resourceName: "" };
         renderRecursosScreen();
     }

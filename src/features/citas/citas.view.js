@@ -420,7 +420,7 @@ function renderQuickAddForm(state) {
     `;
 }
 
-function renderBookingPanel(state) {
+function renderBookingPanel(state, filteredEmployees = [], catalogLoadError = false) {
     const bookingErrors = state.bookingErrors || {};
 
     const createDisabled = Boolean(
@@ -428,13 +428,32 @@ function renderBookingPanel(state) {
         || state.conflictBlocked
         || state.savingAction === "create"
         || !state.selectedSlot
-        || !state.selectedClient,
+        || !state.selectedClient
+        || !state.selectedEmployeeId,
     );
+
+    const employeeOptionsHtml = renderEmployeeOptions({
+        employees: filteredEmployees,
+        selectedEmployeeId: state.selectedEmployeeId,
+        hasService: Boolean(state.selectedServiceId),
+        hasCatalogError: catalogLoadError,
+    });
 
     return `
         <section class="citas__panel">
             <h3 class="citas__panel-title">Reserva y quick-add</h3>
             ${renderSelectedSummary(state)}
+
+            <label class="citas__field">
+                <span class="citas__field-label">Empleado</span>
+                <select
+                    class="citas__select"
+                    id="citas-booking-employee-select"
+                    ${catalogLoadError || !state.selectedServiceId ? "disabled" : ""}
+                >
+                    ${employeeOptionsHtml}
+                </select>
+            </label>
 
             ${renderClientSearchForm(state)}
             ${renderClientSearchResults(state)}
@@ -467,6 +486,39 @@ function renderStatusOptions(statuses = [], currentStatus = "") {
         .join("");
 }
 
+// Constantes para estados activos e historial
+const ACTIVE_STATUSES = ["PENDIENTE", "CONFIRMADA"];
+const HISTORY_STATUSES = ["REALIZADA", "CANCELADA"];
+
+function renderAppointmentsSectionTabs(appointments = [], currentTab = "active") {
+    const activeAppointments = appointments.filter((apt) => ACTIVE_STATUSES.includes(apt.status));
+    const historyAppointments = appointments.filter((apt) => HISTORY_STATUSES.includes(apt.status));
+
+    const activeTabClass = currentTab === "active" ? " citas__section-tab--active" : "";
+    const historyTabClass = currentTab === "history" ? " citas__section-tab--active" : "";
+
+    return `
+        <div class="citas__section-tabs" role="tablist">
+            <button
+                class="citas__section-tab${activeTabClass}"
+                type="button"
+                data-citas-view="active"
+            >
+                Activas
+                <span class="citas__section-tab-count">${activeAppointments.length}</span>
+            </button>
+            <button
+                class="citas__section-tab${historyTabClass}"
+                type="button"
+                data-citas-view="history"
+            >
+                Historial
+                <span class="citas__section-tab-count">${historyAppointments.length}</span>
+            </button>
+        </div>
+    `;
+}
+
 function renderAppointmentsList(appointments = [], appointmentStatuses = [], state, catalogs = {}) {
     if (!appointments.length) {
         return '<li class="citas__list-item citas__list-item--empty">No hay citas registradas para los filtros seleccionados.</li>';
@@ -479,6 +531,8 @@ function renderAppointmentsList(appointments = [], appointmentStatuses = [], sta
         .map((appointment) => {
             const isUpdating = state.savingAction === `update-${appointment.id}`;
             const isDeleting = state.savingAction === `delete-${appointment.id}`;
+            const appointmentStatus = appointment.status || "PENDIENTE";
+            const isHistory = HISTORY_STATUSES.includes(appointmentStatus);
 
             const serviceEntry = appointment.service?.id
                 ? catalogServices.find((s) => s.id === appointment.service.id)
@@ -493,7 +547,7 @@ function renderAppointmentsList(appointments = [], appointmentStatuses = [], sta
             const clientName = appointment.client?.fullName || "Cliente sin nombre";
 
             return `
-                <li class="citas__list-item">
+                <li class="citas__list-item citas__list-item--status-${appointmentStatus}">
                     <div class="citas__item-main">
                         <p class="citas__item-title">Cliente: ${escapeHtml(clientName)}</p>
                         <p class="citas__item-subtitle">
@@ -506,35 +560,37 @@ function renderAppointmentsList(appointments = [], appointmentStatuses = [], sta
                     <div class="citas__item-meta">
                         <p class="citas__item-date">${escapeHtml(formatSlotDate(appointment.slotDateTime))}</p>
                         <p class="citas__item-time">${escapeHtml(formatSlotTime(appointment.slotDateTime))}</p>
-                        <p class="citas__item-status">${escapeHtml(appointment.status || "PENDIENTE")}</p>
+                        <p class="citas__item-status citas__item-status--${appointmentStatus}">${escapeHtml(appointmentStatus)}</p>
                     </div>
 
-                    <div class="citas__item-actions">
-                        <label class="citas__field">
-                            <span class="citas__field-label">Estado</span>
-                            <select class="citas__select citas__select--compact" id="citas-status-${escapeHtml(appointment.id)}">
-                                ${renderStatusOptions(appointmentStatuses, appointment.status)}
-                            </select>
-                        </label>
+                    ${isHistory
+        ? `<div class="citas__item-meta"><p class="citas__empty-text">Cerrada</p></div>`
+        : `<div class="citas__item-actions">
+                            <label class="citas__field">
+                                <span class="citas__field-label">Estado</span>
+                                <select class="citas__select citas__select--compact" id="citas-status-${escapeHtml(appointment.id)}">
+                                    ${renderStatusOptions(appointmentStatuses, appointment.status)}
+                                </select>
+                            </label>
 
-                        <button
-                            class="citas__button citas__button--secondary citas__appointment-update-btn"
-                            type="button"
-                            data-appointment-id="${escapeHtml(appointment.id)}"
-                            ${isUpdating || isDeleting ? "disabled" : ""}
-                        >
-                            ${isUpdating ? "Actualizando..." : "Actualizar"}
-                        </button>
+                            <button
+                                class="citas__button citas__button--secondary citas__appointment-update-btn"
+                                type="button"
+                                data-appointment-id="${escapeHtml(appointment.id)}"
+                                ${isUpdating || isDeleting ? "disabled" : ""}
+                            >
+                                ${isUpdating ? "Actualizando..." : "Actualizar"}
+                            </button>
 
-                        <button
-                            class="citas__button citas__button--danger citas__appointment-delete-btn"
-                            type="button"
-                            data-appointment-id="${escapeHtml(appointment.id)}"
-                            ${isUpdating || isDeleting ? "disabled" : ""}
-                        >
-                            ${isDeleting ? "Eliminando..." : "Eliminar"}
-                        </button>
-                    </div>
+                            <button
+                                class="citas__button citas__button--danger citas__appointment-delete-btn"
+                                type="button"
+                                data-appointment-id="${escapeHtml(appointment.id)}"
+                                ${isUpdating || isDeleting ? "disabled" : ""}
+                            >
+                                ${isDeleting ? "Eliminando..." : "Eliminar"}
+                            </button>
+                        </div>`}
                 </li>
             `;
         })
@@ -637,7 +693,22 @@ export function renderCitasShell({
 }
 
 // PANEL dinamico actualizado en cada carga o accion del usuario.
-export function renderAgendaPanel({ state, appointmentStatuses, serviceCatalog = [], employeeCatalog = [] }) {
+export function renderAgendaPanel({
+    state,
+    appointmentStatuses,
+    serviceCatalog = [],
+    employeeCatalog = [],
+    filteredEmployees = [],
+    catalogLoadError = false,
+}) {
+    const resolveAppointmentStatus = (appointment) => appointment?.status || "PENDIENTE";
+
+    // Filter appointments based on active tab
+    const currentTab = state.appointmentsTab || "active";
+    const filteredAppointments = currentTab === "history"
+        ? state.appointments.filter((apt) => HISTORY_STATUSES.includes(resolveAppointmentStatus(apt)))
+        : state.appointments.filter((apt) => ACTIVE_STATUSES.includes(resolveAppointmentStatus(apt)));
+
     return appendAppointmentsBEMAliases(`
         ${renderLoadingMessage(state.loadingAgenda)}
         ${renderErrorMessage(state.errorMessage)}
@@ -650,13 +721,14 @@ export function renderAgendaPanel({ state, appointmentStatuses, serviceCatalog =
                 ${renderAvailableSlotsGrid(state.availabilitySlots, state.selectedSlot, state.conflictBlocked)}
             </section>
 
-            ${renderBookingPanel(state)}
+            ${renderBookingPanel(state, filteredEmployees, catalogLoadError)}
         </div>
 
         <section class="citas__panel">
             <h3 class="citas__panel-title">Citas registradas</h3>
+            ${renderAppointmentsSectionTabs(state.appointments, currentTab)}
             <ul class="citas__list">
-                ${renderAppointmentsList(state.appointments, appointmentStatuses, state, { services: serviceCatalog, employees: employeeCatalog })}
+                ${renderAppointmentsList(filteredAppointments, appointmentStatuses, state, { services: serviceCatalog, employees: employeeCatalog })}
             </ul>
         </section>
     `);

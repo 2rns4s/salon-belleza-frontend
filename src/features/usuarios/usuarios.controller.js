@@ -17,6 +17,8 @@ import {
 } from "./usuarios.service.js";
 import { renderUsuariosPage } from "./usuarios.view.js";
 import { httpClient } from "../../shared/services/httpClient.js";
+import { obtenerToken } from "../../shared/state/authStore.js";
+import { createPaginatedList } from "../../components/PaginatedList.js";
 
 let domContainer = null;
 let state = createInitialState();
@@ -44,6 +46,35 @@ function createEmptyEditForm() {
     };
 }
 
+// Decode JWT to get current user ID
+function getCurrentUserIdFromToken() {
+    try {
+        const token = obtenerToken();
+        if (!token) {
+            return null;
+        }
+
+        const tokenParts = token.split(".");
+        if (tokenParts.length !== 3) {
+            return null;
+        }
+
+        // Decode base64url payload
+        const base64Url = tokenParts[1];
+        const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+        const padding = "=".repeat((4 - (base64.length % 4)) % 4);
+        const decoded = atob(base64 + padding);
+        
+        const payload = JSON.parse(decodeURIComponent(
+            decoded.split("").map((c) => `%${c.charCodeAt(0).toString(16).padStart(2, "0")}`).join("")
+        ));
+
+        return payload.id || payload.idUsuario || null;
+    } catch {
+        return null;
+    }
+}
+
 function createInitialState() {
     return {
         loadingList: false,
@@ -52,6 +83,12 @@ function createInitialState() {
         successMessage: "",
         employeesCatalog: [],
         employeesCatalogStatus: USUARIOS_CATALOG_STATUS.IDLE,
+        // Pagination state
+        pagination: {
+            currentPage: 1,
+            pageSize: 50,
+            totalItems: 0,
+        },
         createModal: {
             isOpen: false,
             form: createEmptyCreateForm(),
@@ -74,6 +111,14 @@ function createInitialState() {
         },
     };
 }
+
+// Create paginated list controller for users
+const usersPagination = createPaginatedList({
+    pageSize: 50,
+    onPageChange: (page) => {
+        state.pagination.currentPage = page;
+    },
+});
 
 function resolveUsuariosContainer(container) {
     if (container instanceof Element) {
@@ -179,6 +224,14 @@ function assignContainerListeners() {
                 event.preventDefault();
                 void handleConfirmDeactivate();
                 break;
+            case "pagination-prev":
+                event.preventDefault();
+                handlePageChange(usersPagination.prevPage() ? usersPagination.getState().currentPage : 1);
+                break;
+            case "pagination-next":
+                event.preventDefault();
+                handlePageChange(usersPagination.getState().currentPage + 1);
+                break;
             default:
                 break;
         }
@@ -219,9 +272,10 @@ async function loadEmployeesCatalog() {
 }
 
 // Carga la lista de usuarios
-async function loadUsersList({ preserveSuccessMessage = false } = {}) {
+async function loadUsersList({ preserveSuccessMessage = false, page = 1 } = {}) {
     state.loadingList = true;
     state.errorFeedback = null;
+    state.pagination.currentPage = page;
 
     if (!preserveSuccessMessage) {
         state.successMessage = "";
@@ -231,7 +285,15 @@ async function loadUsersList({ preserveSuccessMessage = false } = {}) {
 
     try {
         const users = await getUsers();
-        state.users = Array.isArray(users) ? users : [];
+        const usersArray = Array.isArray(users) ? users : [];
+        
+        // Update pagination controller with all users
+        usersPagination.setItems(usersArray);
+        
+        // Get paginated users for current page
+        const paginationState = usersPagination.getState();
+        state.users = paginationState.paginatedItems;
+        state.pagination.totalItems = paginationState.totalItems;
     } catch (error) {
         const normalizedError = normalizeUsuariosHttpError(error);
         state.errorFeedback = normalizedError.message;
@@ -324,11 +386,28 @@ function handleCancelDeactivate() {
     renderUsuariosScreen();
 }
 
+// Handle page change from pagination controls
+function handlePageChange(page) {
+    state.pagination.currentPage = page;
+    const paginationState = usersPagination.getState();
+    state.users = paginationState.paginatedItems;
+    renderUsuariosScreen();
+}
+
 // Ejecuta el soft delete del usuario
 async function handleConfirmDeactivate() {
-    const userId = state.deactivateConfirm.userId;
+    const userIdToDeactivate = state.deactivateConfirm.userId;
 
-    if (!userId) {
+    if (!userIdToDeactivate) {
+        return;
+    }
+
+    // Prevent self-deactivation
+    const currentUserId = getCurrentUserIdFromToken();
+    if (currentUserId && String(currentUserId) === String(userIdToDeactivate)) {
+        state.errorFeedback = "No puedes desactivar tu propia cuenta";
+        state.deactivateConfirm.isOpen = false;
+        renderUsuariosScreen();
         return;
     }
 
@@ -336,7 +415,7 @@ async function handleConfirmDeactivate() {
     renderUsuariosScreen();
 
     try {
-        await deleteUser(userId);
+        await deleteUser(userIdToDeactivate);
         state.successMessage = USUARIOS_UI_MESSAGES.deactivateSuccess;
         await loadUsersList({ preserveSuccessMessage: true });
     } catch (error) {

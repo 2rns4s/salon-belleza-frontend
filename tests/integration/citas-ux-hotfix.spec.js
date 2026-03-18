@@ -28,6 +28,11 @@ function waitForController(ms = 260) {
     return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+function findAppointmentRowById(container, appointmentId) {
+    return Array.from(container.querySelectorAll(".citas__list-item"))
+        .find((row) => row.textContent.includes(`Cita #${appointmentId}`));
+}
+
 describe("citas UX hotfix", () => {
     let container;
 
@@ -175,6 +180,55 @@ describe("citas UX hotfix", () => {
     });
 
     // --- Fix 2: Nombres reales desde catálogos ---
+
+    it("CITAS-SEARCH-01: búsqueda por nombre usa debounce y mantiene foco/caret", async () => {
+        const { initCitas } = await import("../../src/features/citas/citas.controller.js");
+
+        searchClientsMock.mockResolvedValue({
+            items: [
+                {
+                    id: 201,
+                    fullName: "Ana Serrano",
+                    phone: "3001112233",
+                    documentNumber: "10293847",
+                },
+            ],
+            total: 1,
+        });
+
+        await initCitas(container);
+
+        let nameInput = container.querySelector("#citas-client-search-form input[name='name']");
+        expect(nameInput).not.toBeNull();
+
+        nameInput.focus();
+        nameInput.value = "A";
+        nameInput.setSelectionRange(1, 1);
+        nameInput.dispatchEvent(new Event("input", { bubbles: true }));
+
+        await waitForController(120);
+
+        nameInput = container.querySelector("#citas-client-search-form input[name='name']");
+        nameInput.focus();
+        nameInput.value = "Ana";
+        nameInput.setSelectionRange(2, 2);
+        nameInput.dispatchEvent(new Event("input", { bubbles: true }));
+
+        await waitForController(430);
+
+        expect(searchClientsMock).toHaveBeenCalledTimes(1);
+        expect(searchClientsMock).toHaveBeenCalledWith({
+            documentNumber: "",
+            phone: "",
+            name: "Ana",
+        });
+
+        const refreshedInput = container.querySelector("#citas-client-search-form input[name='name']");
+        expect(document.activeElement).toBe(refreshedInput);
+        expect(refreshedInput.selectionStart).toBe(2);
+        expect(refreshedInput.selectionEnd).toBe(2);
+        expect(container.querySelectorAll(".citas__client-select-btn").length).toBe(1);
+    });
 
     it("CITAS-NAMES-01: la lista muestra nombre real del servicio consultando el catálogo", async () => {
         // El service retorna datos ya mapeados con nombres de fallback ("Servicio #5")
@@ -326,5 +380,138 @@ describe("citas UX hotfix", () => {
         const dateNode = container.querySelector(".citas__item-date");
         expect(dateNode).not.toBeNull();
         expect(dateNode.textContent.trim()).toBe("15/03/2026");
+    });
+
+    it("CITAS-STATUS-01: aplica clases de estado y fallback a PENDIENTE", async () => {
+        getAppointmentsMock.mockResolvedValue([
+            {
+                id: 71,
+                slotDateTime: "2026-03-15T10:00:00",
+                service: { id: 5, name: "Lavado Premium" },
+                employee: { id: 2, name: "Ana Lopez" },
+                client: { id: 400, fullName: "Sofia Perez", phone: "3001231234" },
+                resourceSummary: [],
+                status: "PENDIENTE",
+            },
+            {
+                id: 72,
+                slotDateTime: "2026-03-15T11:00:00",
+                service: { id: 5, name: "Lavado Premium" },
+                employee: { id: 2, name: "Ana Lopez" },
+                client: { id: 401, fullName: "Daniel Ruiz", phone: "3002342345" },
+                resourceSummary: [],
+                status: "CONFIRMADA",
+            },
+            {
+                id: 73,
+                slotDateTime: "2026-03-15T12:00:00",
+                service: { id: 5, name: "Lavado Premium" },
+                employee: { id: 2, name: "Ana Lopez" },
+                client: { id: 402, fullName: "Lina Mora", phone: "3003453456" },
+                resourceSummary: [],
+            },
+        ]);
+
+        const { initCitas } = await import("../../src/features/citas/citas.controller.js");
+        await initCitas(container);
+        await waitForController();
+
+        const pendingRow = findAppointmentRowById(container, 71);
+        const confirmedRow = findAppointmentRowById(container, 72);
+        const fallbackRow = findAppointmentRowById(container, 73);
+
+        expect(pendingRow).not.toBeUndefined();
+        expect(confirmedRow).not.toBeUndefined();
+        expect(fallbackRow).not.toBeUndefined();
+
+        expect(pendingRow.className).toContain("citas__list-item--status-PENDIENTE");
+        expect(confirmedRow.className).toContain("citas__list-item--status-CONFIRMADA");
+        expect(fallbackRow.className).toContain("citas__list-item--status-PENDIENTE");
+
+        const fallbackStatus = fallbackRow.querySelector(".citas__item-status");
+        expect(fallbackStatus.className).toContain("citas__item-status--PENDIENTE");
+        expect(fallbackStatus.textContent.trim()).toBe("PENDIENTE");
+    });
+
+    it("CITAS-SECTION-01: separa activas/historial y bloquea acciones en historial", async () => {
+        getAppointmentsMock.mockResolvedValue([
+            {
+                id: 81,
+                slotDateTime: "2026-03-15T10:00:00",
+                service: { id: 5, name: "Lavado Premium" },
+                employee: { id: 2, name: "Ana Lopez" },
+                client: { id: 500, fullName: "Paula Arias", phone: "3002223344" },
+                resourceSummary: [],
+                status: "PENDIENTE",
+            },
+            {
+                id: 82,
+                slotDateTime: "2026-03-15T11:00:00",
+                service: { id: 5, name: "Lavado Premium" },
+                employee: { id: 2, name: "Ana Lopez" },
+                client: { id: 501, fullName: "Mauro Diaz", phone: "3003334455" },
+                resourceSummary: [],
+                status: "CONFIRMADA",
+            },
+            {
+                id: 83,
+                slotDateTime: "2026-03-15T12:00:00",
+                service: { id: 5, name: "Lavado Premium" },
+                employee: { id: 2, name: "Ana Lopez" },
+                client: { id: 502, fullName: "Elena Rocha", phone: "3004445566" },
+                resourceSummary: [],
+                status: "REALIZADA",
+            },
+            {
+                id: 84,
+                slotDateTime: "2026-03-15T13:00:00",
+                service: { id: 5, name: "Lavado Premium" },
+                employee: { id: 2, name: "Ana Lopez" },
+                client: { id: 503, fullName: "Hugo Salas", phone: "3005556677" },
+                resourceSummary: [],
+                status: "CANCELADA",
+            },
+        ]);
+
+        const { initCitas } = await import("../../src/features/citas/citas.controller.js");
+        await initCitas(container);
+        await waitForController();
+
+        const activeStatuses = Array.from(container.querySelectorAll(".citas__item-status"))
+            .map((node) => node.textContent.trim());
+
+        expect(activeStatuses).toContain("PENDIENTE");
+        expect(activeStatuses).toContain("CONFIRMADA");
+        expect(activeStatuses).not.toContain("REALIZADA");
+        expect(activeStatuses).not.toContain("CANCELADA");
+        expect(container.querySelectorAll(".citas__appointment-update-btn").length).toBeGreaterThan(0);
+        expect(container.querySelectorAll(".citas__appointment-delete-btn").length).toBeGreaterThan(0);
+
+        const historyTab = container.querySelector(".citas__section-tab[data-citas-view='history']");
+        historyTab.dispatchEvent(new Event("click", { bubbles: true }));
+        await waitForController(20);
+
+        const historyStatuses = Array.from(container.querySelectorAll(".citas__item-status"))
+            .map((node) => node.textContent.trim());
+
+        expect(historyStatuses).toContain("REALIZADA");
+        expect(historyStatuses).toContain("CANCELADA");
+        expect(historyStatuses).not.toContain("PENDIENTE");
+        expect(historyStatuses).not.toContain("CONFIRMADA");
+
+        const realizedRow = findAppointmentRowById(container, 83);
+        const canceledRow = findAppointmentRowById(container, 84);
+
+        expect(realizedRow.className).toContain("citas__list-item--status-REALIZADA");
+        expect(canceledRow.className).toContain("citas__list-item--status-CANCELADA");
+
+        const realizedBadge = realizedRow.querySelector(".citas__item-status");
+        const canceledBadge = canceledRow.querySelector(".citas__item-status");
+
+        expect(realizedBadge.className).toContain("citas__item-status--REALIZADA");
+        expect(canceledBadge.className).toContain("citas__item-status--CANCELADA");
+
+        expect(container.querySelectorAll(".citas__appointment-update-btn").length).toBe(0);
+        expect(container.querySelectorAll(".citas__appointment-delete-btn").length).toBe(0);
     });
 });

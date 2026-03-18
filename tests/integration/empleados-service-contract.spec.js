@@ -1,6 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import createSuccessFixture from "../fixtures/empleados/create-success.json";
 import listSuccessFixture from "../fixtures/empleados/list-success.json";
+import { createErrorResponseFixture } from "../fixtures/shared/error-response.fixture.js";
+import { normalizeEmpleadosHttpError } from "../../src/features/empleados/empleados.mappers.js";
 
 function createJsonResponse({ ok = true, status = 200, data = {} } = {}) {
     return {
@@ -158,5 +160,39 @@ describe("empleados service contract", () => {
             { id: 1, name: "Corte" },
             { id: 2, name: "Color" },
         ]);
+    });
+
+    it("EMPLEADOS-MAPPER-01: normalize incluye fieldErrors en 400 y los omite en no-validación", () => {
+        const normalizedValidation = normalizeEmpleadosHttpError({
+            status: 400,
+            data: {
+                ...createErrorResponseFixture(400),
+                fieldErrors: {
+                    correo: "correo invalido",
+                    telefono: "telefono invalido",
+                },
+            },
+        });
+
+        expect(normalizedValidation.status).toBe(400);
+        expect(normalizedValidation.code).toBe("VALIDATION");
+        expect(normalizedValidation.fieldErrors).toEqual({
+            correo: "correo invalido",
+            telefono: "telefono invalido",
+        });
+
+        const normalizedUnauthorized = normalizeEmpleadosHttpError({
+            status: 401,
+            data: {
+                ...createErrorResponseFixture(401),
+                fieldErrors: {
+                    auth: "token invalido",
+                },
+            },
+        });
+
+        expect(normalizedUnauthorized.status).toBe(401);
+        expect(normalizedUnauthorized.code).toBe("UNAUTHORIZED");
+        expect(normalizedUnauthorized.fieldErrors).toBeNull();
     });
 });

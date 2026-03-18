@@ -138,17 +138,23 @@ async function loadCatalog() {
 }
 
 async function loadServices() {
+    let hasLoadedList = false;
+
     state.loadingList = true;
     state.errorMessage = "";
     renderServiciosScreen();
     try {
         state.services = await getServices();
+        hasLoadedList = true;
     } catch (err) {
-        state.errorMessage = normalizeServiciosHttpError(err);
+        const normalizedError = normalizeServiciosHttpError(err);
+        state.errorMessage = normalizedError.message;
     } finally {
         state.loadingList = false;
         renderServiciosScreen();
     }
+
+    return hasLoadedList;
 }
 
 async function handleFormSubmit(event) {
@@ -168,17 +174,57 @@ async function handleFormSubmit(event) {
     renderServiciosScreen();
 
     try {
+        let savedService = null;
+
         if (state.formModal.mode === "edit" && state.formModal.serviceId != null) {
-            await updateService(state.formModal.serviceId, formState);
+            savedService = await updateService(state.formModal.serviceId, formState);
             state.successMessage = "Servicio actualizado correctamente.";
         } else {
-            await createService(formState);
+            savedService = await createService(formState);
             state.successMessage = "Servicio creado correctamente.";
         }
-        state.formModal = { isOpen: false, mode: "create", serviceId: null, form: createEmptyForm(), fieldErrors: {}, errorMessage: "" };
-        await loadServices();
+
+        const listLoaded = await loadServices();
+        if (!listLoaded) {
+            state.formModal = {
+                ...state.formModal,
+                form: formState,
+                errorMessage: "Se guardo el servicio, pero no se pudo refrescar el listado. Pulsa Actualizar para confirmar.",
+            };
+            renderServiciosScreen();
+            return;
+        }
+
+        if (
+            state.formModal.mode === "create"
+            && savedService?.id
+            && !state.services.some((service) => Number(service.id) === Number(savedService.id))
+        ) {
+            state.formModal = {
+                ...state.formModal,
+                form: formState,
+                errorMessage: "No se pudo confirmar la creacion en el listado. Pulsa Actualizar para validar.",
+            };
+            renderServiciosScreen();
+            return;
+        }
+
+        state.formModal = {
+            isOpen: false,
+            mode: "create",
+            serviceId: null,
+            form: createEmptyForm(),
+            fieldErrors: {},
+            errorMessage: "",
+        };
+        renderServiciosScreen();
     } catch (err) {
-        state.formModal = { ...state.formModal, errorMessage: normalizeServiciosHttpError(err) };
+        const normalizedError = normalizeServiciosHttpError(err);
+        state.formModal = { 
+            ...state.formModal, 
+            errorMessage: normalizedError.message,
+            fieldErrors: normalizedError.fieldErrors || {}
+        };
         renderServiciosScreen();
     } finally {
         state.savingForm = false;
@@ -195,7 +241,8 @@ async function handleConfirmDelete() {
         state.deleteConfirm = { isOpen: false, serviceId: null, serviceName: "" };
         await loadServices();
     } catch (err) {
-        state.errorMessage = normalizeServiciosHttpError(err);
+        const normalizedError = normalizeServiciosHttpError(err);
+        state.errorMessage = normalizedError.message;
         state.deleteConfirm = { isOpen: false, serviceId: null, serviceName: "" };
         renderServiciosScreen();
     }

@@ -287,6 +287,132 @@
     gap: 0.65rem;
 }
 
+/* Appointment status colors */
+.citas__list-item--status-PENDIENTE {
+    border-left: 4px solid #f59e0b;
+    background-color: #fffbeb;
+}
+
+.citas__list-item--status-CONFIRMADA {
+    border-left: 4px solid #3b82f6;
+    background-color: #eff6ff;
+}
+
+.citas__list-item--status-REALIZADA {
+    border-left: 4px solid #22c55e;
+    background-color: #f0fdf4;
+}
+
+.citas__list-item--status-CANCELADA {
+    border-left: 4px solid #ef4444;
+    background-color: #fef2f2;
+}
+
+/* Status badge colors */
+.citas__item-status--PENDIENTE {
+    color: #b45309;
+    font-weight: 600;
+}
+
+.citas__item-status--CONFIRMADA {
+    color: #1d4ed8;
+    font-weight: 600;
+}
+
+.citas__item-status--REALIZADA {
+    color: #15803d;
+    font-weight: 600;
+}
+
+.citas__item-status--CANCELADA {
+    color: #dc2626;
+    font-weight: 600;
+}
+
+/* Autocomplete dropdown styles */
+.citas__search-wrapper {
+    position: relative;
+}
+
+.citas__autocomplete-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 1px solid #d4bcc2;
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    z-index: 100;
+    max-height: 300px;
+    overflow-y: auto;
+    list-style: none;
+    padding: 0;
+    margin: 0.25rem 0 0 0;
+}
+
+.citas__autocomplete-item {
+    padding: 0.65rem 0.75rem;
+    cursor: pointer;
+    border-bottom: 1px solid #f0e4e7;
+    transition: background-color 0.15s ease;
+}
+
+.citas__autocomplete-item:last-child {
+    border-bottom: none;
+}
+
+.citas__autocomplete-item:hover {
+    background-color: #f9f5f6;
+}
+
+.citas__autocomplete-item--highlighted {
+    background-color: #f0e4e7;
+}
+
+/* Sections: Active vs History */
+.citas__section-tabs {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    border-bottom: 2px solid #eadde0;
+}
+
+.citas__section-tab {
+    padding: 0.5rem 1rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+    color: #6b4a52;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -2px;
+    transition: all 0.15s ease;
+}
+
+.citas__section-tab:hover {
+    color: #8a3f52;
+}
+
+.citas__section-tab--active {
+    color: #8a3f52;
+    border-bottom-color: #8a3f52;
+}
+
+.citas__section-tab--active .citas__section-tab-count {
+    background-color: #8a3f52;
+    color: white;
+}
+
+.citas__section-tab-count {
+    display: inline-block;
+    background-color: #eadde0;
+    border-radius: 999px;
+    padding: 0.1rem 0.4rem;
+    font-size: 0.75rem;
+    margin-left: 0.35rem;
+}
+
 .citas__list-item--empty {
     justify-content: center;
     color: #6b4a52;
