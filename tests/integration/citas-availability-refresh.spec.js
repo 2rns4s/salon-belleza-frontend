@@ -30,6 +30,10 @@ function waitForController(ms = 260) {
     });
 }
 
+async function waitForControllerWithFakeTimers(ms = 260) {
+    await vi.advanceTimersByTimeAsync(ms);
+}
+
 // Simula enviar el formulario de filtros con fecha y servicio dados.
 function submitFilters(container, { date = "2026-03-11", serviceId = "5", employeeId = "2" } = {}) {
     const form = container.querySelector("#citas-filter-form");
@@ -216,5 +220,124 @@ describe("citas - disponibilidad y actualizacion del panel (D1, D2, D3, D5)", ()
 
         const errorMsg = container.querySelector(".citas__message--error");
         expect(errorMsg).not.toBeNull();
+    });
+
+    it("CITAS-NOW-01: para hoy oculta slots de horas anteriores y mantiene la hora en curso", async () => {
+        vi.useFakeTimers();
+        vi.setSystemTime(new Date("2026-03-11T09:30:00"));
+
+        getAvailabilityMock.mockResolvedValue([
+            { slotDateTime: "2026-03-11T08:30:00", isSelectable: true },
+            { slotDateTime: "2026-03-11T09:00:00", isSelectable: true },
+            { slotDateTime: "2026-03-11T09:30:00", isSelectable: true },
+            { slotDateTime: "2026-03-11T10:00:00", isSelectable: true },
+        ]);
+
+        try {
+            const { initCitas } = await import("../../src/features/citas/citas.controller.js");
+
+            await initCitas(container);
+            submitFilters(container, { date: "2026-03-11", serviceId: "5", employeeId: "2" });
+            await waitForControllerWithFakeTimers();
+
+            const visibleTimes = Array.from(container.querySelectorAll(".citas__slot--available"))
+                .map((slot) => slot.textContent.trim());
+
+            expect(visibleTimes).toEqual(["09:00", "09:30", "10:00"]);
+        } finally {
+            vi.runOnlyPendingTimers();
+            vi.useRealTimers();
+        }
+    });
+
+    it("CITAS-NOW-02: incluye slots de la hora en curso cuando now esta a mitad de hora", async () => {
+        vi.useFakeTimers();
+        vi.setSystemTime(new Date("2026-03-11T09:30:00"));
+
+        getAvailabilityMock.mockResolvedValue([
+            { slotDateTime: "2026-03-11T08:30:00", isSelectable: true },
+            { slotDateTime: "2026-03-11T09:00:00", isSelectable: true },
+            { slotDateTime: "2026-03-11T09:30:00", isSelectable: true },
+            { slotDateTime: "2026-03-11T10:00:00", isSelectable: true },
+        ]);
+
+        try {
+            const { initCitas } = await import("../../src/features/citas/citas.controller.js");
+
+            await initCitas(container);
+            submitFilters(container, { date: "2026-03-11", serviceId: "5", employeeId: "2" });
+            await waitForControllerWithFakeTimers();
+
+            const visibleSlots = Array.from(container.querySelectorAll(".citas__slot--available"));
+            const exactNowSlot = visibleSlots.find((slot) => slot.textContent.trim() === "09:30");
+            const currentHourSlot = visibleSlots.find((slot) => slot.textContent.trim() === "09:00");
+
+            expect(exactNowSlot).toBeTruthy();
+            expect(currentHourSlot).toBeTruthy();
+            expect(visibleSlots.some((slot) => slot.textContent.trim() === "08:30")).toBe(false);
+        } finally {
+            vi.runOnlyPendingTimers();
+            vi.useRealTimers();
+        }
+    });
+
+    it("CITAS-NOW-03: para fecha futura conserva todos los slots retornados", async () => {
+        vi.useFakeTimers();
+        vi.setSystemTime(new Date("2026-03-11T09:30:00"));
+
+        getAvailabilityMock.mockResolvedValue([
+            { slotDateTime: "2026-03-12T09:00:00", isSelectable: true },
+            { slotDateTime: "2026-03-12T09:30:00", isSelectable: true },
+            { slotDateTime: "2026-03-12T10:00:00", isSelectable: true },
+        ]);
+
+        try {
+            const { initCitas } = await import("../../src/features/citas/citas.controller.js");
+
+            await initCitas(container);
+            submitFilters(container, { date: "2026-03-12", serviceId: "5", employeeId: "2" });
+            await waitForControllerWithFakeTimers();
+
+            const visibleTimes = Array.from(container.querySelectorAll(".citas__slot--available"))
+                .map((slot) => slot.textContent.trim());
+
+            expect(visibleTimes).toEqual(["09:00", "09:30", "10:00"]);
+        } finally {
+            vi.runOnlyPendingTimers();
+            vi.useRealTimers();
+        }
+    });
+
+    it("CITAS-NOW-04: en cache-hit para hoy re-filtra slots al avanzar el reloj", async () => {
+        vi.useFakeTimers();
+        vi.setSystemTime(new Date("2026-03-11T09:58:00"));
+
+        try {
+            const { initCitas } = await import("../../src/features/citas/citas.controller.js");
+
+            await initCitas(container);
+            submitFilters(container, { date: "2026-03-11", serviceId: "5", employeeId: "2" });
+            await waitForControllerWithFakeTimers();
+
+            const callCountAfterFirst = getAvailabilityMock.mock.calls.length;
+            let visibleTimes = Array.from(container.querySelectorAll(".citas__slot--available"))
+                .map((slot) => slot.textContent.trim());
+
+            expect(visibleTimes).toEqual(["09:00", "09:30", "10:00"]);
+
+            vi.setSystemTime(new Date("2026-03-11T10:02:00"));
+            submitFilters(container, { date: "2026-03-11", serviceId: "5", employeeId: "2" });
+            await waitForControllerWithFakeTimers();
+
+            expect(getAvailabilityMock.mock.calls.length).toBe(callCountAfterFirst);
+
+            visibleTimes = Array.from(container.querySelectorAll(".citas__slot--available"))
+                .map((slot) => slot.textContent.trim());
+
+            expect(visibleTimes).toEqual(["10:00"]);
+        } finally {
+            vi.runOnlyPendingTimers();
+            vi.useRealTimers();
+        }
     });
 });

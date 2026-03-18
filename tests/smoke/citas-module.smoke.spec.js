@@ -38,10 +38,13 @@ describe("citas module smoke", () => {
         citasRoute.handler();
         await flushPromises();
         await flushPromises();
+        await flushPromises();
 
         expect(document.querySelector(".citas__title")?.textContent).toContain("Agenda de citas");
         expect(document.querySelector(".appointments")).toBeTruthy();
         expect(document.querySelector(".appointments__title")?.textContent).toContain("Agenda de citas");
+        expect(document.querySelector("#citas-agenda-panel")).toBeTruthy();
+        expect(document.querySelector(".citas__panel-title")?.textContent).toContain("Disponibilidad");
         expect(fetchSpy).toHaveBeenCalled();
     });
 });

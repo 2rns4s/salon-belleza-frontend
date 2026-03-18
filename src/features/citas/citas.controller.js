@@ -119,10 +119,95 @@ function renderAgendaPanelPreservingClientSearchFocus() {
     restoreClientSearchFocusState(focusState);
 }
 
-function getTodayDate() {
-    const today = new Date();
-    const localIso = new Date(today.getTime() - (today.getTimezoneOffset() * 60000)).toISOString();
+function toLocalDateString(dateValue = new Date()) {
+    const parsedDate = dateValue instanceof Date ? dateValue : new Date(dateValue);
+    if (Number.isNaN(parsedDate.getTime())) {
+        return "";
+    }
+
+    const localIso = new Date(parsedDate.getTime() - (parsedDate.getTimezoneOffset() * 60000)).toISOString();
     return localIso.slice(0, 10);
+}
+
+function getTodayDate() {
+    return toLocalDateString(new Date());
+}
+
+function extractSlotDatePart(slotDateTime = "") {
+    const normalizedSlotDateTime = String(slotDateTime || "").trim();
+    if (!normalizedSlotDateTime) {
+        return "";
+    }
+
+    return String(normalizedSlotDateTime.split("T")[0] || "").trim();
+}
+
+function extractSlotMinutes(slotDateTime = "") {
+    const normalizedSlotDateTime = String(slotDateTime || "").trim();
+    if (!normalizedSlotDateTime) {
+        return null;
+    }
+
+    const timePart = String(normalizedSlotDateTime.split("T")[1] || "").trim();
+    if (timePart.length < 5) {
+        return null;
+    }
+
+    const hours = Number.parseInt(timePart.slice(0, 2), 10);
+    const minutes = Number.parseInt(timePart.slice(3, 5), 10);
+
+    if (!Number.isInteger(hours) || !Number.isInteger(minutes)) {
+        return null;
+    }
+
+    if (hours < 0 || hours > 23 || minutes < 0 || minutes > 59) {
+        return null;
+    }
+
+    return (hours * 60) + minutes;
+}
+
+function filterNowForwardAvailabilitySlots(availabilitySlots = [], selectedDate = "", nowDate = new Date()) {
+    const normalizedSlots = Array.isArray(availabilitySlots) ? availabilitySlots : [];
+    const normalizedSelectedDate = String(selectedDate || "").trim();
+
+    if (!normalizedSelectedDate || normalizedSelectedDate !== toLocalDateString(nowDate)) {
+        return normalizedSlots;
+    }
+
+    const nowReference = new Date(nowDate);
+    nowReference.setMinutes(0, 0, 0);
+
+    const nowTimestamp = nowReference.getTime();
+    if (Number.isNaN(nowTimestamp)) {
+        return normalizedSlots;
+    }
+
+    const nowHourStartMinutes = (nowReference.getHours() * 60) + nowReference.getMinutes();
+
+    return normalizedSlots.filter((slot) => {
+        const slotDateTime = String(slot?.slotDateTime || "").trim();
+        if (!slotDateTime) {
+            return false;
+        }
+
+        const slotDatePart = extractSlotDatePart(slotDateTime);
+        if (slotDatePart && slotDatePart !== normalizedSelectedDate) {
+            return true;
+        }
+
+        const slotMinutes = extractSlotMinutes(slotDateTime);
+        if (slotMinutes !== null) {
+            return slotMinutes >= nowHourStartMinutes;
+        }
+
+        const slotDate = new Date(slotDateTime);
+        if (Number.isNaN(slotDate.getTime())) {
+            return true;
+        }
+
+        return slotDate.getTime() >= nowTimestamp;
+    });
 }
 
 function getNowMs() {
@@ -802,12 +887,18 @@ async function loadAgendaData({ forceRefresh = false, preserveErrorMessage = fal
             return;
         }
 
+        const visibleAvailabilitySlots = filterNowForwardAvailabilitySlots(
+            availabilitySlots,
+            state.selectedDate,
+            new Date(),
+        );
+
         state.appointments = hydratedAppointments;
-        state.availabilitySlots = availabilitySlots;
+        state.availabilitySlots = visibleAvailabilitySlots;
 
         if (
             state.selectedSlot
-            && !availabilitySlots.some((slot) => slot.slotDateTime === state.selectedSlot)
+            && !visibleAvailabilitySlots.some((slot) => slot.slotDateTime === state.selectedSlot)
         ) {
             state.selectedSlot = null;
         }
