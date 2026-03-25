@@ -99,18 +99,48 @@ function registerLayoutListeners() {
             return;
         }
 
-        const logoutButton = target.closest("#layout-logout-btn");
-        if (!logoutButton) {
+        // Handle user dropdown menu toggle
+        const userMenuButton = target.closest("#layout-user-menu-btn");
+        if (userMenuButton) {
+            event.preventDefault();
+            const dropdown = layoutRoot?.querySelector("#layout-user-dropdown");
+            if (dropdown instanceof HTMLElement) {
+                const isHidden = dropdown.hasAttribute("hidden");
+                if (isHidden) {
+                    dropdown.removeAttribute("hidden");
+                    userMenuButton.setAttribute("aria-expanded", "true");
+                } else {
+                    dropdown.setAttribute("hidden", "");
+                    userMenuButton.setAttribute("aria-expanded", "false");
+                }
+            }
             return;
         }
 
-        event.preventDefault();
+        // Close dropdown when clicking outside
+        const userMenu = target.closest(".layout__user-menu-wrapper");
+        if (!userMenu) {
+            const dropdown = layoutRoot?.querySelector("#layout-user-dropdown");
+            if (dropdown instanceof HTMLElement && !dropdown.hasAttribute("hidden")) {
+                dropdown.setAttribute("hidden", "");
+                const btn = layoutRoot?.querySelector("#layout-user-menu-btn");
+                if (btn instanceof HTMLElement) {
+                    btn.setAttribute("aria-expanded", "false");
+                }
+            }
+        }
 
-        try {
-            limpiarSesion();
-        } finally {
-            updateLayoutUserContext();
-            navegarA("/auth");
+        // Handle logout button
+        const logoutButton = target.closest("#layout-logout-btn");
+        if (logoutButton) {
+            event.preventDefault();
+
+            try {
+                limpiarSesion();
+            } finally {
+                updateLayoutUserContext();
+                navegarA("/auth");
+            }
         }
     };
 

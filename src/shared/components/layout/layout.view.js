@@ -31,16 +31,24 @@ export function renderLayoutUserContext({ username, roleLabel, hasSession }) {
     const sessionStatus = hasSession ? "Sesion activa" : "Sesion no iniciada";
 
     return `
-        <div class="layout__user" aria-live="polite">
-            <span class="layout__user-label">Usuario</span>
-            <strong class="layout__user-value">${escapeHtml(safeUsername)}</strong>
-            <span class="layout__role-badge">${escapeHtml(safeRole)}</span>
-            <span class="layout__session-status">${escapeHtml(sessionStatus)}</span>
-        </div>
+        <div class="layout__user-menu-wrapper">
+            <button class="layout__user-menu-trigger" id="layout-user-menu-btn" aria-expanded="false" type="button" aria-live="polite">
+                <span class="layout__user-label">Usuario</span>
+                <strong class="layout__user-value">${escapeHtml(safeUsername)}</strong>
+                <span class="layout__role-badge">${escapeHtml(safeRole)}</span>
+                <span class="layout__menu-arrow">⋮</span>
+            </button>
 
-        <button class="layout__logout-button" id="layout-logout-btn" type="button">
-            Cerrar Sesion
-        </button>
+            <div class="layout__user-dropdown" id="layout-user-dropdown" hidden>
+                <a class="layout__user-dropdown-item" href="#/user-settings" id="layout-settings-link">
+                    ⚙️ Opciones de Cuenta
+                </a>
+                <hr class="layout__user-dropdown-divider" />
+                <button class="layout__user-dropdown-item layout__user-dropdown-item--logout" id="layout-logout-btn" type="button">
+                    🚪 Cerrar Sesion
+                </button>
+            </div>
+        </div>
     `;
 }
 

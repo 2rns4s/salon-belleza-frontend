@@ -73,6 +73,117 @@
     opacity: 0.9;
 }
 
+/* User Menu Dropdown */
+.layout__user-menu-wrapper {
+    position: relative;
+}
+
+.layout__user-menu-trigger {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    flex-wrap: wrap;
+    min-height: 40px;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    border-radius: 0.55rem;
+    padding: 0.45rem 0.8rem;
+    background-color: rgba(255, 255, 255, 0.12);
+    color: #ffffff;
+    cursor: pointer;
+    font-size: 0.88rem;
+    font-weight: 600;
+    font-family: inherit;
+    transition: background-color 0.2s ease;
+}
+
+.layout__user-menu-trigger:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+.layout__user-menu-trigger:active {
+    background-color: rgba(255, 255, 255, 0.25);
+}
+
+.layout__user-label {
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    opacity: 0.9;
+}
+
+.layout__user-value {
+    font-size: 0.95rem;
+}
+
+.layout__role-badge {
+    background-color: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    border-radius: 999px;
+    padding: 0.2rem 0.6rem;
+    font-size: 0.78rem;
+    font-weight: 600;
+}
+
+.layout__menu-arrow {
+    font-size: 1.2rem;
+    opacity: 0.8;
+}
+
+.layout__user-dropdown {
+    position: absolute;
+    top: calc(100% + 0.5rem);
+    right: 0;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 0.55rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    min-width: 220px;
+    z-index: 100;
+    overflow: hidden;
+}
+
+.layout__user-dropdown[hidden] {
+    display: none;
+}
+
+.layout__user-dropdown-item {
+    display: block;
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: none;
+    background: none;
+    color: #333;
+    text-align: left;
+    font-size: 0.92rem;
+    font-family: inherit;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background-color 0.2s ease;
+}
+
+.layout__user-dropdown-item:hover {
+    background-color: #f8f8f8;
+}
+
+.layout__user-dropdown-item:active {
+    background-color: #f0e5e7;
+}
+
+.layout__user-dropdown-item--logout {
+    color: #dc3545;
+    font-weight: 600;
+}
+
+.layout__user-dropdown-item--logout:hover {
+    background-color: #fff5f5;
+}
+
+.layout__user-dropdown-divider {
+    margin: 0.5rem 0;
+    border: none;
+    border-top: 1px solid #eee;
+}
+
 .layout__logout-button {
     min-height: 40px;
     border: 1px solid rgba(255, 255, 255, 0.5);

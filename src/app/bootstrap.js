@@ -8,6 +8,8 @@ import "../features/recursos/recursos.routes.js";
 import "../features/servicios/servicios.routes.js";
 import "../features/clientes/clientes.routes.js";
 import "../features/citas/citas.routes.js";
+import "../features/mfa/mfa.routes.js";
+import "../features/user-settings/user-settings.routes.js";
 import "../features/auth/auth.routes.js";
 
 function renderDashboardPlaceholder(container) {

@@ -154,6 +154,32 @@ function resolveUsernameFromTokenPayload(tokenPayload) {
     return usernameFromToken || null;
 }
 
+function toBooleanLike(rawValue) {
+    if (typeof rawValue === "boolean") {
+        return rawValue;
+    }
+
+    if (typeof rawValue === "number") {
+        return rawValue === 1;
+    }
+
+    if (typeof rawValue === "string") {
+        const normalizedValue = rawValue.trim().toLowerCase();
+        return normalizedValue === "true" || normalizedValue === "1" || normalizedValue === "si" || normalizedValue === "yes";
+    }
+
+    return false;
+}
+
+function resolveMfaEnabledFromTokenPayload(tokenPayload) {
+    if (!tokenPayload || typeof tokenPayload !== "object") {
+        return false;
+    }
+
+    const rawMfaValue = tokenPayload.mfaEnabled ?? tokenPayload.mfaActivo ?? tokenPayload.mfa;
+    return toBooleanLike(rawMfaValue);
+}
+
 export function normalizeAuthRole(rawRole) {
     const normalizedRole = typeof rawRole === "string" ? rawRole.trim().toUpperCase() : "";
 
@@ -243,6 +269,7 @@ export function resolveAuthUserContext(authStateOverride = null) {
     const roleFromAuthState = normalizeAuthRole(authState?.rol);
     const roleFromToken = normalizeAuthRole(resolveRoleFromTokenPayload(tokenPayload));
     const normalizedRole = roleFromAuthState || roleFromToken;
+    const isMfaEnabled = resolveMfaEnabledFromTokenPayload(tokenPayload);
 
     const hasValidToken = hasToken && !isTokenMalformed && !isTokenExpired;
 
@@ -252,6 +279,7 @@ export function resolveAuthUserContext(authStateOverride = null) {
         hasSession: hasValidToken ? Boolean(authState?.sesionIniciada || token) : Boolean(authState?.sesionIniciada),
         isTokenExpired,
         isTokenMalformed,
+        isMfaEnabled: hasValidToken ? isMfaEnabled : false,
     };
 }
 

@@ -161,7 +161,7 @@ describe("layout shared header integration", () => {
         expect(obtenerEstadoAuth().sesionIniciada).toBe(false);
         expect(obtenerToken()).toBeNull();
         expect(window.location.hash).toBe("#/auth");
-        expect(document.querySelector(".layout__session-status")?.textContent).toContain("Sesion no iniciada");
+        expect(document.querySelector(".layout__user-menu-trigger")).toBeTruthy();
     });
 
     it("LAYOUT-REHYDRATE-INVALID-01: token malformado persistido limpia sesion y redirige a /auth", () => {
@@ -173,7 +173,7 @@ describe("layout shared header integration", () => {
         expect(obtenerEstadoAuth().sesionIniciada).toBe(false);
         expect(obtenerToken()).toBeNull();
         expect(window.location.hash).toBe("#/auth");
-        expect(document.querySelector(".layout__session-status")?.textContent).toContain("Sesion no iniciada");
+        expect(document.querySelector(".layout__user-menu-trigger")).toBeTruthy();
     });
 
     it("LAYOUT-NAV-OWNER: OWNER ve Clientes, Citas, Usuarios, Empleados, Servicios y Recursos en la navegacion", () => {
