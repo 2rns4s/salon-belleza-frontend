@@ -23,10 +23,3 @@ When working on this project, read `.atl/skill-registry.md` first and then load 
 | `sdd-apply` | When implementing tasks, writing actual code following specs and design. | `~/.copilot/skills/sdd-apply/SKILL.md` |
 | `sdd-verify` | When validating that implementation matches specs, design, and tasks. | `~/.copilot/skills/sdd-verify/SKILL.md` |
 | `sdd-archive` | When archiving a completed change after implementation and verification. | `~/.copilot/skills/sdd-archive/SKILL.md` |
-| `skill-registry` | When creating or updating the skill registry for the project. | `~/.copilot/skills/skill-registry/SKILL.md` |
-| `issue-creation` | When creating a GitHub issue, reporting a bug, or requesting a feature. | `~/.copilot/skills/issue-creation/SKILL.md` |
-| `branch-pr` | When creating a pull request, opening a PR, or preparing changes for review. | `~/.copilot/skills/branch-pr/SKILL.md` |
-| `vanilla-controller` | Cuando el archivo termina en `.controller.js`. | `~/.copilot/skills/vanilla-controller/SKILL.md` |
-| `vanilla-css-bem` | Archivos `.css`. | `~/.copilot/skills/vanilla-css-bem/SKILL.md` |
-| `vanilla-service` | Archivos `.service.js`. | `~/.copilot/skills/vanilla-service/SKILL.md` |
-| `vanilla-view` | Archivos `.view.js`. | `~/.copilot/skills/vanilla-view/SKILL.md` |

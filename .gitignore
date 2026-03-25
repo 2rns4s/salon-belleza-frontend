@@ -17,3 +17,4 @@ node_modules/
 
 # Ignorar artefactos locales de orquestación
 coverage/
+.atl/

@@ -409,6 +409,24 @@ Campos:
 - Salida 204: sin contenido
 - Errores: `404`, `500`
 
+### `GET /api/v1/usuarios/me/mfa/setup`
+
+- Que hace: genera setup MFA para el usuario autenticado (QR + secret).
+- Entrada: sin body. Requiere `Authorization: Bearer <token>`.
+- Salida 200 (Body: `MfaSetupResponse`):
+  - `secret` (string, BASE32)
+  - `qrCodeUrl` (string, data URI imagen PNG)
+- Errores: `403`, `500`
+
+### `POST /api/v1/usuarios/me/mfa/enable`
+
+- Que hace: confirma y activa MFA para el usuario autenticado.
+- Entrada (Body: `MfaEnableRequest`):
+  - `secret` (string, BASE32, obligatorio)
+  - `code` (string, 6 digitos, regex `^\\d{6}$`, obligatorio)
+- Salida 204: sin contenido
+- Errores: `400`, `403`, `404`, `500`
+
 ## 6) Contratos DTO detallados (Request y Response)
 
 ### 6.1 Request DTOs
@@ -495,6 +513,10 @@ Campos:
 - `rol`: `string` (`OWNER | RECEPTIONIST`, opcional)
 - `activo`: `boolean` (opcional)
 
+#### `MfaEnableRequest`
+- `secret`: `string` (BASE32, obligatorio)
+- `code`: `string` (6 digitos, regex `^\\d{6}$`, obligatorio)
+
 ### 6.2 Response DTOs
 
 #### `LoginResponse`
@@ -565,6 +587,10 @@ Campos:
 - `idEmpleado`: `long`
 - `activo`: `boolean`
 - `mfaEnabled`: `boolean`
+
+#### `MfaSetupResponse`
+- `secret`: `string` (BASE32)
+- `qrCodeUrl`: `string` (data URI imagen PNG, base64)
 
 #### `ErrorResponse`
 - `timestamp`: `LocalDateTime`
