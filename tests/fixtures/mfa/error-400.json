@@ -1,0 +1,6 @@
+{
+  "status": 400,
+  "fieldErrors": {
+    "code": "Código TOTP inválido o expirado"
+  }
+}
