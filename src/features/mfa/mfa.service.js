@@ -18,15 +18,16 @@ export async function setupMfa() {
  * Confirma la activacion de MFA con secret y codigo TOTP
  * @param {string} secret - Secret en BASE32
  * @param {string} code - Codigo TOTP de 6 digitos
- * @returns {Promise<void>} Vacio (204 No Content)
+ * @returns {Promise<{token: string}>} Nuevo JWT token con mfaEnabled=true
  * @throws {Error} si la solicitud falla
  */
 export async function enableMfa(secret, code) {
     const requestBody = mapMfaEnablePayload(secret, code);
 
-    await httpClient(MFA_ENDPOINTS.enable, {
+    const response = await httpClient(MFA_ENDPOINTS.enable, {
         method: "POST",
         body: JSON.stringify(requestBody),
     });
-    // 204 No Content - no hay respuesta que procesar
+
+    return response;
 }

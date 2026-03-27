@@ -3,7 +3,7 @@ import { setupMfa, enableMfa } from "./mfa.service.js";
 import { sanitizeTotp, isValidTotpFormat } from "./mfa.mappers.js";
 import { MFA_SETUP_STEPS, MFA_HTTP_MESSAGES } from "./mfa.constants.js";
 import { normalizeHttpError } from "../../shared/mappers/httpErrorNormalizer.js";
-import { resolveAuthUserContext } from "../../shared/state/authStore.js";
+import { resolveAuthUserContext, guardarSesion } from "../../shared/state/authStore.js";
 
 /**
  * Estado controlador para pantalla MFA
@@ -127,7 +127,17 @@ async function handleEnableSubmit(container) {
     });
 
     try {
-        await enableMfa(mfaState.secret, sanitized);
+        const { token } = await enableMfa(mfaState.secret, sanitized);
+
+        // Actualizar el token en storage y estado de auth
+        if (token) {
+            const userContext = resolveAuthUserContext();
+            guardarSesion({
+                usuario: userContext?.username,
+                rol: userContext?.normalizedRole,
+                token,
+            });
+        }
 
         updateStateAndRender(container, {
             currentStep: MFA_SETUP_STEPS.SUCCESS,
