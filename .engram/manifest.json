@@ -152,6 +152,14 @@
       "sessions": 0,
       "memories": 7,
       "prompts": 0
+    },
+    {
+      "id": "db6b84c3",
+      "created_by": "daniel",
+      "created_at": "2026-04-01T17:14:00Z",
+      "sessions": 13,
+      "memories": 46,
+      "prompts": 81
     }
   ]
 }
