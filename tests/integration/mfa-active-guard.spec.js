@@ -77,4 +77,38 @@ describe("mfa active access guard", () => {
         expect(mfaButton).toBeTruthy();
         expect(mfaButton?.hasAttribute("disabled")).toBe(false);
     });
+
+    it("bloquea ruta /mfa-setup cuando MFA esta activo con claim mfa_enabled (snake_case del backend)", async () => {
+        setAuthToken(createJwtToken({ rol: "OWNER", nombreUsuario: "owner", mfa_enabled: true }));
+
+        await import("../../src/features/mfa/mfa.routes.js");
+
+        const mfaRoute = window.appFeatureRoutes.find((route) => route?.path === "/mfa-setup");
+        expect(mfaRoute).toBeTruthy();
+
+        const container = document.createElement("main");
+        mfaRoute.handler(container);
+
+        expect(window.location.hash).toBe("#/user-settings");
+        expect(container.querySelector("#btn-setup-start")).toBeNull();
+    });
+
+    it("deshabilita CTA MFA en user-settings con claim mfa_enabled (snake_case del backend)", async () => {
+        setAuthToken(createJwtToken({ rol: "OWNER", nombreUsuario: "owner", mfa_enabled: true }));
+
+        const { initUserSettings } = await import("../../src/features/user-settings/user-settings.controller.js");
+
+        const container = document.createElement("main");
+        document.body.appendChild(container);
+
+        initUserSettings(container);
+
+        const mfaButton = container.querySelector("#user-settings-mfa-btn");
+        const statusBadge = container.querySelector(".user-settings__status-badge--active");
+
+        expect(mfaButton).toBeTruthy();
+        expect(mfaButton?.hasAttribute("disabled")).toBe(true);
+        expect(mfaButton?.getAttribute("aria-disabled")).toBe("true");
+        expect(statusBadge?.textContent).toContain("Ya activo");
+    });
 });

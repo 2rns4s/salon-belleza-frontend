@@ -153,3 +153,19 @@ export async function verificarMfa(mfaToken, mfaCode, username = null) {
 
     return responseData;
 }
+
+// Registra un empleado pre-registrado con credenciales.
+export async function employeeSignUp(email, username, password) {
+    const requestBody = {
+        email,
+        username,
+        password,
+    };
+
+    const responseData = await httpClient("/api/v1/auth/employee-signup", {
+        method: "POST",
+        body: JSON.stringify(requestBody),
+    });
+
+    return responseData;
+}

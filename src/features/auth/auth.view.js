@@ -61,6 +61,9 @@ export function renderLoginPage({
                         ${loading ? "Ingresando..." : "Ingresar"}
                     </button>
                 </form>
+                <button class="auth__btn auth__btn--secondary auth__btn--outside-form" type="button" id="btn-signup">
+                    ¿No tienes cuenta? Crear cuenta
+                </button>
             </div>
         </section>
     `;
@@ -99,7 +102,86 @@ export function renderMfaPage({
                     <button class="auth__btn auth__btn--primary" type="submit" ${loading ? "disabled" : ""}>
                         ${loading ? "Verificando..." : "Verificar"}
                     </button>
-                    <button class="auth__btn auth__btn--secondary" type="button" id="btn-back">
+                    <button class="auth__btn auth__btn--secondary auth__btn--outside-form" type="button" id="btn-back">
+                        Volver al inicio de sesión
+                    </button>
+                </form>
+            </div>
+        </section>
+    `;
+}
+
+// Renderiza la pantalla de registro de empleados.
+export function renderSignupPage({
+    loading = false,
+    errorMessage = "",
+    fieldErrors = {},
+    email = "",
+    username = "",
+} = {}) {
+    return `
+        <section class="auth">
+            <div class="auth__card">
+                <h2 class="auth__title">Crear cuenta</h2>
+                <p class="auth__description">
+                    Regístrate como empleado.
+                </p>
+                ${renderGlobalError(errorMessage)}
+                <form class="auth__form auth__signup-form" id="signup-form" novalidate>
+                    <div class="auth__field">
+                        <label class="auth__label" for="email">Correo electrónico</label>
+                        <input
+                            class="auth__input"
+                            type="email"
+                            id="email"
+                            name="email"
+                            value="${escapeHtml(email)}"
+                            autocomplete="email"
+                            required
+                        />
+                        <span class="auth__field-error" id="error-email">${renderFieldError(fieldErrors.email)}</span>
+                    </div>
+                    <div class="auth__field">
+                        <label class="auth__label" for="username">Nombre de usuario</label>
+                        <input
+                            class="auth__input"
+                            type="text"
+                            id="username"
+                            name="username"
+                            value="${escapeHtml(username)}"
+                            autocomplete="username"
+                            required
+                        />
+                        <span class="auth__field-error" id="error-username">${renderFieldError(fieldErrors.username)}</span>
+                    </div>
+                    <div class="auth__field">
+                        <label class="auth__label" for="password">Contraseña</label>
+                        <input
+                            class="auth__input"
+                            type="password"
+                            id="password"
+                            name="password"
+                            autocomplete="new-password"
+                            required
+                        />
+                        <span class="auth__field-error" id="error-password">${renderFieldError(fieldErrors.password)}</span>
+                    </div>
+                    <div class="auth__field">
+                        <label class="auth__label" for="confirmPassword">Confirmar contraseña</label>
+                        <input
+                            class="auth__input"
+                            type="password"
+                            id="confirmPassword"
+                            name="confirmPassword"
+                            autocomplete="new-password"
+                            required
+                        />
+                        <span class="auth__field-error" id="error-confirmPassword">${renderFieldError(fieldErrors.confirmPassword)}</span>
+                    </div>
+                    <button class="auth__btn auth__btn--primary" type="submit" ${loading ? "disabled" : ""}>
+                        ${loading ? "Creando cuenta..." : "Crear cuenta"}
+                    </button>
+                    <button class="auth__btn auth__btn--secondary auth__btn--outside-form" type="button" id="btn-back">
                         Volver al inicio de sesión
                     </button>
                 </form>
@@ -110,9 +192,15 @@ export function renderMfaPage({
 
 // Renderiza el estado de carga general para operaciones de auth.
 export function renderLoadingState({ currentState = "login" } = {}) {
-    const message = currentState === "mfa"
-        ? "Validando código de verificación..."
-        : "Iniciando sesión...";
+    let message;
+
+    if (currentState === "mfa") {
+        message = "Validando código de verificación...";
+    } else if (currentState === "signup") {
+        message = "Creando cuenta...";
+    } else {
+        message = "Iniciando sesión...";
+    }
 
     return `
         <section class="auth">

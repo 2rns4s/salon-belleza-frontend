@@ -1,5 +1,5 @@
-import { extractRoleFromToken, login, verificarMfa } from "./auth.service.js";
-import { renderLoadingState, renderLoginPage, renderMfaPage } from "./auth.view.js";
+import { employeeSignUp, extractRoleFromToken, login, verificarMfa } from "./auth.service.js";
+import { renderLoadingState, renderLoginPage, renderMfaPage, renderSignupPage } from "./auth.view.js";
 import { AUTH_ROLES, guardarSesion as saveSession, normalizeAuthRole } from "../../shared/state/authStore.js";
 import { navegarA } from "../../shared/router/router.js";
 import { normalizeHttpError as normalizeSharedHttpError } from "../../shared/mappers/httpErrorNormalizer.js";
@@ -7,6 +7,14 @@ import { normalizeHttpError as normalizeSharedHttpError } from "../../shared/map
 const AUTH_STATES = Object.freeze({
     LOGIN: "login",
     MFA: "mfa",
+    SIGNUP: "signup",
+});
+
+export const SIGNUP_VALIDATION_RULES = Object.freeze({
+    USERNAME_MIN_LENGTH: 4,
+    USERNAME_MAX_LENGTH: 20,
+    PASSWORD_MIN_LENGTH: 8,
+    EMAIL_PATTERN: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
 });
 
 let domContainer = null;
@@ -16,6 +24,10 @@ function createInitialState() {
     return {
         currentState: AUTH_STATES.LOGIN,
         userData: {
+            username: "",
+        },
+        signupData: {
+            email: "",
             username: "",
         },
         mfaToken: null,
@@ -51,6 +63,62 @@ function isGenericAuthMessage(message) {
         || normalizedMessage.includes("bad credentials")
         || normalizedMessage.includes("unauthorized")
     );
+}
+
+function resolveSignupErrorMessage(error) {
+    const status = error?.status || 0;
+    const message = String(error?.data?.message || error?.message || "");
+    const details = Array.isArray(error?.data?.details) ? error.data.details : [];
+    const fieldErrors = error?.data?.fieldErrors || {};
+
+    if (status === 400) {
+        return {
+            errorMessage: message || "Los datos ingresados no son validos. Revisa los campos.",
+            fieldErrors,
+        };
+    }
+
+    if (status === 404) {
+        return {
+            errorMessage: "No encontramos un empleado con ese correo. Contacta al administrador.",
+            fieldErrors: {},
+        };
+    }
+
+    if (status === 409) {
+        const lowerMessage = message.toLowerCase();
+        const lowerDetails = details.map((d) => d.toLowerCase());
+        const hasEmailConflict = lowerMessage.includes("correo")
+            || lowerMessage.includes("email")
+            || lowerDetails.some((d) => d.includes("correo") || d.includes("email"));
+        const hasUsernameConflict = lowerMessage.includes("usuario")
+            || lowerMessage.includes("username")
+            || lowerDetails.some((d) => d.includes("usuario") || d.includes("username"));
+
+        if (hasEmailConflict && !hasUsernameConflict) {
+            return {
+                errorMessage: "Ese correo ya tiene una cuenta creada. Inicia sesion.",
+                fieldErrors: {},
+            };
+        }
+
+        if (hasUsernameConflict && !hasEmailConflict) {
+            return {
+                errorMessage: "Ese nombre de usuario ya esta en uso. Elige otro.",
+                fieldErrors: {},
+            };
+        }
+
+        return {
+            errorMessage: "Ese correo ya tiene cuenta o el nombre de usuario ya esta en uso.",
+            fieldErrors: {},
+        };
+    }
+
+    return {
+        errorMessage: message || "Error inesperado del servidor. Por favor intenta mas tarde.",
+        fieldErrors: {},
+    };
 }
 
 function resolveUnauthorizedMessage(normalizedMessage, context) {
@@ -131,13 +199,31 @@ function assignContainerEvents() {
         if (formElement.id === "mfa-form") {
             event.preventDefault();
             void handleMfaSubmit(formElement);
+            return;
+        }
+
+        if (formElement.id === "signup-form") {
+            event.preventDefault();
+            void handleSignupSubmit(formElement);
         }
     };
 
     domContainer.__clickHandler = (event) => {
-        if (event.target?.id === "btn-back") {
+        const target = event.target;
+
+        if (target?.id === "btn-back") {
             event.preventDefault();
-            handleBackToLogin();
+            if (authState.currentState === AUTH_STATES.MFA) {
+                handleBackToLogin();
+            } else if (authState.currentState === AUTH_STATES.SIGNUP) {
+                handleBackToLoginFromSignup();
+            }
+            return;
+        }
+
+        if (target?.id === "btn-signup") {
+            event.preventDefault();
+            handleShowSignup();
         }
     };
 
@@ -161,6 +247,18 @@ function renderAuthScreen() {
             loading: authState.loading,
             errorMessage: authState.errorMessage,
             fieldErrors: authState.fieldErrors,
+        });
+        assignContainerEvents();
+        return;
+    }
+
+    if (authState.currentState === AUTH_STATES.SIGNUP) {
+        domContainer.innerHTML = renderSignupPage({
+            loading: authState.loading,
+            errorMessage: authState.errorMessage,
+            fieldErrors: authState.fieldErrors,
+            email: authState.signupData.email,
+            username: authState.signupData.username,
         });
         assignContainerEvents();
         return;
@@ -194,6 +292,38 @@ function validateMfaInput(mfaCode) {
 
     if (!/^\d{6}$/.test(mfaCode)) {
         validationErrors.totpCode = "El codigo debe tener exactamente 6 digitos numericos.";
+    }
+
+    return validationErrors;
+}
+
+function validateSignupInput(email, username, password, confirmPassword) {
+    const validationErrors = {};
+
+    if (!email) {
+        validationErrors.email = "El correo es obligatorio.";
+    } else if (!SIGNUP_VALIDATION_RULES.EMAIL_PATTERN.test(email)) {
+        validationErrors.email = "Ingresa un correo valido.";
+    }
+
+    if (!username) {
+        validationErrors.username = "El nombre de usuario es obligatorio.";
+    } else if (username.length < SIGNUP_VALIDATION_RULES.USERNAME_MIN_LENGTH) {
+        validationErrors.username = `El usuario debe tener al menos ${SIGNUP_VALIDATION_RULES.USERNAME_MIN_LENGTH} caracteres.`;
+    } else if (username.length > SIGNUP_VALIDATION_RULES.USERNAME_MAX_LENGTH) {
+        validationErrors.username = `El usuario no puede tener mas de ${SIGNUP_VALIDATION_RULES.USERNAME_MAX_LENGTH} caracteres.`;
+    }
+
+    if (!password) {
+        validationErrors.password = "La contrasena es obligatoria.";
+    } else if (password.length < SIGNUP_VALIDATION_RULES.PASSWORD_MIN_LENGTH) {
+        validationErrors.password = `La contrasena debe tener al menos ${SIGNUP_VALIDATION_RULES.PASSWORD_MIN_LENGTH} caracteres.`;
+    }
+
+    if (!confirmPassword) {
+        validationErrors.confirmPassword = "Debes confirmar la contrasena.";
+    } else if (password !== confirmPassword) {
+        validationErrors.confirmPassword = "Las contrasenas no coinciden.";
     }
 
     return validationErrors;
@@ -309,6 +439,56 @@ async function handleMfaSubmit(formElement) {
     }
 }
 
+async function handleSignupSubmit(formElement) {
+    const formData = new FormData(formElement);
+    const email = String(formData.get("email") || "").trim();
+    const username = String(formData.get("username") || "").trim();
+    const password = String(formData.get("password") || "");
+    const confirmPassword = String(formData.get("confirmPassword") || "");
+
+    const inputErrors = validateSignupInput(email, username, password, confirmPassword);
+    if (Object.keys(inputErrors).length > 0) {
+        authState.loading = false;
+        authState.errorMessage = "";
+        authState.fieldErrors = inputErrors;
+        authState.signupData = { email, username };
+        renderAuthScreen();
+        return;
+    }
+
+    authState.loading = true;
+    authState.signupData = { email, username };
+    clearErrors();
+    renderAuthScreen();
+
+    try {
+        await employeeSignUp(email, username, password);
+
+        authState.loading = false;
+        authState.currentState = AUTH_STATES.LOGIN;
+        authState.signupData = { email: "", username: "" };
+        authState.errorMessage = "";
+        authState.fieldErrors = {};
+        authState.userData.username = username;
+        renderAuthScreen();
+    } catch (error) {
+        authState.loading = false;
+        const uiError = normalizeSignupError(error);
+        authState.errorMessage = uiError.errorMessage;
+        authState.fieldErrors = uiError.fieldErrors;
+        renderAuthScreen();
+    }
+}
+
+function handleBackToLoginFromSignup() {
+    authState.currentState = AUTH_STATES.LOGIN;
+    authState.loading = false;
+    authState.errorMessage = "";
+    authState.fieldErrors = {};
+    authState.signupData = { email: "", username: "" };
+    renderAuthScreen();
+}
+
 function handleBackToLogin() {
     authState.currentState = AUTH_STATES.LOGIN;
     authState.loading = false;
@@ -316,6 +496,70 @@ function handleBackToLogin() {
     authState.fieldErrors = {};
     authState.mfaToken = null;
     renderAuthScreen();
+}
+
+function handleShowSignup() {
+    authState.currentState = AUTH_STATES.SIGNUP;
+    authState.signupData = { email: "", username: "" };
+    authState.errorMessage = "";
+    authState.fieldErrors = {};
+    renderAuthScreen();
+}
+
+function normalizeSignupError(error) {
+    const status = error?.status || 0;
+    const message = String(error?.data?.message || error?.message || "");
+    const details = Array.isArray(error?.data?.details) ? error.data.details : [];
+    const fieldErrors = error?.data?.fieldErrors || {};
+
+    if (status === 400) {
+        return {
+            errorMessage: message || "Los datos ingresados no son validos. Revisa los campos.",
+            fieldErrors: Object.keys(fieldErrors).length > 0 ? fieldErrors : {},
+        };
+    }
+
+    if (status === 404) {
+        return {
+            errorMessage: "No encontramos un empleado con ese correo. Contacta al administrador.",
+            fieldErrors: {},
+        };
+    }
+
+    if (status === 409) {
+        const lowerMessage = message.toLowerCase();
+        const lowerDetails = details.map((d) => d.toLowerCase());
+        const hasEmailConflict = lowerMessage.includes("correo")
+            || lowerMessage.includes("email")
+            || lowerDetails.some((d) => d.includes("correo") || d.includes("email"));
+        const hasUsernameConflict = lowerMessage.includes("usuario")
+            || lowerMessage.includes("username")
+            || lowerDetails.some((d) => d.includes("usuario") || d.includes("username"));
+
+        if (hasEmailConflict && !hasUsernameConflict) {
+            return {
+                errorMessage: "Ese correo ya tiene una cuenta creada. Inicia sesion.",
+                fieldErrors: {},
+            };
+        }
+
+        if (hasUsernameConflict && !hasEmailConflict) {
+            return {
+                errorMessage: "Ese nombre de usuario ya esta en uso. Elige otro.",
+                fieldErrors: {},
+            };
+        }
+
+        return {
+            errorMessage: "Ese correo ya tiene cuenta o el nombre de usuario ya esta en uso.",
+            fieldErrors: {},
+        };
+    }
+
+    return {
+        errorMessage: message || "Error inesperado del servidor. Por favor intenta mas tarde.",
+        fieldErrors: {},
+    };
 }
 
 // Punto de entrada del feature: recibe el nodo del DOM donde renderizar.

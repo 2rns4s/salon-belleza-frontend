@@ -118,3 +118,9 @@
 .auth__btn--secondary:hover:not(:disabled) {
     background-color: rgba(138, 63, 82, 0.06);
 }
+
+/* Boton secundario fuera del form (CTA signup en login, back en MFA/signup) */
+.auth__btn--outside-form {
+    display: block;
+    margin: 0.75rem auto 0;
+}

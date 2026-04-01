@@ -176,7 +176,7 @@ function resolveMfaEnabledFromTokenPayload(tokenPayload) {
         return false;
     }
 
-    const rawMfaValue = tokenPayload.mfaEnabled ?? tokenPayload.mfaActivo ?? tokenPayload.mfa;
+    const rawMfaValue = tokenPayload.mfaEnabled ?? tokenPayload.mfa_enabled ?? tokenPayload.mfaActivo ?? tokenPayload.mfa;
     return toBooleanLike(rawMfaValue);
 }
 
