@@ -105,7 +105,14 @@ describe("citas UX hotfix", () => {
 
         // Ahora cambiar la fecha sin hacer submit
         const dateInput = container.querySelector("input[name='selectedDate']");
-        dateInput.value = "2026-04-01";
+        const initialDateValue = String(dateInput.value || "").trim();
+        const parsedInitialDate = new Date(`${initialDateValue}T00:00:00`);
+        parsedInitialDate.setDate(parsedInitialDate.getDate() + 1);
+        const nextDayIso = Number.isNaN(parsedInitialDate.getTime())
+            ? "2026-04-02"
+            : parsedInitialDate.toISOString().slice(0, 10);
+
+        dateInput.value = nextDayIso;
         dateInput.dispatchEvent(new Event("change", { bubbles: true }));
 
         await waitForController();
@@ -113,7 +120,7 @@ describe("citas UX hotfix", () => {
         // Debe haber disparado una nueva consulta de disponibilidad
         expect(getAvailabilityMock.mock.calls.length).toBeGreaterThan(callsAfterService);
         const lastCall = getAvailabilityMock.mock.calls[getAvailabilityMock.mock.calls.length - 1][0];
-        expect(lastCall.date).toBe("2026-04-01");
+        expect(lastCall.date).toBe(nextDayIso);
         expect(String(lastCall.serviceId)).toBe("5");
     });
 
