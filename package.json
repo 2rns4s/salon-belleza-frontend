@@ -5,6 +5,8 @@
   "main": "index.js",
   "scripts": {
     "build": "node scripts/check-syntax.mjs",
+    "dev": "echo 'dev script not implemented'",
+    "preview": "echo 'preview script not implemented'",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:usuarios": "vitest run tests/integration/usuarios-service-contract.spec.js tests/integration/usuarios-crud-and-scope.spec.js",
