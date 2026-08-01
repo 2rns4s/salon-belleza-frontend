@@ -1,24 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout 
+<LinearLayout 
     xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F8F3F4"
-    tools:context=".DashboardActivity">
+    android:orientation="vertical"
+    android:background="#F8F3F4">
 
     <!-- HEADER: Saludo personalizado y foto de perfil -->
     <RelativeLayout
         android:id="@+id/layoutHeader"
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="70dp"
         android:background="#FFFFFF"
-        android:paddingHorizontal="16dp"
-        android:elevation="4dp"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
+        android:padding="16dp">
 
         <LinearLayout
             android:layout_width="wrap_content"
@@ -43,203 +37,167 @@
                 android:textColor="#4A4A4A" />
         </LinearLayout>
 
-        <com.google.android.material.imageview.ShapeableImageView
+        <ImageView
             android:id="@+id/ivProfile"
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:layout_alignParentEnd="true"
             android:layout_centerVertical="true"
             android:scaleType="centerCrop"
-            android:src="@drawable/ic_profile_placeholder"
-            app:shapeAppearanceOverlay="@style/CircleImageView"
-            app:strokeColor="#8A3F52"
-            app:strokeWidth="2dp" />
+            android:src="@android:drawable/ic_menu_gallery" />
     </RelativeLayout>
 
-    <!-- CARD PRINCIPAL (DESTACADO): Próxima Cita -->
-    <androidx.cardview.widget.CardView
-        android:id="@+id/cardFeatured"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_margin="16dp"
-        app:cardCornerRadius="16dp"
-        app:cardElevation="6dp"
-        app:layout_constraintTop_toBottomOf="@id/layoutHeader"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
+    <!-- MAIN SCROLLABLE CONTENT -->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:background="@drawable/gradient_vinotinto"
-            android:padding="20dp">
+            android:padding="16dp">
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="PRÓXIMA CITA"
-                android:textColor="#FFFFFF"
-                android:textSize="11sp"
-                android:textStyle="bold"
-                android:background="@drawable/bg_tag_light"
-                android:paddingHorizontal="8dp"
-                android:paddingVertical="4dp"/>
-
-            <TextView
-                android:id="@+id/tvNextAppointment"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:text="Hoy, 15:00 - Manicure"
-                android:textColor="#FFFFFF"
-                android:textSize="20sp"
-                android:textStyle="bold" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:text="Estado: Confirmada"
-                android:textColor="#EADDE0"
-                android:textSize="13sp" />
-
-            <Button
-                android:id="@+id/btnModify"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:text="Modificar"
-                android:textColor="#8A3F52"
-                android:backgroundTint="#FFFFFF"
-                android:textStyle="bold"
-                app:cornerRadius="8dp" />
-        </LinearLayout>
-    </androidx.cardview.widget.CardView>
-
-    <!-- SECCIÓN CENTRAL: Botones rápidos en cuadrícula -->
-    <TextView
-        android:id="@+id/tvSectionTitle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_margin="16dp"
-        android:text="ACCESOS RÁPIDOS"
-        android:textColor="#6B4A52"
-        android:textSize="12sp"
-        android:textStyle="bold"
-        app:layout_constraintTop_toBottomOf="@id/cardFeatured"
-        app:layout_constraintStart_toStartOf="parent" />
-
-    <GridLayout
-        android:id="@+id/gridActions"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginHorizontal="16dp"
-        android:layout_marginTop="8dp"
-        android:columnCount="2"
-        android:rowCount="2"
-        app:layout_constraintTop_toBottomOf="@id/tvSectionTitle"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
-
-        <!-- Agendar Nueva Cita -->
-        <androidx.cardview.widget.CardView
-            android:id="@+id/cardNewAppointment"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_rowWeight="1"
-            android:layout_columnWeight="1"
-            android:layout_margin="6dp"
-            app:cardCornerRadius="12dp"
-            app:cardElevation="2dp"
-            android:foreground="?android:attr/selectableItemBackground">
-
+            <!-- CARD PRINCIPAL (DESTACADO): Próxima Cita -->
             <LinearLayout
+                android:id="@+id/cardFeatured"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="16dp"
-                android:gravity="center">
-
-                <ImageView
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
-                    android:src="@drawable/ic_calendar_add"
-                    app:tint="#8A3F52" />
+                android:background="#8A3F52"
+                android:padding="20dp"
+                android:layout_marginBottom="16dp">
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:text="Agendar Nueva Cita"
-                    android:textColor="#2C1A1E"
-                    android:textSize="13sp"
+                    android:text="PRÓXIMA CITA"
+                    android:textColor="#FFFFFF"
+                    android:textSize="11sp"
                     android:textStyle="bold"
-                    android:gravity="center" />
-            </LinearLayout>
-        </androidx.cardview.widget.CardView>
+                    android:background="#72333E"
+                    android:paddingHorizontal="8dp"
+                    android:paddingVertical="4dp"/>
 
-        <!-- Ver Catálogo -->
-        <androidx.cardview.widget.CardView
-            android:id="@+id/cardCatalog"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_rowWeight="1"
-            android:layout_columnWeight="1"
-            android:layout_margin="6dp"
-            app:cardCornerRadius="12dp"
-            app:cardElevation="2dp"
-            android:foreground="?android:attr/selectableItemBackground">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="16dp"
-                android:gravity="center">
-
-                <ImageView
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
-                    android:src="@drawable/ic_book"
-                    app:tint="#8A3F52" />
+                <TextView
+                    android:id="@+id/tvNextAppointment"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:text="Hoy, 15:00 - Manicure"
+                    android:textColor="#FFFFFF"
+                    android:textSize="20sp"
+                    android:textStyle="bold" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:text="Ver Catálogo"
-                    android:textColor="#2C1A1E"
-                    android:textSize="13sp"
-                    android:textStyle="bold"
-                    android:gravity="center" />
+                    android:layout_marginTop="4dp"
+                    android:text="Estado: Confirmada"
+                    android:textColor="#EADDE0"
+                    android:textSize="13sp" />
+
+                <Button
+                    android:id="@+id/btnModify"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:text="Modificar"
+                    android:textColor="#8A3F52"
+                    android:background="#FFFFFF"
+                    android:textStyle="bold" />
             </LinearLayout>
-        </androidx.cardview.widget.CardView>
 
-        <!-- Mis Promociones -->
-        <androidx.cardview.widget.CardView
-            android:id="@+id/cardPromotions"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_rowWeight="1"
-            android:layout_columnWeight="2"
-            android:layout_margin="6dp"
-            app:cardCornerRadius="12dp"
-            app:cardElevation="2dp"
-            android:foreground="?android:attr/selectableItemBackground">
+            <!-- SECCIÓN CENTRAL: Botones rápidos en cuadrícula -->
+            <TextView
+                android:id="@+id/tvSectionTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="ACCESOS RÁPIDOS"
+                android:textColor="#6B4A52"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="8dp" />
 
+            <!-- Fila 1 de botones -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
+                android:layout_marginBottom="8dp">
+
+                <!-- Agendar Nueva Cita -->
+                <LinearLayout
+                    android:id="@+id/cardNewAppointment"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:background="#FFFFFF"
+                    android:padding="16dp"
+                    android:gravity="center"
+                    android:layout_marginEnd="4dp">
+
+                    <ImageView
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:src="@android:drawable/ic_menu_my_calendar" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="Agendar Nueva Cita"
+                        android:textColor="#2C1A1E"
+                        android:textSize="13sp"
+                        android:textStyle="bold"
+                        android:gravity="center" />
+                </LinearLayout>
+
+                <!-- Ver Catálogo -->
+                <LinearLayout
+                    android:id="@+id/cardCatalog"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:background="#FFFFFF"
+                    android:padding="16dp"
+                    android:gravity="center"
+                    android:layout_marginStart="4dp">
+
+                    <ImageView
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:src="@android:drawable/ic_menu_gallery" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="Ver Catálogo"
+                        android:textColor="#2C1A1E"
+                        android:textSize="13sp"
+                        android:textStyle="bold"
+                        android:gravity="center" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- Fila 2 de botones (Mis Promociones) -->
+            <LinearLayout
+                android:id="@+id/cardPromotions"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:background="#FFFFFF"
                 android:padding="16dp"
                 android:gravity="center_vertical">
 
                 <ImageView
                     android:layout_width="32dp"
                     android:layout_height="32dp"
-                    android:src="@drawable/ic_tag"
-                    app:tint="#8A3F52" />
+                    android:src="@android:drawable/star_on" />
 
                 <LinearLayout
                     android:layout_width="wrap_content"
@@ -263,18 +221,90 @@
                         android:textSize="11sp" />
                 </LinearLayout>
             </LinearLayout>
-        </androidx.cardview.widget.CardView>
-    </GridLayout>
 
-    <!-- FOOTER: Bottom Navigation -->
-    <com.google.android.material.bottomnavigation.BottomNavigationView
+        </LinearLayout>
+    </ScrollView>
+
+    <!-- FOOTER: Bottom Navigation alternativo usando LinearLayout estándar -->
+    <LinearLayout
         android:id="@+id/bottomNavigation"
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="60dp"
         android:background="#FFFFFF"
-        app:menu="@menu/bottom_navigation_menu"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center">
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@android:drawable/ic_menu_home" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Inicio"
+                android:textSize="10sp"
+                android:textColor="#8A3F52" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center">
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@android:drawable/ic_menu_my_calendar" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Agendar"
+                android:textSize="10sp"
+                android:textColor="#9E7A85" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center">
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@android:drawable/ic_menu_search" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Catálogo"
+                android:textSize="10sp"
+                android:textColor="#9E7A85" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center">
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@android:drawable/ic_menu_view" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Perfil"
+                android:textSize="10sp"
+                android:textColor="#9E7A85" />
+        </LinearLayout>
+    </LinearLayout>
+
+</LinearLayout>

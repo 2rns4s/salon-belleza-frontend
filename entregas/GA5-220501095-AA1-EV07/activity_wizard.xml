@@ -1,24 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout 
+<LinearLayout 
     xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F8F3F4"
-    tools:context=".BookingWizardActivity">
+    android:orientation="vertical"
+    android:background="#F8F3F4">
 
     <!-- HEADER: Título e indicación de paso -->
     <RelativeLayout
         android:id="@+id/layoutHeader"
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="70dp"
         android:background="#FFFFFF"
-        android:paddingHorizontal="16dp"
-        android:elevation="4dp"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
+        android:padding="16dp">
 
         <LinearLayout
             android:layout_width="wrap_content"
@@ -38,7 +32,7 @@
                 android:id="@+id/tvStepIndicator"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Paso 1 de 3"
+                android:text="Paso 1 de 3: Seleccionar Servicio"
                 android:textSize="12sp"
                 android:textColor="#8A3F52" />
         </LinearLayout>
@@ -47,21 +41,18 @@
     <!-- WIZARD STEP INDICATOR BAR -->
     <LinearLayout
         android:id="@+id/layoutProgress"
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center"
-        android:layout_margin="16dp"
-        app:layout_constraintTop_toBottomOf="@id/layoutHeader"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
+        android:layout_margin="16dp">
 
         <!-- Paso 1 -->
         <TextView
             android:id="@+id/indicatorStep1"
             android:layout_width="28dp"
             android:layout_height="28dp"
-            android:background="@drawable/bg_circle_active"
+            android:background="#8A3F52"
             android:gravity="center"
             android:text="1"
             android:textColor="#FFFFFF"
@@ -71,15 +62,14 @@
         <View
             android:layout_width="40dp"
             android:layout_height="2dp"
-            android:background="#8A3F52"
-            android:layout_gravity="center_vertical" />
+            android:background="#8A3F52" />
 
         <!-- Paso 2 -->
         <TextView
             android:id="@+id/indicatorStep2"
             android:layout_width="28dp"
             android:layout_height="28dp"
-            android:background="@drawable/bg_circle_inactive"
+            android:background="#EADDE0"
             android:gravity="center"
             android:text="2"
             android:textColor="#9E7A85"
@@ -89,15 +79,14 @@
         <View
             android:layout_width="40dp"
             android:layout_height="2dp"
-            android:background="#EADDE0"
-            android:layout_gravity="center_vertical" />
+            android:background="#EADDE0" />
 
         <!-- Paso 3 -->
         <TextView
             android:id="@+id/indicatorStep3"
             android:layout_width="28dp"
             android:layout_height="28dp"
-            android:background="@drawable/bg_circle_inactive"
+            android:background="#EADDE0"
             android:gravity="center"
             android:text="3"
             android:textColor="#9E7A85"
@@ -105,53 +94,143 @@
             android:textSize="12sp" />
     </LinearLayout>
 
-    <!-- DINAMIC STEP CONTENT CONTAINER -->
-    <FrameLayout
-        android:id="@+id/stepContentContainer"
-        android:layout_width="0dp"
+    <!-- STEP CONTENT CONTAINER -->
+    <ScrollView
+        android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_margin="16dp"
-        app:layout_constraintTop_toBottomOf="@id/layoutProgress"
-        app:layout_constraintBottom_toTopOf="@id/layoutNavigation"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
+        android:layout_weight="1">
 
-        <!-- A modo ilustrativo se muestra el Paso 1 (Lista de servicios) en la previsualización XML -->
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/rvServices"
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            tools:listitem="@layout/item_service" />
-            
-        <!-- Paso 2 (Calendar horizontal swipe y Horas grid) - Se infla dinámicamente -->
-        <!-- Paso 3 (Confirmación) - Se infla dinámicamente -->
-    </FrameLayout>
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
 
-    <!-- FLOATING ACTION BUTTON (Paso 3): Confirmar Reserva -->
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fabConfirm"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_margin="24dp"
-        android:src="@drawable/ic_check"
-        android:backgroundTint="#8A3F52"
-        app:tint="#FFFFFF"
-        android:contentDescription="Confirmar Reserva"
-        android:visibility="gone"
-        app:layout_constraintBottom_toTopOf="@id/layoutNavigation"
-        app:layout_constraintEnd_toEndOf="parent"
-        tools:visibility="visible" />
+            <!-- PASO 1: Lista Vertical de Servicios -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="SERVICIOS DISPONIBLES"
+                android:textColor="#6B4A52"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="12dp" />
+
+            <!-- Servicio 1: Corte -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:background="#FFFFFF"
+                android:padding="16dp"
+                android:layout_marginBottom="10dp"
+                android:gravity="center_vertical">
+                <ImageView
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:src="@android:drawable/ic_menu_edit" />
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:layout_marginStart="16dp">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Corte de Cabello"
+                        android:textColor="#2C1A1E"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="45 min - $45.000"
+                        android:textColor="#8A3F52"
+                        android:textSize="12sp" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- Servicio 2: Tinte -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:background="#FFFFFF"
+                android:padding="16dp"
+                android:layout_marginBottom="10dp"
+                android:gravity="center_vertical">
+                <ImageView
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:src="@android:drawable/ic_menu_gallery" />
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:layout_marginStart="16dp">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Tinte y Color"
+                        android:textColor="#2C1A1E"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="120 min - $120.000"
+                        android:textColor="#8A3F52"
+                        android:textSize="12sp" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- Servicio 3: Manicure -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:background="#FFFFFF"
+                android:padding="16dp"
+                android:layout_marginBottom="10dp"
+                android:gravity="center_vertical">
+                <ImageView
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:src="@android:drawable/star_on" />
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:layout_marginStart="16dp">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Manicure"
+                        android:textColor="#2C1A1E"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="30 min - $35.000"
+                        android:textColor="#8A3F52"
+                        android:textSize="12sp" />
+                </LinearLayout>
+            </LinearLayout>
+
+        </LinearLayout>
+    </ScrollView>
 
     <!-- NAVIGATION BUTTONS (Atrás y Continuar) -->
     <RelativeLayout
         android:id="@+id/layoutNavigation"
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="64dp"
         android:background="#FFFFFF"
-        android:paddingHorizontal="16dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
+        android:paddingHorizontal="16dp">
 
         <Button
             android:id="@+id/btnBack"
@@ -160,8 +239,8 @@
             android:layout_centerVertical="true"
             android:layout_alignParentStart="true"
             android:text="Atrás"
-            style="@style/Widget.MaterialComponents.Button.TextButton"
-            android:textColor="#8A3F52"/>
+            android:textColor="#8A3F52"
+            android:background="#00000000"/>
 
         <Button
             android:id="@+id/btnNext"
@@ -171,8 +250,7 @@
             android:layout_alignParentEnd="true"
             android:text="Continuar"
             android:textColor="#FFFFFF"
-            android:backgroundTint="#8A3F52"
-            app:cornerRadius="8dp"/>
+            android:background="#8A3F52"/>
     </RelativeLayout>
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+</LinearLayout>
