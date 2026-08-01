@@ -6,7 +6,7 @@
     android:orientation="vertical"
     android:background="#F8F3F4">
 
-    <!-- HEADER: Saludo personalizado y foto de perfil -->
+    <!-- HEADER: Datos de sesión reales (admin - OWNER) -->
     <RelativeLayout
         android:id="@+id/layoutHeader"
         android:layout_width="match_parent"
@@ -21,20 +21,26 @@
             android:layout_centerVertical="true">
 
             <TextView
-                android:id="@+id/tvGreeting"
+                android:id="@+id/tvUsername"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Hola, Laura"
-                android:textSize="18sp"
+                android:text="Usuario: admin"
+                android:textSize="16sp"
                 android:textStyle="bold"
                 android:textColor="#2C1A1E" />
 
             <TextView
+                android:id="@+id/tvRoleBadge"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="RECEPTIONIST"
-                android:textSize="12sp"
-                android:textColor="#4A4A4A" />
+                android:text="OWNER"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:textColor="#FFFFFF"
+                android:background="#7B1FA2"
+                android:paddingHorizontal="8dp"
+                android:paddingVertical="2dp"
+                android:layout_marginTop="2dp" />
         </LinearLayout>
 
         <ImageView
@@ -47,7 +53,7 @@
             android:src="@android:drawable/ic_menu_gallery" />
     </RelativeLayout>
 
-    <!-- MAIN SCROLLABLE CONTENT -->
+    <!-- CONTENT: Real Dashboard metrics & selectors -->
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
@@ -59,173 +65,285 @@
             android:orientation="vertical"
             android:padding="16dp">
 
-            <!-- CARD PRINCIPAL (DESTACADO): Próxima Cita -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="DASHBOARD DE RENDIMIENTO"
+                android:textColor="#8A3F52"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="12dp" />
+
+            <!-- Date Range Selector Form -->
             <LinearLayout
-                android:id="@+id/cardFeatured"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:background="#8A3F52"
-                android:padding="20dp"
+                android:background="#FFFFFF"
+                android:padding="16dp"
                 android:layout_marginBottom="16dp">
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="PRÓXIMA CITA"
-                    android:textColor="#FFFFFF"
+                    android:text="Fecha Inicio"
                     android:textSize="11sp"
-                    android:textStyle="bold"
-                    android:background="#72333E"
-                    android:paddingHorizontal="8dp"
-                    android:paddingVertical="4dp"/>
-
-                <TextView
-                    android:id="@+id/tvNextAppointment"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    android:text="Hoy, 15:00 - Manicure"
-                    android:textColor="#FFFFFF"
-                    android:textSize="20sp"
+                    android:textColor="#4A4A4A"
                     android:textStyle="bold" />
 
+                <EditText
+                    android:id="@+id/etFechaInicio"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="datetime"
+                    android:text="2026-07-20T00:00"
+                    android:textSize="13sp"
+                    android:layout_marginBottom="12dp" />
+
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:text="Estado: Confirmada"
-                    android:textColor="#EADDE0"
-                    android:textSize="13sp" />
+                    android:text="Fecha Fin"
+                    android:textSize="11sp"
+                    android:textColor="#4A4A4A"
+                    android:textStyle="bold" />
+
+                <EditText
+                    android:id="@+id/etFechaFin"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="datetime"
+                    android:text="2026-07-27T23:59"
+                    android:textSize="13sp"
+                    android:layout_marginBottom="16dp" />
 
                 <Button
-                    android:id="@+id/btnModify"
-                    android:layout_width="wrap_content"
+                    android:id="@+id/btnConsultar"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
-                    android:text="Modificar"
-                    android:textColor="#8A3F52"
-                    android:background="#FFFFFF"
-                    android:textStyle="bold" />
+                    android:text="Consultar"
+                    android:textColor="#FFFFFF"
+                    android:background="#8A3F52" />
             </LinearLayout>
 
-            <!-- SECCIÓN CENTRAL: Botones rápidos en cuadrícula -->
-            <TextView
-                android:id="@+id/tvSectionTitle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="ACCESOS RÁPIDOS"
-                android:textColor="#6B4A52"
-                android:textSize="12sp"
-                android:textStyle="bold"
-                android:layout_marginBottom="8dp" />
-
-            <!-- Fila 1 de botones -->
+            <!-- Metrics Cards Grid (Total Citas, Completadas, Canceladas, Tasa Completitud) -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:layout_marginBottom="8dp">
 
-                <!-- Agendar Nueva Cita -->
+                <!-- Total Citas -->
                 <LinearLayout
-                    android:id="@+id/cardNewAppointment"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:orientation="vertical"
                     android:background="#FFFFFF"
-                    android:padding="16dp"
-                    android:gravity="center"
+                    android:padding="12dp"
                     android:layout_marginEnd="4dp">
-
-                    <ImageView
-                        android:layout_width="32dp"
-                        android:layout_height="32dp"
-                        android:src="@android:drawable/ic_menu_my_calendar" />
-
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:text="Agendar Nueva Cita"
+                        android:text="Total Citas"
+                        android:textColor="#4A4A4A"
+                        android:textSize="11sp" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="48"
                         android:textColor="#2C1A1E"
-                        android:textSize="13sp"
-                        android:textStyle="bold"
-                        android:gravity="center" />
+                        android:textSize="20sp"
+                        android:textStyle="bold" />
                 </LinearLayout>
 
-                <!-- Ver Catálogo -->
+                <!-- Completadas -->
                 <LinearLayout
-                    android:id="@+id/cardCatalog"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:orientation="vertical"
                     android:background="#FFFFFF"
-                    android:padding="16dp"
-                    android:gravity="center"
+                    android:padding="12dp"
                     android:layout_marginStart="4dp">
-
-                    <ImageView
-                        android:layout_width="32dp"
-                        android:layout_height="32dp"
-                        android:src="@android:drawable/ic_menu_gallery" />
-
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:text="Ver Catálogo"
-                        android:textColor="#2C1A1E"
-                        android:textSize="13sp"
-                        android:textStyle="bold"
-                        android:gravity="center" />
+                        android:text="Completadas"
+                        android:textColor="#4A4A4A"
+                        android:textSize="11sp" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="32"
+                        android:textColor="#1B5E20"
+                        android:textSize="20sp"
+                        android:textStyle="bold" />
                 </LinearLayout>
             </LinearLayout>
 
-            <!-- Fila 2 de botones (Mis Promociones) -->
             <LinearLayout
-                android:id="@+id/cardPromotions"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:background="#FFFFFF"
-                android:padding="16dp"
-                android:gravity="center_vertical">
+                android:layout_marginBottom="16dp">
 
-                <ImageView
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
-                    android:src="@android:drawable/star_on" />
-
+                <!-- Canceladas -->
                 <LinearLayout
-                    android:layout_width="wrap_content"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
+                    android:layout_weight="1"
                     android:orientation="vertical"
-                    android:layout_marginStart="12dp">
-
+                    android:background="#FFFFFF"
+                    android:padding="12dp"
+                    android:layout_marginEnd="4dp">
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Mis Promociones"
-                        android:textColor="#2C1A1E"
-                        android:textSize="13sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Tienes 2 cupones disponibles"
+                        android:text="Canceladas"
                         android:textColor="#4A4A4A"
                         android:textSize="11sp" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="8"
+                        android:textColor="#B71C1C"
+                        android:textSize="20sp"
+                        android:textStyle="bold" />
                 </LinearLayout>
+
+                <!-- Tasa Completitud -->
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:background="#FFFFFF"
+                    android:padding="12dp"
+                    android:layout_marginStart="4dp">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Completitud"
+                        android:textColor="#4A4A4A"
+                        android:textSize="11sp" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="66.67%"
+                        android:textColor="#2C1A1E"
+                        android:textSize="20sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- Top Services List -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="SERVICIOS MÁS DEMANDADOS"
+                android:textColor="#6B4A52"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="8dp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="#FFFFFF"
+                android:padding="8dp">
+
+                <!-- Servicio 1 -->
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="8dp">
+                    <TextView
+                        android:id="@+id/tvRank1"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="1"
+                        android:textStyle="bold"
+                        android:textColor="#8A3F52" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_toEndOf="@id/tvRank1"
+                        android:layout_marginStart="16dp"
+                        android:text="Corte de cabello"
+                        android:textColor="#2C1A1E" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentEnd="true"
+                        android:text="18"
+                        android:textStyle="bold"
+                        android:textColor="#2C1A1E" />
+                </RelativeLayout>
+
+                <!-- Servicio 2 -->
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="8dp"
+                    android:background="#F8F3F4">
+                    <TextView
+                        android:id="@+id/tvRank2"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="2"
+                        android:textStyle="bold"
+                        android:textColor="#8A3F52" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_toEndOf="@id/tvRank2"
+                        android:layout_marginStart="16dp"
+                        android:text="Manicure"
+                        android:textColor="#2C1A1E" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentEnd="true"
+                        android:text="14"
+                        android:textStyle="bold"
+                        android:textColor="#2C1A1E" />
+                </RelativeLayout>
+
+                <!-- Servicio 3 -->
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="8dp">
+                    <TextView
+                        android:id="@+id/tvRank3"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="3"
+                        android:textStyle="bold"
+                        android:textColor="#8A3F52" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_toEndOf="@id/tvRank3"
+                        android:layout_marginStart="16dp"
+                        android:text="Tinte"
+                        android:textColor="#2C1A1E" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentEnd="true"
+                        android:text="10"
+                        android:textStyle="bold"
+                        android:textColor="#2C1A1E" />
+                </RelativeLayout>
             </LinearLayout>
 
         </LinearLayout>
     </ScrollView>
 
-    <!-- FOOTER: Bottom Navigation alternativo usando LinearLayout estándar -->
+    <!-- FOOTER Navigation -->
     <LinearLayout
         android:id="@+id/bottomNavigation"
         android:layout_width="match_parent"
@@ -247,7 +365,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Inicio"
+                android:text="Dashboard"
                 android:textSize="10sp"
                 android:textColor="#8A3F52" />
         </LinearLayout>
@@ -265,7 +383,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Agendar"
+                android:text="Agenda Citas"
                 android:textSize="10sp"
                 android:textColor="#9E7A85" />
         </LinearLayout>
@@ -279,29 +397,11 @@
             <ImageView
                 android:layout_width="24dp"
                 android:layout_height="24dp"
-                android:src="@android:drawable/ic_menu_search" />
+                android:src="@android:drawable/ic_menu_preferences" />
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Catálogo"
-                android:textSize="10sp"
-                android:textColor="#9E7A85" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:orientation="vertical"
-            android:gravity="center">
-            <ImageView
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:src="@android:drawable/ic_menu_view" />
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Perfil"
+                android:text="Seguridad"
                 android:textSize="10sp"
                 android:textColor="#9E7A85" />
         </LinearLayout>

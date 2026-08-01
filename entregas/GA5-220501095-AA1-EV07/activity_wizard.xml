@@ -23,78 +23,21 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Agendar Cita"
+                android:text="Agenda de Citas"
                 android:textSize="18sp"
                 android:textStyle="bold"
                 android:textColor="#2C1A1E" />
 
             <TextView
-                android:id="@+id/tvStepIndicator"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Paso 1 de 3: Seleccionar Servicio"
-                android:textSize="12sp"
+                android:text="Gestión de disponibilidad y reservas"
+                android:textSize="11sp"
                 android:textColor="#8A3F52" />
         </LinearLayout>
     </RelativeLayout>
 
-    <!-- WIZARD STEP INDICATOR BAR -->
-    <LinearLayout
-        android:id="@+id/layoutProgress"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center"
-        android:layout_margin="16dp">
-
-        <!-- Paso 1 -->
-        <TextView
-            android:id="@+id/indicatorStep1"
-            android:layout_width="28dp"
-            android:layout_height="28dp"
-            android:background="#8A3F52"
-            android:gravity="center"
-            android:text="1"
-            android:textColor="#FFFFFF"
-            android:textStyle="bold"
-            android:textSize="12sp" />
-
-        <View
-            android:layout_width="40dp"
-            android:layout_height="2dp"
-            android:background="#8A3F52" />
-
-        <!-- Paso 2 -->
-        <TextView
-            android:id="@+id/indicatorStep2"
-            android:layout_width="28dp"
-            android:layout_height="28dp"
-            android:background="#EADDE0"
-            android:gravity="center"
-            android:text="2"
-            android:textColor="#9E7A85"
-            android:textStyle="bold"
-            android:textSize="12sp" />
-
-        <View
-            android:layout_width="40dp"
-            android:layout_height="2dp"
-            android:background="#EADDE0" />
-
-        <!-- Paso 3 -->
-        <TextView
-            android:id="@+id/indicatorStep3"
-            android:layout_width="28dp"
-            android:layout_height="28dp"
-            android:background="#EADDE0"
-            android:gravity="center"
-            android:text="3"
-            android:textColor="#9E7A85"
-            android:textStyle="bold"
-            android:textSize="12sp" />
-    </LinearLayout>
-
-    <!-- STEP CONTENT CONTAINER -->
+    <!-- CONTENT: Real Citas fields and slot selection -->
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
@@ -106,151 +49,300 @@
             android:orientation="vertical"
             android:padding="16dp">
 
-            <!-- PASO 1: Lista Vertical de Servicios -->
+            <!-- 1. FILTROS DE AGENDA -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="SERVICIOS DISPONIBLES"
+                android:text="FILTRAR AGENDA"
                 android:textColor="#6B4A52"
-                android:textSize="12sp"
+                android:textSize="11sp"
                 android:textStyle="bold"
-                android:layout_marginBottom="12dp" />
+                android:layout_marginBottom="8dp" />
 
-            <!-- Servicio 1: Corte -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
+                android:orientation="vertical"
                 android:background="#FFFFFF"
                 android:padding="16dp"
-                android:layout_marginBottom="10dp"
-                android:gravity="center_vertical">
-                <ImageView
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    android:src="@android:drawable/ic_menu_edit" />
-                <LinearLayout
-                    android:layout_width="0dp"
+                android:layout_marginBottom="16dp">
+
+                <!-- Fecha -->
+                <TextView
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical"
-                    android:layout_marginStart="16dp">
-                    <TextView
-                        android:layout_width="wrap_content"
+                    android:text="Fecha de Consulta"
+                    android:textSize="11sp"
+                    android:textColor="#4A4A4A"
+                    android:textStyle="bold" />
+                <EditText
+                    android:id="@+id/etConsultaDate"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="date"
+                    android:text="2026-07-27"
+                    android:textSize="13sp"
+                    android:layout_marginBottom="10dp" />
+
+                <!-- Servicio dropdown -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Servicio"
+                    android:textSize="11sp"
+                    android:textColor="#4A4A4A"
+                    android:textStyle="bold" />
+                <Spinner
+                    android:id="@+id/spinnerService"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="10dp" />
+
+                <!-- Empleado dropdown -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Empleado (Profesional)"
+                    android:textSize="11sp"
+                    android:textColor="#4A4A4A"
+                    android:textStyle="bold" />
+                <Spinner
+                    android:id="@+id/spinnerEmployee"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+            </LinearLayout>
+
+            <!-- 2. GRID DE DISPONIBILIDAD (SLOTS) -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="HORARIOS DISPONIBLES"
+                android:textColor="#6B4A52"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="8dp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="#FFFFFF"
+                android:padding="12dp"
+                android:layout_marginBottom="16dp">
+
+                <!-- Fila 1 de slots -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginBottom="8dp">
+                    <Button
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:text="Corte de Cabello"
-                        android:textColor="#2C1A1E"
-                        android:textSize="14sp"
-                        android:textStyle="bold" />
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="45 min - $45.000"
+                        android:layout_weight="1"
+                        android:text="09:00 AM"
+                        android:textSize="11sp"
                         android:textColor="#8A3F52"
-                        android:textSize="12sp" />
+                        android:background="#F3E8EB"
+                        android:layout_marginEnd="4dp" />
+                    <Button
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="10:00 AM"
+                        android:textSize="11sp"
+                        android:textColor="#FFFFFF"
+                        android:background="#8A3F52"
+                        android:layout_marginHorizontal="2dp" />
+                    <Button
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="11:30 AM"
+                        android:textSize="11sp"
+                        android:textColor="#8A3F52"
+                        android:background="#F3E8EB"
+                        android:layout_marginStart="4dp" />
+                </LinearLayout>
+
+                <!-- Fila 2 de slots -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+                    <Button
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="01:00 PM"
+                        android:textSize="11sp"
+                        android:textColor="#8A3F52"
+                        android:background="#F3E8EB"
+                        android:layout_marginEnd="4dp" />
+                    <Button
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="02:30 PM"
+                        android:textSize="11sp"
+                        android:textColor="#8A3F52"
+                        android:background="#F3E8EB"
+                        android:layout_marginHorizontal="2dp" />
+                    <Button
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="04:00 PM"
+                        android:textSize="11sp"
+                        android:textColor="#8A3F52"
+                        android:background="#F3E8EB"
+                        android:layout_marginStart="4dp" />
                 </LinearLayout>
             </LinearLayout>
 
-            <!-- Servicio 2: Tinte -->
-            <LinearLayout
-                android:layout_width="match_parent"
+            <!-- 3. FORMULARIO DE AGENDAMIENTO RÁPIDO -->
+            <TextView
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:background="#FFFFFF"
-                android:padding="16dp"
-                android:layout_marginBottom="10dp"
-                android:gravity="center_vertical">
-                <ImageView
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    android:src="@android:drawable/ic_menu_gallery" />
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical"
-                    android:layout_marginStart="16dp">
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Tinte y Color"
-                        android:textColor="#2C1A1E"
-                        android:textSize="14sp"
-                        android:textStyle="bold" />
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="120 min - $120.000"
-                        android:textColor="#8A3F52"
-                        android:textSize="12sp" />
-                </LinearLayout>
-            </LinearLayout>
+                android:text="DATOS DEL CLIENTE"
+                android:textColor="#6B4A52"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="8dp" />
 
-            <!-- Servicio 3: Manicure -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
+                android:orientation="vertical"
                 android:background="#FFFFFF"
                 android:padding="16dp"
-                android:layout_marginBottom="10dp"
-                android:gravity="center_vertical">
-                <ImageView
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    android:src="@android:drawable/star_on" />
-                <LinearLayout
-                    android:layout_width="0dp"
+                android:layout_marginBottom="16dp">
+
+                <!-- Nombre -->
+                <TextView
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical"
-                    android:layout_marginStart="16dp">
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Manicure"
-                        android:textColor="#2C1A1E"
-                        android:textSize="14sp"
-                        android:textStyle="bold" />
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="30 min - $35.000"
-                        android:textColor="#8A3F52"
-                        android:textSize="12sp" />
-                </LinearLayout>
+                    android:text="Nombre del Cliente"
+                    android:textSize="11sp"
+                    android:textColor="#4A4A4A"
+                    android:textStyle="bold" />
+                <EditText
+                    android:id="@+id/etClientName"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="textPersonName"
+                    android:hint="Ej. Pedro Ramirez"
+                    android:textSize="13sp"
+                    android:layout_marginBottom="10dp" />
+
+                <!-- Documento -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Documento de Identidad"
+                    android:textSize="11sp"
+                    android:textColor="#4A4A4A"
+                    android:textStyle="bold" />
+                <EditText
+                    android:id="@+id/etClientDoc"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="number"
+                    android:hint="Ej. 10203040"
+                    android:textSize="13sp"
+                    android:layout_marginBottom="10dp" />
+
+                <!-- Teléfono -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Número Telefónico"
+                    android:textSize="11sp"
+                    android:textColor="#4A4A4A"
+                    android:textStyle="bold" />
+                <EditText
+                    android:id="@+id/etClientPhone"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="phone"
+                    android:hint="Ej. 3001234567"
+                    android:textSize="13sp"
+                    android:layout_marginBottom="16dp" />
+
+                <Button
+                    android:id="@+id/btnConfirmBooking"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Confirmar Reserva"
+                    android:textColor="#FFFFFF"
+                    android:background="#8A3F52" />
             </LinearLayout>
 
         </LinearLayout>
     </ScrollView>
 
-    <!-- NAVIGATION BUTTONS (Atrás y Continuar) -->
-    <RelativeLayout
-        android:id="@+id/layoutNavigation"
+    <!-- FOOTER Navigation -->
+    <LinearLayout
+        android:id="@+id/bottomNavigation"
         android:layout_width="match_parent"
-        android:layout_height="64dp"
+        android:layout_height="60dp"
         android:background="#FFFFFF"
-        android:paddingHorizontal="16dp">
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
 
-        <Button
-            android:id="@+id/btnBack"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_centerVertical="true"
-            android:layout_alignParentStart="true"
-            android:text="Atrás"
-            android:textColor="#8A3F52"
-            android:background="#00000000"/>
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center">
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@android:drawable/ic_menu_home" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Dashboard"
+                android:textSize="10sp"
+                android:textColor="#9E7A85" />
+        </LinearLayout>
 
-        <Button
-            android:id="@+id/btnNext"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_centerVertical="true"
-            android:layout_alignParentEnd="true"
-            android:text="Continuar"
-            android:textColor="#FFFFFF"
-            android:background="#8A3F52"/>
-    </RelativeLayout>
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center">
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@android:drawable/ic_menu_my_calendar" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Agenda Citas"
+                android:textSize="10sp"
+                android:textColor="#8A3F52" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center">
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@android:drawable/ic_menu_preferences" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Seguridad"
+                android:textSize="10sp"
+                android:textColor="#9E7A85" />
+        </LinearLayout>
+    </LinearLayout>
 
 </LinearLayout>
