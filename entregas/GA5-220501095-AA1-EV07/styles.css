@@ -1,0 +1,996 @@
+/* 
+   Estilos CSS para la Entrega GA5-220501095-AA1-EV07
+   Basado en la paleta de colores y variables del proyecto original
+*/
+
+:root {
+    --color-fondo-principal: #f8f3f4;
+    --color-texto-principal: #2c1a1e;
+    --color-superficie: #ffffff;
+    --color-header-vinotinto-claro: #8a3f52;
+    --color-texto-inverso: #ffffff;
+    --color-vinotinto-hover: #72333e;
+    --color-vinotinto-soft: #f3e8eb;
+    --color-vinotinto-border: #eadde0;
+    --color-vinotinto-contrast: #5c3344;
+    --color-vinotinto-muted: #6b4a52;
+    --color-vinotinto-subtle: #9e7a85;
+    --color-vinotinto-gradient-start: #fff7f8;
+    --color-vinotinto-gradient-end: #fffcf7;
+    --color-surface-alt: #fff5f7;
+    --color-surface-hover: #fffaf8;
+    --color-texto-secundario: #4a4a4a;
+    --color-input-border: #d1b8be;
+    --color-feedback-error-bg: #fdecea;
+    --color-feedback-error-text: #b71c1c;
+    --color-feedback-error-border: #f5c6cb;
+    --color-feedback-success-bg: #e8f5e9;
+    --color-feedback-success-text: #1b5e20;
+    --color-feedback-success-border: #c8e6c9;
+    --color-action-danger: #c62828;
+    --color-action-danger-hover: #a31515;
+    --color-overlay-scrim: rgba(0, 0, 0, 0.4);
+    --color-shadow-elevated: rgba(0, 0, 0, 0.12);
+    --color-shadow-card: rgba(138, 63, 82, 0.08);
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background-color: var(--color-fondo-principal);
+    color: var(--color-texto-principal);
+    line-height: 1.6;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+/* ==================== ESTRUCTURA DE LA ENTREGA ==================== */
+
+.delivery-header {
+    background: linear-gradient(135deg, var(--color-vinotinto-contrast), var(--color-header-vinotinto-claro));
+    color: var(--color-texto-inverso);
+    padding: 1.5rem 2rem;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+    text-align: center;
+}
+
+.delivery-header__title {
+    font-size: 1.8rem;
+    font-weight: 800;
+}
+
+.delivery-header__subtitle {
+    font-size: 1rem;
+    opacity: 0.9;
+    margin-top: 0.3rem;
+}
+
+.delivery-container {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2.5rem;
+    padding: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+@media (min-width: 768px) {
+    .delivery-container {
+        grid-template-columns: auto 1fr;
+        align-items: start;
+    }
+}
+
+.delivery-footer {
+    background-color: var(--color-vinotinto-contrast);
+    color: var(--color-texto-inverso);
+    text-align: center;
+    padding: 1rem;
+    font-size: 0.9rem;
+    margin-top: auto;
+}
+
+/* ==================== MOCKUP CELULAR ==================== */
+
+.phone-mockup {
+    width: 375px;
+    height: 720px;
+    background-color: #1a1a1a;
+    border-radius: 40px;
+    padding: 12px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    border: 4px solid #333;
+    position: relative;
+    margin: 0 auto;
+    overflow: hidden;
+}
+
+/* Notch del celular */
+.phone-mockup::before {
+    content: '';
+    position: absolute;
+    top: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 150px;
+    height: 25px;
+    background-color: #1a1a1a;
+    border-bottom-left-radius: 18px;
+    border-bottom-right-radius: 18px;
+    z-index: 999;
+}
+
+.phone-mockup__screen {
+    width: 100%;
+    height: 100%;
+    background-color: var(--color-fondo-principal);
+    border-radius: 30px;
+    overflow: hidden;
+    position: relative;
+}
+
+/* ==================== EXPLICACIONES ACADÉMICAS ==================== */
+
+.academic-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.academic-panel__card {
+    background-color: var(--color-superficie);
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 12px var(--color-shadow-card);
+    border: 1px solid var(--color-vinotinto-border);
+}
+
+.academic-panel__card h2 {
+    color: var(--color-header-vinotinto-claro);
+    font-size: 1.4rem;
+    margin-bottom: 1rem;
+    border-bottom: 2px solid var(--color-vinotinto-soft);
+    padding-bottom: 0.5rem;
+}
+
+.academic-panel__item {
+    margin-top: 1.2rem;
+    padding-left: 0.5rem;
+    border-left: 3px solid var(--color-header-vinotinto-claro);
+}
+
+.academic-panel__item strong {
+    display: block;
+    color: var(--color-vinotinto-contrast);
+    font-size: 1.05rem;
+    margin-bottom: 0.3rem;
+}
+
+.academic-panel__item ul {
+    list-style-type: disc;
+    padding-left: 1.2rem;
+    font-size: 0.95rem;
+    color: var(--color-texto-secundario);
+}
+
+.academic-panel__item li {
+    margin-bottom: 0.3rem;
+}
+
+/* ==================== APP CLIENT EN EL CELULAR ==================== */
+
+#app {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.app-container {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.app-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 4.5rem 1.2rem 5.5rem; /* Espacio para notch/header y footer */
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Header de la App */
+.app-header {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 70px;
+    background-color: var(--color-superficie);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 24px 18px 8px; /* Ajuste para el notch */
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    z-index: 100;
+}
+
+.app-header__greeting {
+    display: flex;
+    flex-direction: column;
+}
+
+.app-header__greeting-title {
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: var(--color-texto-principal);
+}
+
+.app-header__greeting-subtitle {
+    font-size: 0.75rem;
+    color: var(--color-texto-secundario);
+}
+
+.app-header__profile-img {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--color-header-vinotinto-claro);
+}
+
+.app-header__settings-btn {
+    background: none;
+    border: none;
+    font-size: 1.25rem;
+    color: var(--color-texto-secundario);
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 50%;
+    transition: background-color 0.2s;
+}
+
+.app-header__settings-btn:hover {
+    background-color: var(--color-vinotinto-soft);
+    color: var(--color-header-vinotinto-claro);
+}
+
+/* ==================== VISTA 1: HOME/DASHBOARD ==================== */
+
+.dashboard-view {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+/* Tarjeta destacada de próxima cita */
+.featured-card {
+    background: linear-gradient(135deg, var(--color-header-vinotinto-claro), var(--color-vinotinto-contrast));
+    color: var(--color-texto-inverso);
+    border-radius: 20px;
+    padding: 1.25rem;
+    box-shadow: 0 8px 16px var(--color-shadow-elevated);
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.featured-card::after {
+    content: '\f073';
+    font-family: 'Font Awesome 5 Free';
+    font-weight: 900;
+    position: absolute;
+    right: -10px;
+    bottom: -15px;
+    font-size: 6rem;
+    opacity: 0.08;
+}
+
+.featured-card__tag {
+    background-color: rgba(255, 255, 255, 0.2);
+    padding: 0.25rem 0.6rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    align-self: flex-start;
+    text-transform: uppercase;
+}
+
+.featured-card__title {
+    font-size: 1.3rem;
+    font-weight: 700;
+}
+
+.featured-card__details {
+    font-size: 0.85rem;
+    opacity: 0.9;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.featured-card__btn {
+    background-color: var(--color-superficie);
+    color: var(--color-header-vinotinto-claro);
+    border: none;
+    padding: 0.6rem 1.2rem;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 0.85rem;
+    cursor: pointer;
+    align-self: flex-start;
+    transition: transform 0.2s, background-color 0.2s;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.featured-card__btn:hover {
+    background-color: var(--color-vinotinto-soft);
+    transform: translateY(-1px);
+}
+
+/* Accesos rápidos (Grid) */
+.quick-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.9rem;
+}
+
+.quick-grid__btn {
+    background-color: var(--color-superficie);
+    border: 1px solid var(--color-vinotinto-border);
+    border-radius: 16px;
+    padding: 1.2rem 0.8rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+    box-shadow: 0 2px 6px var(--color-shadow-card);
+}
+
+.quick-grid__btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px var(--color-shadow-card);
+    border-color: var(--color-header-vinotinto-claro);
+}
+
+.quick-grid__btn--double {
+    grid-column: span 2;
+    flex-direction: row;
+    justify-content: flex-start;
+    padding: 1rem 1.2rem;
+}
+
+.quick-grid__icon {
+    font-size: 1.6rem;
+    color: var(--color-header-vinotinto-claro);
+    background-color: var(--color-vinotinto-soft);
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.quick-grid__label {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--color-texto-principal);
+    text-align: center;
+}
+
+.quick-grid__btn--double .quick-grid__label {
+    text-align: left;
+}
+
+/* Banner de promociones */
+.promo-banner {
+    background-color: var(--color-vinotinto-soft);
+    border: 1px dashed var(--color-header-vinotinto-claro);
+    border-radius: 16px;
+    padding: 0.9rem 1.2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+}
+
+.promo-banner__icon {
+    font-size: 1.5rem;
+    color: var(--color-header-vinotinto-claro);
+}
+
+.promo-banner__content {
+    display: flex;
+    flex-direction: column;
+}
+
+.promo-banner__title {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--color-texto-principal);
+}
+
+.promo-banner__text {
+    font-size: 0.75rem;
+    color: var(--color-texto-secundario);
+}
+
+/* ==================== VISTA 2: AGENDAMIENTO (WIZARD) ==================== */
+
+.wizard {
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
+}
+
+/* Progreso del Wizard */
+.wizard-progress {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 0.5rem;
+    position: relative;
+}
+
+.wizard-progress::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 1.5rem;
+    right: 1.5rem;
+    height: 2px;
+    background-color: var(--color-vinotinto-border);
+    z-index: 1;
+    transform: translateY(-50%);
+}
+
+.wizard-step {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-color: var(--color-superficie);
+    border: 2px solid var(--color-vinotinto-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--color-vinotinto-subtle);
+    z-index: 2;
+    transition: all 0.3s;
+}
+
+.wizard-step--active {
+    border-color: var(--color-header-vinotinto-claro);
+    background-color: var(--color-header-vinotinto-claro);
+    color: var(--color-texto-inverso);
+    box-shadow: 0 0 0 4px var(--color-vinotinto-soft);
+}
+
+.wizard-step--completed {
+    border-color: var(--color-header-vinotinto-claro);
+    background-color: var(--color-superficie);
+    color: var(--color-header-vinotinto-claro);
+}
+
+.wizard-step-label {
+    position: absolute;
+    top: 36px;
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: var(--color-texto-secundario);
+    white-space: nowrap;
+}
+
+.wizard-step-container {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 60px;
+}
+
+/* Wizard Paso 1: Servicios */
+.service-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+}
+
+.service-card {
+    background-color: var(--color-superficie);
+    border: 2px solid var(--color-vinotinto-border);
+    border-radius: 18px;
+    padding: 1.1rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    cursor: pointer;
+    transition: all 0.25s;
+    box-shadow: 0 2px 6px var(--color-shadow-card);
+}
+
+.service-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px var(--color-shadow-card);
+}
+
+.service-card--selected {
+    border-color: var(--color-header-vinotinto-claro);
+    background-color: var(--color-surface-alt);
+}
+
+.service-card__icon {
+    font-size: 1.8rem;
+    color: var(--color-header-vinotinto-claro);
+    width: 52px;
+    height: 52px;
+    border-radius: 14px;
+    background-color: var(--color-vinotinto-soft);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.service-card__info {
+    flex: 1;
+}
+
+.service-card__name {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--color-texto-principal);
+}
+
+.service-card__desc {
+    font-size: 0.75rem;
+    color: var(--color-texto-secundario);
+    margin-top: 0.1rem;
+}
+
+.service-card__price-time {
+    display: flex;
+    gap: 0.8rem;
+    margin-top: 0.4rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.service-card__price {
+    color: var(--color-header-vinotinto-claro);
+}
+
+.service-card__time {
+    color: var(--color-vinotinto-subtle);
+}
+
+/* Wizard Paso 2: Fecha y Hora */
+.calendar-slider {
+    display: flex;
+    gap: 0.6rem;
+    overflow-x: auto;
+    padding: 0.4rem 0.2rem 0.8rem;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none; /* Hide scrollbar for Firefox */
+}
+
+.calendar-slider::-webkit-scrollbar {
+    display: none; /* Hide scrollbar for Chrome/Safari */
+}
+
+.calendar-day {
+    scroll-snap-align: start;
+    flex: 0 0 calc(20% - 0.5rem);
+    background-color: var(--color-superficie);
+    border: 1px solid var(--color-vinotinto-border);
+    border-radius: 12px;
+    padding: 0.6rem 0.3rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    user-select: none;
+}
+
+.calendar-day--selected {
+    background-color: var(--color-header-vinotinto-claro);
+    border-color: var(--color-header-vinotinto-claro);
+    color: var(--color-texto-inverso);
+    box-shadow: 0 4px 8px rgba(138, 63, 82, 0.2);
+}
+
+.calendar-day__name {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    font-weight: 700;
+    opacity: 0.8;
+}
+
+.calendar-day--selected .calendar-day__name {
+    opacity: 1;
+}
+
+.calendar-day__number {
+    font-size: 1.1rem;
+    font-weight: 800;
+}
+
+/* Horas Grid */
+.time-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.6rem;
+    margin-top: 0.6rem;
+}
+
+.time-slot {
+    background-color: var(--color-superficie);
+    border: 1px solid var(--color-vinotinto-border);
+    border-radius: 10px;
+    padding: 0.6rem 0.3rem;
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.time-slot--selected {
+    background-color: var(--color-vinotinto-contrast);
+    border-color: var(--color-vinotinto-contrast);
+    color: var(--color-texto-inverso);
+}
+
+.time-slot--disabled {
+    background-color: var(--color-vinotinto-soft);
+    color: var(--color-vinotinto-subtle);
+    border-color: transparent;
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+/* Wizard Paso 3: Confirmación */
+.confirm-details {
+    background-color: var(--color-superficie);
+    border: 1px solid var(--color-vinotinto-border);
+    border-radius: 18px;
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    box-shadow: 0 4px 10px var(--color-shadow-card);
+}
+
+.confirm-details__item {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+}
+
+.confirm-details__icon {
+    font-size: 1.2rem;
+    color: var(--color-header-vinotinto-claro);
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background-color: var(--color-vinotinto-soft);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.confirm-details__content {
+    display: flex;
+    flex-direction: column;
+}
+
+.confirm-details__label {
+    font-size: 0.7rem;
+    color: var(--color-texto-secundario);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.confirm-details__value {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--color-texto-principal);
+}
+
+.confirm-details__price {
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: var(--color-header-vinotinto-claro);
+}
+
+/* Botón flotante de Confirmar Reserva (FAB) */
+.fab-confirm {
+    position: absolute;
+    bottom: 80px;
+    right: 20px;
+    background-color: var(--color-header-vinotinto-claro);
+    color: var(--color-texto-inverso);
+    border: none;
+    border-radius: 30px;
+    padding: 0.8rem 1.5rem;
+    font-weight: 700;
+    font-size: 0.95rem;
+    box-shadow: 0 6px 16px rgba(138, 63, 82, 0.4);
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    cursor: pointer;
+    transition: transform 0.2s, background-color 0.2s;
+    z-index: 100;
+}
+
+.fab-confirm:hover {
+    background-color: var(--color-vinotinto-hover);
+    transform: translateY(-2px);
+}
+
+.fab-confirm i {
+    font-size: 1.1rem;
+}
+
+/* Wizard Navegación General */
+.wizard-nav {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 1rem;
+}
+
+.wizard-nav__btn {
+    border: 1px solid var(--color-vinotinto-border);
+    background-color: var(--color-superficie);
+    padding: 0.6rem 1.2rem;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.wizard-nav__btn:hover {
+    background-color: var(--color-vinotinto-soft);
+}
+
+.wizard-nav__btn--primary {
+    background-color: var(--color-header-vinotinto-claro);
+    color: var(--color-texto-inverso);
+    border-color: var(--color-header-vinotinto-claro);
+}
+
+.wizard-nav__btn--primary:hover {
+    background-color: var(--color-vinotinto-hover);
+}
+
+/* ==================== VISTA 3: PERFIL DEL USUARIO ==================== */
+
+.profile-view {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+/* Header de Perfil */
+.profile-card {
+    background-color: var(--color-superficie);
+    border-radius: 20px;
+    padding: 1.5rem 1.2rem;
+    box-shadow: 0 4px 10px var(--color-shadow-card);
+    border: 1px solid var(--color-vinotinto-border);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.8rem;
+    text-align: center;
+}
+
+.profile-card__avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid var(--color-header-vinotinto-claro);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.profile-card__name {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: var(--color-texto-principal);
+}
+
+.profile-card__role {
+    font-size: 0.75rem;
+    color: var(--color-texto-secundario);
+    background-color: var(--color-vinotinto-soft);
+    padding: 0.2rem 0.6rem;
+    border-radius: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+/* Lista de opciones (ListTiles) */
+.list-tile-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+}
+
+.list-tile {
+    background-color: var(--color-superficie);
+    border: 1px solid var(--color-vinotinto-border);
+    border-radius: 16px;
+    padding: 1rem 1.2rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 2px 4px var(--color-shadow-card);
+}
+
+.list-tile:hover {
+    transform: translateX(4px);
+    border-color: var(--color-header-vinotinto-claro);
+    box-shadow: 0 4px 8px var(--color-shadow-card);
+}
+
+.list-tile__icon {
+    font-size: 1.2rem;
+    color: var(--color-header-vinotinto-claro);
+    background-color: var(--color-vinotinto-soft);
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.list-tile__content {
+    flex: 1;
+}
+
+.list-tile__title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--color-texto-principal);
+}
+
+.list-tile__subtitle {
+    font-size: 0.75rem;
+    color: var(--color-texto-secundario);
+}
+
+.list-tile__arrow {
+    color: var(--color-vinotinto-subtle);
+    font-size: 0.85rem;
+}
+
+/* Botón de Cerrar Sesión en Rojo */
+.list-tile--danger {
+    border-color: #f8d7da;
+    background-color: #fff8f8;
+}
+
+.list-tile--danger:hover {
+    border-color: var(--color-action-danger);
+    background-color: #fdf2f2;
+}
+
+.list-tile--danger .list-tile__icon {
+    color: var(--color-action-danger);
+    background-color: #ffeef0;
+}
+
+.list-tile--danger .list-tile__title {
+    color: var(--color-action-danger);
+}
+
+/* ==================== FOOTER / BOTTOM NAVIGATION ==================== */
+
+.app-footer {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 64px;
+    background-color: var(--color-superficie);
+    border-top: 1px solid var(--color-vinotinto-border);
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding-bottom: 8px; /* Ajuste para el borde curvo del celular */
+    z-index: 100;
+}
+
+.nav-item {
+    background: none;
+    border: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.2rem;
+    color: var(--color-vinotinto-subtle);
+    cursor: pointer;
+    font-size: 0.7rem;
+    font-weight: 700;
+    width: 20%;
+    padding: 4px 0;
+    transition: color 0.2s;
+}
+
+.nav-item--active {
+    color: var(--color-header-vinotinto-claro);
+}
+
+.nav-item i {
+    font-size: 1.25rem;
+}
+
+/* ==================== ELEMENTOS AUXILIARES / MODALES ==================== */
+
+.app-subtitle-section {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--color-vinotinto-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.5rem;
+}
+
+.toast {
+    position: absolute;
+    top: 80px;
+    left: 20px;
+    right: 20px;
+    background-color: #1e293b;
+    color: white;
+    padding: 0.8rem 1rem;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    transform: translateY(-20px);
+    opacity: 0;
+    transition: transform 0.3s, opacity 0.3s;
+    pointer-events: none;
+    z-index: 999;
+}
+
+.toast--show {
+    transform: translateY(0);
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.toast--success {
+    background-color: var(--color-feedback-success-bg);
+    color: var(--color-feedback-success-text);
+    border: 1px solid var(--color-feedback-success-border);
+}

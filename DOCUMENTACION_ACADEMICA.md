@@ -15,8 +15,10 @@ El proyecto implementa una arquitectura basada en Clean Architecture y principio
      │
   (Llama)
      ↓
- [Service] ──> [HttpClient] ──> [Backend API]
+  [Service] ──> [HttpClient] ──> [Backend API (Java/Spring)]
 ```
+
+El flujo del cliente al servidor sigue el camino `[Service] ──> [HttpClient] ──> [Backend API]`.
 
 **Convenciones de Nomenclatura:**
 | Capa | Convención | Ejemplo |
