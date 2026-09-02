@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Salón de Belleza | Interfaces Gráficas EV03 SENA</title>
+    <style>
+        :root {
+            --color-fondo-principal: #f8f3f4;
+            --color-texto-principal: #2c1a1e;
+            --color-superficie: #ffffff;
+            --color-header-vinotinto-claro: #8a3f52;
+            --color-texto-inverso: #ffffff;
+            --color-vinotinto-hover: #72333e;
+            --color-vinotinto-border: #eadde0;
+            --color-texto-secundario: #4a4a4a;
+            --color-role-owner: #7b1fa2;
+            --color-role-receptionist: #1976d2;
+            --color-status-active: #388e3c;
+            --color-action-danger: #c62828;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--color-fondo-principal);
+            color: var(--color-texto-principal);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .layout__header {
+            background-color: var(--color-header-vinotinto-claro);
+            color: var(--color-texto-inverso);
+            padding: 1rem 1.25rem;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.25);
+        }
+
+        .layout__brand {
+            display: grid;
+            gap: 0.25rem;
+        }
+
+        .layout__salon-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+
+        .layout__salon-subtitle {
+            font-size: 0.85rem;
+            opacity: 0.92;
+        }
+
+        .layout__nav {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.25rem;
+            align-items: center;
+            margin-top: 0.5rem;
+            width: 100%;
+        }
+
+        .layout__nav-link {
+            padding: 0.35rem 0.65rem;
+            border-radius: 0.4rem;
+            color: rgba(255, 255, 255, 0.88);
+            text-decoration: none;
+            font-size: 0.86rem;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        .layout__nav-link:hover {
+            background-color: rgba(255, 255, 255, 0.15);
+            color: #ffffff;
+        }
+
+        .layout__nav-link--active {
+            background-color: rgba(255, 255, 255, 0.22);
+            color: #ffffff;
+            font-weight: 700;
+        }
+
+        .layout__user-menu-trigger {
+            display: flex;
+            align-items: center;
+            gap: 0.45rem;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            border-radius: 0.55rem;
+            padding: 0.45rem 0.8rem;
+            background-color: rgba(255, 255, 255, 0.12);
+            color: #ffffff;
+            font-size: 0.88rem;
+            font-weight: 600;
+        }
+
+        .layout__role-badge {
+            background-color: var(--color-role-owner);
+            border-radius: 999px;
+            padding: 0.2rem 0.6rem;
+            font-size: 0.78rem;
+        }
+
+        .layout__content {
+            width: 100%;
+            max-width: 1120px;
+            margin: 0 auto;
+            padding: 1.25rem;
+            background-color: var(--color-superficie);
+            flex: 1;
+            border-left: 1px solid var(--color-vinotinto-border);
+            border-right: 1px solid var(--color-vinotinto-border);
+        }
+
+        /* Common BEM styling for dynamic content */
+        .dashboard__header, .citas__header, .clients__header, .usuarios__header, .employees__header, .service-list__header, .resource-list__header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.25rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .dashboard__title, .citas__title, .clients__title, .usuarios__title, .employees__title, .service-list__title, .resource-list__title {
+            font-size: 1.5rem;
+            color: var(--color-header-vinotinto-claro);
+        }
+
+        .dashboard__subtitle, .citas__subtitle, .clients__subtitle, .usuarios__subtitle, .employees__subtitle {
+            font-size: 0.9rem;
+            color: var(--color-texto-secundario);
+        }
+
+        .citas__button, .dashboard__button, .clients__button, .usuarios__btn, .employees__button, .service-actions__btn, .resource-actions__btn {
+            padding: 0.45rem 0.9rem;
+            border-radius: 0.4rem;
+            border: 1px solid transparent;
+            background-color: var(--color-header-vinotinto-claro);
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 0.88rem;
+        }
+
+        .citas__button:hover, .dashboard__button:hover, .clients__button:hover, .usuarios__btn:hover, .employees__button:hover, .service-actions__btn:hover, .resource-actions__btn:hover {
+            background-color: var(--color-vinotinto-hover);
+        }
+
+        .usuarios__btn--secondary, .employees__button--secondary, .service-actions__btn--refresh, .resource-actions__btn--refresh {
+            background-color: var(--color-fondo-principal);
+            color: var(--color-texto-principal);
+            border-color: var(--color-vinotinto-border);
+        }
+
+        .usuarios__btn--danger {
+            background-color: var(--color-action-danger);
+            color: white;
+        }
+
+        .clients__table, .usuarios__table, .employees__table, .service-list__table, .resource-list__table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+            border: 1px solid var(--color-vinotinto-border);
+        }
+
+        .clients__table th, .usuarios__table th, .employees__table th, .service-list__table th, .resource-list__table th,
+        .clients__table td, .usuarios__table td, .employees__table td, .service-list__table td, .resource-list__table td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid var(--color-vinotinto-border);
+            font-size: 0.9rem;
+        }
+
+        .clients__table th, .usuarios__table th, .employees__table th, .service-list__table th, .resource-list__table th {
+            background-color: var(--color-header-vinotinto-claro);
+            color: white;
+        }
+
+        .usuarios__badge {
+            display: inline-block;
+            padding: 0.2rem 0.5rem;
+            border-radius: 999px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            color: white;
+        }
+        .usuarios__badge--owner { background-color: var(--color-role-owner); }
+        .usuarios__badge--receptionist { background-color: var(--color-role-receptionist); }
+        .usuarios__badge--active { background-color: var(--color-status-active); }
+        .usuarios__badge--inactive { background-color: #9e9e9e; }
+
+        .dashboard__date-range, .citas__filters {
+            display: flex;
+            gap: 1rem;
+            align-items: flex-end;
+            background: var(--color-fondo-principal);
+            padding: 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid var(--color-vinotinto-border);
+            margin-bottom: 1.25rem;
+            flex-wrap: wrap;
+        }
+
+        .citas__field, .dashboard__field {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .citas__field-label, .dashboard__field-label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--color-texto-secundario);
+        }
+
+        .citas__input, .citas__select, .dashboard__input {
+            padding: 0.45rem 0.65rem;
+            border: 1px solid #d1b8be;
+            border-radius: 0.4rem;
+            font-size: 0.9rem;
+        }
+
+        .dashboard__metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .dashboard__card {
+            background: white;
+            border: 1px solid var(--color-vinotinto-border);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            border-top: 4px solid var(--color-header-vinotinto-claro);
+        }
+
+        .dashboard__card-title {
+            font-size: 0.85rem;
+            color: var(--color-texto-secundario);
+        }
+
+        .dashboard__card-value {
+            font-size: 1.6rem;
+            font-weight: bold;
+            margin-top: 0.25rem;
+        }
+
+        .citas__workspace {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.25rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .citas__panel {
+            border: 1px solid var(--color-vinotinto-border);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            background: white;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Layout Shell -->
+    <header class="layout__header">
+        <div class="layout__brand">
+            <h1 class="layout__salon-title">Salón de Belleza</h1>
+            <p class="layout__salon-subtitle">Gestión integral del salón de belleza</p>
+        </div>
+
+        <div class="layout__user-menu-wrapper">
+            <div class="layout__user-menu-trigger">
+                <span>Usuario:</span>
+                <strong>admin_sena</strong>
+                <span class="layout__role-badge">OWNER</span>
+            </div>
+        </div>
+
+        <nav class="layout__nav">
+            <a class="layout__nav-link" data-route="/clientes" onclick="navigateTo('/clientes')">Clientes</a>
+            <a class="layout__nav-link" data-route="/citas" onclick="navigateTo('/citas')">Citas</a>
+            <a class="layout__nav-link layout__nav-link--active" data-route="/dashboard" onclick="navigateTo('/dashboard')">Dashboard</a>
+            <a class="layout__nav-link" data-route="/usuarios" onclick="navigateTo('/usuarios')">Usuarios</a>
+            <a class="layout__nav-link" data-route="/empleados" onclick="navigateTo('/empleados')">Empleados</a>
+            <a class="layout__nav-link" data-route="/servicios" onclick="navigateTo('/servicios')">Servicios</a>
+            <a class="layout__nav-link" data-route="/recursos" onclick="navigateTo('/recursos')">Recursos</a>
+            <a class="layout__nav-link" data-route="/mfa" onclick="navigateTo('/mfa')">MFA</a>
+        </nav>
+    </header>
+
+    <main class="layout__content" id="app-content">
+        <!-- Content will be rendered dynamically by app.js -->
+    </main>
+
+    <script src="app.js"></script>
+</body>
+</html>
