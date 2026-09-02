@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prototipo Interactivo SENA GA6-220501096-AA3-EV02 | Salón de Belleza</title>
+    <style>
+        :root {
+            --primary: #003366;
+            --primary-light: #336699;
+            --bg-body: #f4f6f9;
+            --white: #ffffff;
+            --text-dark: #333333;
+            --text-muted: #666666;
+            --border: #dcdfe6;
+            --success: #28a745;
+            --warning: #ffc107;
+            --danger: #dc3545;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-body);
+            color: var(--text-dark);
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* Top Header Bar */
+        .top-bar {
+            background-color: var(--primary);
+            color: var(--white);
+            padding: 12px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .top-bar h1 {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .badge-sena {
+            background-color: var(--primary-light);
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        /* App Container Layout */
+        .app-container {
+            display: flex;
+            flex: 1;
+        }
+
+        /* Sidebar Navigation */
+        .sidebar {
+            width: 240px;
+            background-color: var(--white);
+            border-right: 1px solid var(--border);
+            padding: 20px 0;
+        }
+
+        .sidebar-title {
+            padding: 0 20px 12px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 20px;
+            color: var(--text-dark);
+            text-decoration: none;
+            cursor: pointer;
+            font-size: 0.95rem;
+            border-left: 4px solid transparent;
+            transition: all 0.2s ease;
+        }
+
+        .nav-item:hover {
+            background-color: var(--bg-body);
+            color: var(--primary);
+        }
+
+        .nav-item.active {
+            background-color: #eef4fa;
+            color: var(--primary);
+            border-left-color: var(--primary);
+            font-weight: bold;
+        }
+
+        /* Main Content Viewport */
+        .main-content {
+            flex: 1;
+            padding: 24px;
+            overflow-y: auto;
+        }
+
+        .view-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .view-title {
+            font-size: 1.5rem;
+            color: var(--primary);
+        }
+
+        /* KPI Cards Grid */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .kpi-card {
+            background: var(--white);
+            border-radius: 8px;
+            padding: 16px;
+            border: 1px solid var(--border);
+            border-top: 4px solid var(--primary);
+        }
+
+        .kpi-title {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+
+        .kpi-value {
+            font-size: 1.6rem;
+            font-weight: bold;
+            color: var(--text-dark);
+        }
+
+        /* Content Card / Panel */
+        .panel-card {
+            background: var(--white);
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            padding: 20px;
+            margin-bottom: 24px;
+        }
+
+        .panel-header {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: var(--primary);
+            margin-bottom: 16px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid var(--bg-body);
+        }
+
+        /* Custom UI Tables */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .data-table th, .data-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.9rem;
+        }
+
+        .data-table th {
+            background-color: var(--bg-body);
+            color: var(--primary);
+            font-weight: bold;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            color: var(--white);
+        }
+
+        .bg-success { background-color: var(--success); }
+        .bg-warning { background-color: var(--warning); color: #000; }
+        .bg-danger { background-color: var(--danger); }
+        .bg-primary { background-color: var(--primary-light); }
+
+        /* Action Buttons */
+        .btn {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 4px;
+            border: none;
+            background-color: var(--primary);
+            color: var(--white);
+            font-weight: bold;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+
+        .btn:hover {
+            background-color: var(--primary-light);
+        }
+
+        .btn-success {
+            background-color: var(--success);
+        }
+
+        .btn-success:hover {
+            background-color: #218838;
+        }
+
+        /* Simulated Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-body {
+            background: var(--white);
+            width: 90%;
+            max-width: 500px;
+            border-radius: 8px;
+            padding: 24px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 0.85rem;
+            font-weight: bold;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Top Navigation Header -->
+    <header class="top-bar">
+        <h1>Salón de Belleza | Prototipo Interactivo de Navegación UI</h1>
+        <span class="badge-sena">Evidencia GA6-220501096-AA3-EV02</span>
+    </header>
+
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar">
+            <div class="sidebar-title">Módulos del Sistema</div>
+            <a class="nav-item active" onclick="switchView('dashboard', this)">📊 Dashboard</a>
+            <a class="nav-item" onclick="switchView('citas', this)">📅 Gestión de Citas</a>
+            <a class="nav-item" onclick="switchView('clientes', this)">👥 Clientes</a>
+            <a class="nav-item" onclick="switchView('empleados', this)">✂️ Empleados & Horarios</a>
+            <a class="nav-item" onclick="switchView('servicios', this)">💅 Servicios & Recursos</a>
+            <a class="nav-item" onclick="switchView('mfa', this)">🔒 Autenticación MFA</a>
+        </nav>
+
+        <!-- Viewport Container -->
+        <main class="main-content">
+
+            <!-- VISTA 1: DASHBOARD -->
+            <section id="view-dashboard">
+                <div class="view-header">
+                    <h2 class="view-title">Dashboard Operativo Principal</h2>
+                    <button class="btn" onclick="switchView('citas', document.querySelectorAll('.nav-item')[1])">+ Agendar Nueva Cita</button>
+                </div>
+
+                <div class="kpi-grid">
+                    <div class="kpi-card" style="border-top-color: var(--success);">
+                        <div class="kpi-title">Citas Agendadas Hoy</div>
+                        <div class="kpi-value">18 Citas</div>
+                    </div>
+                    <div class="kpi-card" style="border-top-color: var(--primary-light);">
+                        <div class="kpi-title">Ingresos Proyectados</div>
+                        <div class="kpi-value">$1,450.000</div>
+                    </div>
+                    <div class="kpi-card" style="border-top-color: var(--primary);">
+                        <div class="kpi-title">Clientes Atendidos</div>
+                        <div class="kpi-value">14 Clientes</div>
+                    </div>
+                    <div class="kpi-card" style="border-top-color: var(--warning);">
+                        <div class="kpi-title">Tasa de Ocupación</div>
+                        <div class="kpi-value">85%</div>
+                    </div>
+                </div>
+
+                <div class="panel-card">
+                    <div class="panel-header">Citas en Atención / Programadas para Hoy</div>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Hora</th>
+                                <th>Cliente</th>
+                                <th>Servicio</th>
+                                <th>Especialista</th>
+                                <th>Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>09:00 AM</td>
+                                <td>María Rodríguez</td>
+                                <td>Corte & Cepillado</td>
+                                <td>Ana Gómez</td>
+                                <td><span class="status-badge bg-success">CONFIRMADA</span></td>
+                            </tr>
+                            <tr>
+                                <td>10:30 AM</td>
+                                <td>Carlos Mendoza</td>
+                                <td>Manicura Spa</td>
+                                <td>Laura Pérez</td>
+                                <td><span class="status-badge bg-primary">EN PROCESO</span></td>
+                            </tr>
+                            <tr>
+                                <td>11:45 AM</td>
+                                <td>Andrea Torres</td>
+                                <td>Tinte & Balayage</td>
+                                <td>Sofía López</td>
+                                <td><span class="status-badge bg-warning">PENDIENTE</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- VISTA 2: CITAS -->
+            <section id="view-citas" style="display: none;">
+                <div class="view-header">
+                    <h2 class="view-title">Gestión de Citas y Agendamiento</h2>
+                    <button class="btn btn-success" onclick="openModal()">+ Agendar Cita</button>
+                </div>
+                <div class="panel-card">
+                    <div class="panel-header">Filtros y Búsqueda</div>
+                    <p style="margin-bottom: 12px;">Filtrar por fecha: <strong>2026-09-02</strong> | Empleado: <strong>Todos</strong></p>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>ID Cita</th>
+                                <th>Cliente</th>
+                                <th>Servicio</th>
+                                <th>Especialista</th>
+                                <th>Horario</th>
+                                <th>Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>#C-301</td>
+                                <td>María Rodríguez</td>
+                                <td>Corte & Cepillado</td>
+                                <td>Ana Gómez</td>
+                                <td>09:00 - 10:00 AM</td>
+                                <td><span class="status-badge bg-success">CONFIRMADA</span></td>
+                            </tr>
+                            <tr>
+                                <td>#C-302</td>
+                                <td>Diana Morales</td>
+                                <td>Tratamiento Capilar</td>
+                                <td>Ana Gómez</td>
+                                <td>02:00 - 03:00 PM</td>
+                                <td><span class="status-badge bg-success">CONFIRMADA</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- VISTA 3: CLIENTES -->
+            <section id="view-clientes" style="display: none;">
+                <div class="view-header">
+                    <h2 class="view-title">Directorio de Clientes</h2>
+                    <button class="btn">+ Registrar Cliente</button>
+                </div>
+                <div class="panel-card">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nombre Completo</th>
+                                <th>Teléfono</th>
+                                <th>Última Visita</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>#1042</td>
+                                <td>María Rodríguez</td>
+                                <td>315-892-0192</td>
+                                <td>2026-08-28</td>
+                                <td><button class="btn" style="padding: 4px 8px; font-size: 0.75rem;">Ver Ficha</button></td>
+                            </tr>
+                            <tr>
+                                <td>#1043</td>
+                                <td>Carlos Mendoza</td>
+                                <td>300-451-2290</td>
+                                <td>2026-08-30</td>
+                                <td><button class="btn" style="padding: 4px 8px; font-size: 0.75rem;">Ver Ficha</button></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- VISTA 4: EMPLEADOS -->
+            <section id="view-empleados" style="display: none;">
+                <div class="view-header">
+                    <h2 class="view-title">Control de Empleados y Franjas Horarias</h2>
+                </div>
+                <div class="panel-card">
+                    <div class="panel-header">Lista de Especialistas</div>
+                    <p style="margin-bottom: 10px;">• <strong>Ana Gómez</strong> (Estilista Senior) - Shift: 08:00 AM - 05:00 PM [<span style="color: var(--success); font-weight: bold;">ACTIVO</span>]</p>
+                    <p style="margin-bottom: 10px;">• <strong>Laura Pérez</strong> (Especialista Manicura) - Shift: 08:00 AM - 05:00 PM [<span style="color: var(--success); font-weight: bold;">ACTIVO</span>]</p>
+                    <p style="margin-bottom: 10px;">• <strong>Sofía López</strong> (Colorista Master) - Shift: 09:00 AM - 06:00 PM [<span style="color: var(--success); font-weight: bold;">ACTIVO</span>]</p>
+                </div>
+            </section>
+
+            <!-- VISTA 5: SERVICIOS -->
+            <section id="view-servicios" style="display: none;">
+                <div class="view-header">
+                    <h2 class="view-title">Catálogo de Servicios y Recursos Asociados</h2>
+                </div>
+                <div class="kpi-grid">
+                    <div class="panel-card">
+                        <h3>Corte & Cepillado</h3>
+                        <p style="color: var(--success); font-weight: bold; margin: 8px 0;">$65.000 COP</p>
+                        <p style="font-size: 0.85rem;">Duración: 45 minutos</p>
+                        <p style="font-size: 0.85rem; color: var(--text-muted);">Recurso: Silla Estilista #1-4</p>
+                    </div>
+                    <div class="panel-card">
+                        <h3>Tinte & Balayage</h3>
+                        <p style="color: var(--success); font-weight: bold; margin: 8px 0;">$180.000 COP</p>
+                        <p style="font-size: 0.85rem;">Duración: 120 minutos</p>
+                        <p style="font-size: 0.85rem; color: var(--text-muted);">Recurso: Cabina de Tinte #1</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- VISTA 6: MFA -->
+            <section id="view-mfa" style="display: none;">
+                <div class="view-header">
+                    <h2 class="view-title">Seguridad y Enrolamiento MFA</h2>
+                </div>
+                <div class="panel-card" style="max-width: 450px; margin: 0 auto; text-align: center;">
+                    <h3 style="color: var(--primary); margin-bottom: 12px;">Verificación TOTP con QR</h3>
+                    <p style="font-size: 0.85rem; margin-bottom: 16px;">Escanee el código QR con su aplicación autenticadora (Google Authenticator / Authy) e ingrese el código de 6 dígitos.</p>
+                    <div style="background: #eef4fa; border: 2px dashed var(--primary); width: 160px; height: 160px; margin: 0 auto 16px; display: flex; align-items: center; justify-content: center; font-weight: bold; color: var(--primary);">
+                        [ CÓDIGO QR ]
+                    </div>
+                    <div class="form-group">
+                        <input type="text" placeholder="8 4 2 9 1 5" style="text-align: center; font-size: 1.2rem; letter-spacing: 4px; font-weight: bold; color: var(--primary);">
+                    </div>
+                    <button class="btn btn-success" style="width: 100%;">VERIFICAR CÓDIGO</button>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- Modal Form for Citas -->
+    <div id="cita-modal" class="modal-overlay">
+        <div class="modal-body">
+            <h3 style="color: var(--primary); margin-bottom: 16px;">Agendar Nueva Cita</h3>
+            <div class="form-group">
+                <label>Cliente</label>
+                <select>
+                    <option>María Rodríguez (#1042)</option>
+                    <option>Carlos Mendoza (#1043)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Servicio</label>
+                <select>
+                    <option>Corte & Cepillado ($65k)</option>
+                    <option>Tinte & Balayage ($180k)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Especialista</label>
+                <select>
+                    <option>Ana Gómez (Estilista Senior)</option>
+                    <option>Sofía López (Colorista Master)</option>
+                </select>
+            </div>
+            <div style="display: flex; gap: 8px; margin-top: 20px;">
+                <button class="btn" style="background-color: var(--border); color: var(--text-dark);" onclick="closeModal()">Cancelar</button>
+                <button class="btn btn-success" style="flex: 1;" onclick="alert('✓ Cita agendada exitosamente en el prototipo interactivo'); closeModal();">Confirmar Reserva</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function switchView(viewId, element) {
+            document.querySelectorAll('main > section').forEach(sec => sec.style.display = 'none');
+            document.getElementById('view-' + viewId).style.display = 'block';
+            
+            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+            if(element) element.classList.add('active');
+        }
+
+        function openModal() {
+            document.getElementById('cita-modal').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('cita-modal').style.display = 'none';
+        }
+    </script>
+</body>
+</html>
