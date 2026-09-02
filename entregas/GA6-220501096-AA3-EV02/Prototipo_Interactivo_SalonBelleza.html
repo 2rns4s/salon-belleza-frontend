@@ -127,16 +127,88 @@
             border-right: 1px solid var(--color-vinotinto-border);
         }
 
-        .dashboard__header, .citas__header, .clients__header {
-            margin-bottom: 1rem;
+        .dashboard__header, .citas__header, .clients__header, .usuarios__header, .employees__header, .service-list__header, .resource-list__header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.25rem;
+            flex-wrap: wrap;
+            gap: 1rem;
         }
 
-        .dashboard__title, .citas__title, .clients__title {
+        .dashboard__title, .citas__title, .clients__title, .usuarios__title, .employees__title, .service-list__title, .resource-list__title {
             font-size: 1.5rem;
             color: var(--color-header-vinotinto-claro);
         }
 
-        /* Filters BEM Form */
+        .dashboard__subtitle, .citas__subtitle, .clients__subtitle, .usuarios__subtitle, .employees__subtitle {
+            font-size: 0.9rem;
+            color: var(--color-texto-secundario);
+        }
+
+        /* Common Buttons */
+        .citas__button, .dashboard__button, .clients__button, .usuarios__btn, .employees__button, .service-actions__btn, .resource-actions__btn {
+            padding: 0.45rem 0.9rem;
+            border-radius: 0.4rem;
+            border: 1px solid transparent;
+            background-color: var(--color-header-vinotinto-claro);
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 0.88rem;
+        }
+
+        .citas__button:hover, .dashboard__button:hover, .clients__button:hover, .usuarios__btn:hover, .employees__button:hover, .service-actions__btn:hover, .resource-actions__btn:hover {
+            background-color: var(--color-vinotinto-hover);
+        }
+
+        .usuarios__btn--secondary, .employees__button--secondary, .service-actions__btn--refresh, .resource-actions__btn--refresh {
+            background-color: var(--color-fondo-principal);
+            color: var(--color-texto-principal);
+            border-color: var(--color-vinotinto-border);
+        }
+
+        .usuarios__btn--danger, .employees__action-btn--delete, .service-actions__btn--delete, .resource-actions__btn--delete {
+            background-color: var(--color-action-danger);
+            color: white;
+        }
+
+        /* Common Data Tables */
+        .clients__table, .usuarios__table, .employees__table, .service-list__table, .resource-list__table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+            border: 1px solid var(--color-vinotinto-border);
+        }
+
+        .clients__table th, .usuarios__table th, .employees__table th, .service-list__table th, .resource-list__table th,
+        .clients__table td, .usuarios__table td, .employees__table td, .service-list__table td, .resource-list__table td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid var(--color-vinotinto-border);
+            font-size: 0.9rem;
+        }
+
+        .clients__table th, .usuarios__table th, .employees__table th, .service-list__table th, .resource-list__table th {
+            background-color: var(--color-header-vinotinto-claro);
+            color: white;
+        }
+
+        /* Badges */
+        .usuarios__badge {
+            display: inline-block;
+            padding: 0.2rem 0.5rem;
+            border-radius: 999px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            color: white;
+        }
+        .usuarios__badge--owner { background-color: var(--color-role-owner); }
+        .usuarios__badge--receptionist { background-color: var(--color-role-receptionist); }
+        .usuarios__badge--active { background-color: var(--color-status-active); }
+        .usuarios__badge--inactive { background-color: #9e9e9e; }
+
+        /* Dashboard & Citas Styles */
         .dashboard__date-range, .citas__filters {
             display: flex;
             gap: 1rem;
@@ -168,21 +240,6 @@
             font-size: 0.9rem;
         }
 
-        .citas__button, .dashboard__button, .clients__button {
-            padding: 0.5rem 1rem;
-            border-radius: 0.4rem;
-            border: none;
-            background-color: var(--color-header-vinotinto-claro);
-            color: white;
-            font-weight: 600;
-            cursor: pointer;
-        }
-
-        .citas__button:hover, .dashboard__button:hover, .clients__button:hover {
-            background-color: var(--color-vinotinto-hover);
-        }
-
-        /* Metrics Cards Grid */
         .dashboard__metrics {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -209,7 +266,6 @@
             margin-top: 0.25rem;
         }
 
-        /* Workspace Grid for Citas */
         .citas__workspace {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -245,50 +301,6 @@
             background-color: var(--color-header-vinotinto-claro);
             color: white;
         }
-
-        /* Clients Table */
-        .clients__table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 1rem;
-        }
-
-        .clients__table th, .clients__table td {
-            padding: 0.75rem;
-            text-align: left;
-            border-bottom: 1px solid var(--color-vinotinto-border);
-            font-size: 0.9rem;
-        }
-
-        .clients__table th {
-            background-color: var(--color-header-vinotinto-claro);
-            color: white;
-        }
-
-        /* Services Grid */
-        .servicios__grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 1rem;
-
-        }
-
-        .servicios__card {
-            border: 1px solid var(--color-vinotinto-border);
-            border-radius: 0.5rem;
-            overflow: hidden;
-        }
-
-        .servicios__card-header {
-            background: var(--color-header-vinotinto-claro);
-            color: white;
-            padding: 0.6rem 0.8rem;
-            font-weight: bold;
-        }
-
-        .servicios__card-body {
-            padding: 0.8rem;
-        }
     </style>
 </head>
 <body>
@@ -322,11 +334,13 @@
 
     <main class="layout__content">
 
-        <!-- DASHBOARD VIEW -->
+        <!-- 1. DASHBOARD VIEW -->
         <section id="view-dashboard">
             <header class="dashboard__header">
-                <h2 class="dashboard__title">Dashboard</h2>
-                <p class="dashboard__subtitle">Resumen de rendimiento del salón</p>
+                <div>
+                    <h2 class="dashboard__title">Dashboard</h2>
+                    <p class="dashboard__subtitle">Resumen de rendimiento del salón</p>
+                </div>
             </header>
 
             <form class="dashboard__date-range">
@@ -361,11 +375,13 @@
             </div>
         </section>
 
-        <!-- CITAS VIEW -->
+        <!-- 2. CITAS VIEW -->
         <section id="view-citas" style="display: none;">
             <header class="citas__header">
-                <h2 class="citas__title">Agenda de citas</h2>
-                <p class="citas__subtitle">Gestiona disponibilidad, clientes y reservas sin salir de la agenda.</p>
+                <div>
+                    <h2 class="citas__title">Agenda de citas</h2>
+                    <p class="citas__subtitle">Gestiona disponibilidad, clientes y reservas sin salir de la agenda.</p>
+                </div>
             </header>
 
             <form class="citas__filters">
@@ -404,11 +420,16 @@
             </div>
         </section>
 
-        <!-- CLIENTES VIEW -->
+        <!-- 3. CLIENTES VIEW -->
         <section id="view-clientes" style="display: none;">
             <header class="clients__header">
-                <h2 class="clients__title">Clientes</h2>
-                <p class="clients__subtitle">Gestión de clientes del salón de belleza</p>
+                <div>
+                    <h2 class="clients__title">Clientes</h2>
+                    <p class="clients__subtitle">Gestión de clientes del salón de belleza</p>
+                </div>
+                <div>
+                    <button class="clients__button" type="button">+ Nuevo cliente</button>
+                </div>
             </header>
 
             <table class="clients__table">
@@ -424,11 +445,195 @@
                 <tbody>
                     <tr><td>101</td><td>María Rodríguez</td><td>10203040</td><td>3158920192</td><td>María</td></tr>
                     <tr><td>102</td><td>Carlos Mendoza</td><td>10304050</td><td>3004512290</td><td>Carlos</td></tr>
+                    <tr><td>103</td><td>Andrea Torres</td><td>10405060</td><td>3117829011</td><td>Andrea</td></tr>
                 </tbody>
             </table>
         </section>
 
-        <!-- MFA VIEW -->
+        <!-- 4. USUARIOS VIEW (REAL BEM) -->
+        <section id="view-usuarios" style="display: none;">
+            <header class="usuarios__header">
+                <div>
+                    <h2 class="usuarios__title">Gestión de Usuarios</h2>
+                    <p class="usuarios__subtitle">Administra credenciales, asignación de roles (RBAC) y enrolamiento MFA.</p>
+                </div>
+                <div>
+                    <button class="usuarios__btn" type="button">+ Nuevo usuario</button>
+                </div>
+            </header>
+
+            <table class="usuarios__table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nombre de usuario</th>
+                        <th>Rol</th>
+                        <th>ID Empleado</th>
+                        <th>Estado</th>
+                        <th>MFA</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>1</td>
+                        <td>admin_salon</td>
+                        <td><span class="usuarios__badge usuarios__badge--owner">OWNER</span></td>
+                        <td>EMP-01</td>
+                        <td><span class="usuarios__badge usuarios__badge--active">Activo</span></td>
+                        <td>✓ Habilitado</td>
+                        <td>
+                            <button class="usuarios__btn usuarios__btn--secondary" type="button">Editar</button>
+                            <button class="usuarios__btn usuarios__btn--danger" type="button">Desactivar</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>2</td>
+                        <td>recepcion_turnos</td>
+                        <td><span class="usuarios__badge usuarios__badge--receptionist">RECEPTIONIST</span></td>
+                        <td>EMP-02</td>
+                        <td><span class="usuarios__badge usuarios__badge--active">Activo</span></td>
+                        <td>✗ Pendiente</td>
+                        <td>
+                            <button class="usuarios__btn usuarios__btn--secondary" type="button">Editar</button>
+                            <button class="usuarios__btn usuarios__btn--danger" type="button">Desactivar</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- 5. EMPLEADOS VIEW (REAL BEM) -->
+        <section id="view-empleados" style="display: none;">
+            <header class="employees__header">
+                <div>
+                    <h2 class="employees__title">Gestión de Empleados</h2>
+                    <p class="employees__subtitle">Administra datos base, franjas laborales y servicios asociados del equipo.</p>
+                </div>
+                <div>
+                    <button class="employees__button" type="button">+ Nuevo empleado</button>
+                </div>
+            </header>
+
+            <table class="employees__table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nombre completo</th>
+                        <th>Correo</th>
+                        <th>Teléfono</th>
+                        <th>Franjas</th>
+                        <th>Servicios</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>EMP-01</td>
+                        <td>Ana Gómez</td>
+                        <td>ana.gomez@salonbelleza.com</td>
+                        <td>3158920192</td>
+                        <td>5 franjas</td>
+                        <td>4 servicios</td>
+                        <td>
+                            <button class="employees__button employees__button--secondary" type="button">Editar</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>EMP-02</td>
+                        <td>Laura Pérez</td>
+                        <td>laura.perez@salonbelleza.com</td>
+                        <td>3004512290</td>
+                        <td>5 franjas</td>
+                        <td>2 servicios</td>
+                        <td>
+                            <button class="employees__button employees__button--secondary" type="button">Editar</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- 6. SERVICIOS VIEW (REAL BEM) -->
+        <section id="view-servicios" style="display: none;">
+            <header class="service-list__header">
+                <div>
+                    <h2 class="service-list__title">Gestión de Servicios</h2>
+                    <p class="dashboard__subtitle">Catálogo comercial de tratamientos y recursos requeridos</p>
+                </div>
+                <div>
+                    <button class="service-actions__btn" type="button">+ Nuevo servicio</button>
+                </div>
+            </header>
+
+            <table class="service-list__table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nombre del servicio</th>
+                        <th>Duración</th>
+                        <th>Recursos Requeridos</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>SRV-01</td>
+                        <td>Corte & Cepillado Profesional</td>
+                        <td>45 min</td>
+                        <td>1 recurso(s)</td>
+                        <td><button class="service-actions__btn service-actions__btn--refresh" type="button">Editar</button></td>
+                    </tr>
+                    <tr>
+                        <td>SRV-02</td>
+                        <td>Tinte & Balayage Especializado</td>
+                        <td>120 min</td>
+                        <td>2 recurso(s)</td>
+                        <td><button class="service-actions__btn service-actions__btn--refresh" type="button">Editar</button></td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- 7. RECURSOS VIEW (REAL BEM) -->
+        <section id="view-recursos" style="display: none;">
+            <header class="resource-list__header">
+                <div>
+                    <h2 class="resource-list__title">Gestión de Recursos</h2>
+                    <p class="dashboard__subtitle">Control de inventario de equipamiento e infraestructura física</p>
+                </div>
+                <div>
+                    <button class="resource-actions__btn" type="button">+ Nuevo recurso</button>
+                </div>
+            </header>
+
+            <table class="resource-list__table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nombre del recurso</th>
+                        <th>Cantidad Total</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>REC-01</td>
+                        <td>Silla de Estilista Hidráulica</td>
+                        <td>4 unidades</td>
+                        <td><button class="resource-actions__btn resource-actions__btn--refresh" type="button">Editar</button></td>
+                    </tr>
+                    <tr>
+                        <td>REC-02</td>
+                        <td>Cabina de Aplicación de Tinte</td>
+                        <td>2 unidades</td>
+                        <td><button class="resource-actions__btn resource-actions__btn--refresh" type="button">Editar</button></td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- 8. MFA VIEW -->
         <section id="view-mfa" style="display: none;">
             <div style="max-width: 420px; margin: 2rem auto; text-align: center; border: 1px solid var(--color-vinotinto-border); padding: 1.5rem; border-radius: 0.5rem;">
                 <h3 style="color: var(--color-header-vinotinto-claro); margin-bottom: 1rem;">Autenticación MFA (TOTP)</h3>
