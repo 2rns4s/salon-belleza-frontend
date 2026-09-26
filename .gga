@@ -15,7 +15,7 @@
 #   PROVIDER="lmstudio:qwen2.5-coder-7b-instruct"
 #   PROVIDER="github:gpt-4o"
 #   PROVIDER="github:deepseek-r1"
-PROVIDER="github:gpt-4o"
+PROVIDER="opencode"
 
 # File patterns to include in review (comma-separated)
 # Default: * (all files)
@@ -30,7 +30,7 @@ FILE_PATTERNS="*.ts,*.tsx,*.js,*.jsx"
 # Examples:
 #   EXCLUDE_PATTERNS="*.test.ts,*.spec.ts"
 #   EXCLUDE_PATTERNS="*_test.go,*.mock.ts"
-EXCLUDE_PATTERNS="*.test.ts,*.spec.ts,*.test.js,*.spec.js,*.d.ts,tests/*"
+EXCLUDE_PATTERNS="*.test.ts,*.spec.ts,*.test.js,*.spec.js,*.d.ts,tests/*,entregas/*"
 
 # File containing code review rules
 # Default: AGENTS.md
