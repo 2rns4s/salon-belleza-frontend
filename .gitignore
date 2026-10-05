@@ -18,3 +18,15 @@ node_modules/
 # Ignorar artefactos locales de orquestación
 coverage/
 .atl/
+.agents/
+
+# Artefactos de gentle-ai / herramientas de IA (no deben subir al repo)
+.engram/
+odd/
+openspec/
+.gga
+engram-backup-all.json
+AGENTS.md
+.github/copilot-instructions.md
+citas-prd.md
+design.md
