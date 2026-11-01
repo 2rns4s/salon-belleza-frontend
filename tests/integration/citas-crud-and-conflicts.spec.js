@@ -62,7 +62,13 @@ function searchClient(container, { documentNumber = "", phone = "", name = "" } 
     searchForm.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
 }
 
-describe("citas - CRUD, quick-add y conflictos 409", () => {
+// Trazabilidad SRS (ver docs/desarrollo/trazabilidad-requisitos.md):
+// @requisito RF-008 Registrar cita | RF-009 Gestión de clientes en el flujo
+// @rnf RNF-008 Integridad/anti-overbooking (409) | RNF-015 Mensajes de error accionables
+// @hu HU-08, HU-09
+// @narrativa Como Recepcionista, quiero seleccionar un horario válido y registrar la cita,
+//            para que el sistema la guarde y la quite de la disponibilidad futura.
+describe("RF-008 / RF-009 / HU-08 / HU-09 — Registro de cita, quick-add de cliente y conflictos 409 (RNF-008/RNF-015)", () => {
     let container;
 
     beforeEach(() => {
@@ -110,7 +116,9 @@ describe("citas - CRUD, quick-add y conflictos 409", () => {
         document.body.appendChild(container);
     });
 
-    it("quick-add invalido (400) mantiene contexto y formulario para correccion", async () => {
+    // @rnf RNF-015 — Dado un quick-add con datos inválidos, cuando el backend responde 400,
+    // entonces se muestra un mensaje accionable y se conserva el contexto (slot + formulario).
+    it("RNF-015 — Dado un quick-add inválido (400), cuando falla, entonces mantiene contexto y formulario para corrección", async () => {
         const { initCitas } = await import("../../src/features/citas/citas.controller.js");
 
         searchClientsMock.mockResolvedValue({ items: [], total: 0 });
@@ -152,7 +160,9 @@ describe("citas - CRUD, quick-add y conflictos 409", () => {
         expect(container.querySelectorAll(".citas__slot--selected").length).toBe(1);
     });
 
-    it("quick-add 400 con details[] mapea errores por campo y conserva slot seleccionado", async () => {
+    // @rnf RNF-015 — Dado un 400 con details[], cuando se procesa, entonces mapea errores por campo
+    // y conserva el slot seleccionado para que la recepcionista corrija sin rehacer el flujo.
+    it("RNF-015 — Dado un 400 con details[], cuando se procesa, entonces mapea errores por campo y conserva el slot seleccionado", async () => {
         const { initCitas } = await import("../../src/features/citas/citas.controller.js");
 
         searchClientsMock.mockResolvedValue({ items: [], total: 0 });
@@ -195,7 +205,9 @@ describe("citas - CRUD, quick-add y conflictos 409", () => {
         expect(container.querySelectorAll(".citas__slot--selected").length).toBe(1);
     });
 
-    it("busqueda cliente 404 con details[] habilita quick-add y conserva el slot", async () => {
+    // @requisito RF-009 — Dado que el cliente no existe (404), cuando se busca,
+    // entonces se habilita el quick-add para crear y asociar un cliente nuevo a la cita.
+    it("RF-009 / HU-09 — Dado que la búsqueda de cliente da 404, cuando se procesa, entonces habilita quick-add y conserva el slot", async () => {
         const { initCitas } = await import("../../src/features/citas/citas.controller.js");
 
         searchClientsMock.mockRejectedValue({
@@ -220,7 +232,9 @@ describe("citas - CRUD, quick-add y conflictos 409", () => {
         expect(container.querySelector(".citas__message--error")).toBeNull();
     });
 
-    it("conflicto 409 bloquea confirmacion y reconcilia agenda+disponibilidad", async () => {
+    // @rnf RNF-008 — Dado un horario ya ocupado, cuando el backend responde 409, entonces
+    // se bloquea la confirmación y se reconcilia agenda+disponibilidad (anti-overbooking).
+    it("RNF-008 / HU-06 — Dado un 409, cuando se intenta confirmar, entonces bloquea la confirmación y reconcilia agenda+disponibilidad", async () => {
         const { initCitas } = await import("../../src/features/citas/citas.controller.js");
 
         searchClientsMock.mockResolvedValue({
@@ -273,7 +287,9 @@ describe("citas - CRUD, quick-add y conflictos 409", () => {
         expect(getAvailabilityMock.mock.calls.length).toBeGreaterThanOrEqual(2);
     });
 
-    it("refresh post-CRUD: crear, actualizar estado y eliminar refrescan agenda", async () => {
+    // @requisito RF-008 — Dado un CRUD de cita (crear/actualizar/eliminar), cuando se completa,
+    // entonces la agenda se refresca para reflejar la ocupación actualizada.
+    it("RF-008 / HU-08 — Dado crear, actualizar estado y eliminar, cuando se completan, entonces refrescan la agenda", async () => {
         const { initCitas } = await import("../../src/features/citas/citas.controller.js");
 
         const baseAppointment = {

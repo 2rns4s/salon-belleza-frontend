@@ -48,7 +48,15 @@ function submitFilters(container, { date = "2026-03-11", serviceId = "5", employ
     form.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
 }
 
-describe("citas - disponibilidad y actualizacion del panel (D1, D2, D3, D5)", () => {
+// Trazabilidad SRS (ver docs/desarrollo/trazabilidad-requisitos.md):
+// @requisito RF-001 Motor de concurrencia | RF-004 Filtro por servicio | RF-007 Mostrar solo horarios válidos
+// @rnf RNF-001 Carga de agenda <=1.5s | RNF-005 Disponibilidad <=0.5s (instrumentación aparte)
+// @hu HU-01, HU-04, HU-07
+// @narrativa Como Recepcionista, quiero que la interfaz solo me muestre los horarios que han pasado
+//            todas las validaciones (empleado Y recurso), para poder agendar con confianza y rapidez.
+// Nota: los casos de cache/AbortController/hora-actual son decisiones de implementación de la UI,
+// no criterios del SRS; se conservan sin atribuirles un RF para no inventar trazabilidad.
+describe("RF-001 / RF-004 / RF-007 / HU-01 / HU-04 / HU-07 — Disponibilidad y actualización del panel de agenda", () => {
     let container;
 
     beforeEach(() => {
@@ -93,7 +101,9 @@ describe("citas - disponibilidad y actualizacion del panel (D1, D2, D3, D5)", ()
         document.body.appendChild(container);
     });
 
-    it("renderiza los slots disponibles en el grid tras cargar disponibilidad", async () => {
+    // @requisito RF-007 — Dado que el backend retorna slots válidos, cuando se carga la agenda,
+    // entonces se renderizan solo esos horarios (ya validados por empleado Y recurso).
+    it("RF-007 — Dado slots válidos del backend, cuando carga la disponibilidad, entonces los renderiza en el grid", async () => {
         const { initCitas } = await import("../../src/features/citas/citas.controller.js");
 
         await initCitas(container);
@@ -156,7 +166,9 @@ describe("citas - disponibilidad y actualizacion del panel (D1, D2, D3, D5)", ()
         expect(getAvailabilityMock.mock.calls.length).toBeGreaterThan(callCountAfterFirst);
     });
 
-    it("D5: click en un slot lo marca con la clase --selected", async () => {
+    // @requisito RF-008 — Dado un horario válido, cuando la recepcionista hace click,
+    // entonces queda seleccionado como paso previo al registro de la cita.
+    it("RF-008 — Dado un slot disponible, cuando se hace click, entonces queda marcado como seleccionado (--selected)", async () => {
         const { initCitas } = await import("../../src/features/citas/citas.controller.js");
 
         await initCitas(container);
