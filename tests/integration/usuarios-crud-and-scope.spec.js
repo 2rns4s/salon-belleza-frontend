@@ -92,8 +92,12 @@ describe("usuarios integration — CRUD completo", () => {
         expect(rows.length).toBe(2);
         expect(container.textContent).toContain("admin.principal");
         expect(container.textContent).toContain("recep.central");
-        expect(container.textContent).toContain("OWNER");
-        expect(container.textContent).toContain("RECEPTIONIST");
+        // La etiqueta visible del rol está en español; el valor interno del rol
+        // se preserva en el modificador BEM (--owner / --receptionist).
+        expect(container.textContent).toContain("Propietario");
+        expect(container.textContent).toContain("Recepcionista");
+        expect(container.querySelector(".usuarios__badge--owner")).not.toBeNull();
+        expect(container.querySelector(".usuarios__badge--receptionist")).not.toBeNull();
     });
 
     it("USUARIOS-LIST-02: muestra mensaje de lista vacía cuando no hay usuarios", async () => {

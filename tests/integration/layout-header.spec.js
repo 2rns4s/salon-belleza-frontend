@@ -49,7 +49,7 @@ describe("layout shared header integration", () => {
         mountAppShell();
         initializeApp();
 
-        expect(document.querySelector(".layout__salon-title")?.textContent).toContain("Sistema de Gestion");
+        expect(document.querySelector(".layout__salon-title")?.textContent).toContain("Sistema de Gestión");
         expect(document.querySelector(".layout__user-value")?.textContent).toContain("recepcion");
         expect(document.querySelector(".layout__role-badge")?.textContent).toContain("Propietario");
     });
@@ -127,21 +127,17 @@ describe("layout shared header integration", () => {
         expect(window.location.hash).toBe("#/auth");
     });
 
-    it("LAYOUT-LOGOUT-01: logout es idempotente cuando no hay token activo", () => {
+    it("LAYOUT-LOGOUT-01: sin sesion activa no se renderiza el menu de usuario ni el control de logout", () => {
         mountAppShell();
         initializeApp();
 
-        const logoutButton = document.querySelector("#layout-logout-btn");
-        expect(logoutButton).not.toBeNull();
-
-        expect(() => {
-            logoutButton.dispatchEvent(new Event("click", { bubbles: true }));
-            logoutButton.dispatchEvent(new Event("click", { bubbles: true }));
-        }).not.toThrow();
+        // El bloque de usuario y el boton de logout solo existen con sesion activa:
+        // sin token no hay chrome de sesion que mostrar al usuario no autenticado.
+        expect(document.querySelector("#layout-logout-btn")).toBeNull();
+        expect(document.querySelector(".layout__user-menu-trigger")).toBeNull();
 
         expect(obtenerEstadoAuth().sesionIniciada).toBe(false);
         expect(obtenerToken()).toBeNull();
-        expect(window.location.hash).toBe("#/auth");
     });
 
     it("expira token JWT y fuerza limpieza de sesion con redireccion inmediata", () => {
@@ -161,7 +157,8 @@ describe("layout shared header integration", () => {
         expect(obtenerEstadoAuth().sesionIniciada).toBe(false);
         expect(obtenerToken()).toBeNull();
         expect(window.location.hash).toBe("#/auth");
-        expect(document.querySelector(".layout__user-menu-trigger")).toBeTruthy();
+        // Sin sesion activa el header no renderiza el bloque de usuario/menu de cuenta.
+        expect(document.querySelector(".layout__user-menu-trigger")).toBeNull();
     });
 
     it("LAYOUT-REHYDRATE-INVALID-01: token malformado persistido limpia sesion y redirige a /auth", () => {
@@ -173,7 +170,8 @@ describe("layout shared header integration", () => {
         expect(obtenerEstadoAuth().sesionIniciada).toBe(false);
         expect(obtenerToken()).toBeNull();
         expect(window.location.hash).toBe("#/auth");
-        expect(document.querySelector(".layout__user-menu-trigger")).toBeTruthy();
+        // Sin sesion activa el header no renderiza el bloque de usuario/menu de cuenta.
+        expect(document.querySelector(".layout__user-menu-trigger")).toBeNull();
     });
 
     it("LAYOUT-NAV-OWNER: OWNER ve Clientes, Citas, Usuarios, Empleados, Servicios y Recursos en la navegacion", () => {

@@ -33,3 +33,8 @@ design.md
 
 # Ignorar carpeta de entregas SENA (no debe subir al repo)
 entregas/
+
+# Artefactos del skill de diseño asistido por IA (impeccable): guía de trabajo local, no versionar
+PRODUCT.md
+DESIGN.md
+.impeccable/

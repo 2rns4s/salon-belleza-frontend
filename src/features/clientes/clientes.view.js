@@ -33,7 +33,7 @@ function renderClientRows({ clients = [], loadingList = false }) {
     if (loadingList) {
         return `
             <tr class="clients__table-row clients__table-row--loading">
-                <td class="clients__table-cell clients__table-cell--empty" colspan="5">Cargando clientes...</td>
+                <td class="clients__table-cell clients__table-cell--empty" colspan="4">Cargando clientes...</td>
             </tr>
         `;
     }
@@ -41,7 +41,7 @@ function renderClientRows({ clients = [], loadingList = false }) {
     if (!clients.length) {
         return `
             <tr class="clients__table-row clients__table-row--empty">
-                <td class="clients__table-cell clients__table-cell--empty" colspan="5">${escapeHtml(CLIENTES_UI_MESSAGES.emptyList)}</td>
+                <td class="clients__table-cell clients__table-cell--empty" colspan="4">${escapeHtml(CLIENTES_UI_MESSAGES.emptyList)}</td>
             </tr>
         `;
     }
@@ -53,7 +53,6 @@ function renderClientRows({ clients = [], loadingList = false }) {
                 <td class="clients__table-cell clients__table-cell--name">${escapeHtml(client.fullName)}</td>
                 <td class="clients__table-cell">${escapeHtml(client.documentNumber || "Sin documento")}</td>
                 <td class="clients__table-cell">${escapeHtml(client.phone || "Sin telefono")}</td>
-                <td class="clients__table-cell">${escapeHtml(client.firstName || "-")}</td>
             </tr>
         `)
         .join("");
@@ -189,7 +188,6 @@ export function renderClientesPage(state = {}) {
                                 <th class="clients__table-head-cell" scope="col">Nombre completo</th>
                                 <th class="clients__table-head-cell" scope="col">Documento</th>
                                 <th class="clients__table-head-cell" scope="col">Telefono</th>
-                                <th class="clients__table-head-cell" scope="col">Nombre base</th>
                             </tr>
                         </thead>
 

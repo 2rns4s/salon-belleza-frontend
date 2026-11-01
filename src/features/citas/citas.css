@@ -11,9 +11,9 @@
     display: grid;
     gap: 0.35rem;
     padding: 0.75rem 0.9rem;
-    border: 1px solid #eadde0;
+    border: 1px solid var(--color-vinotinto-border);
     border-radius: 0.75rem;
-    background: linear-gradient(115deg, #fff7f8 0%, #fffdf8 100%);
+    background: linear-gradient(115deg, var(--color-vinotinto-gradient-start) 0%, var(--color-vinotinto-gradient-end) 100%);
 }
 
 .citas__title {
@@ -22,7 +22,7 @@
 }
 
 .citas__subtitle {
-    color: #6b4a52;
+    color: var(--color-vinotinto-muted);
     font-size: 0.95rem;
 }
 
@@ -31,9 +31,9 @@
     gap: 0.75rem;
     grid-template-columns: repeat(auto-fit, minmax(min(100%, 170px), 1fr));
     padding: 1rem;
-    border: 1px solid #eadde0;
+    border: 1px solid var(--color-vinotinto-border);
     border-radius: 0.75rem;
-    background-color: #fff7f8;
+    background-color: var(--color-surface-alt);
 }
 
 .citas__field {
@@ -45,7 +45,7 @@
 .citas__field-label {
     font-size: 0.85rem;
     font-weight: 600;
-    color: #5e3a45;
+    color: var(--color-vinotinto-contrast);
 }
 
 .citas__input,
@@ -58,10 +58,10 @@
 
 .citas__input,
 .citas__select {
-    border: 1px solid #d4bcc2;
+    border: 1px solid var(--color-input-border);
     border-radius: 0.5rem;
     padding: 0.55rem 0.7rem;
-    background-color: #ffffff;
+    background-color: var(--color-superficie);
     font-size: 0.95rem;
     width: 100%;
     max-width: 100%;
@@ -100,25 +100,30 @@
 }
 
 .citas__button--primary {
-    background-color: #8a3f52;
-    color: #ffffff;
+    background-color: var(--color-header-vinotinto-claro);
+    color: var(--color-texto-inverso);
 }
 
 .citas__button--secondary {
-    background-color: #f0e4e7;
-    color: #472730;
+    background-color: var(--color-vinotinto-soft);
+    color: var(--color-vinotinto-muted);
 }
 
 .citas__button--ghost {
-    background-color: #ffffff;
-    border: 1px solid #d4bcc2;
-    color: #5e3a45;
+    background-color: var(--color-superficie);
+    border: 1px solid var(--color-input-border);
+    color: var(--color-vinotinto-contrast);
 }
 
 .citas__button--danger {
-    background-color: #ffe9e9;
-    color: #8a2030;
-    border: 1px solid #f3c4c9;
+    background-color: var(--color-action-danger);
+    color: var(--color-texto-inverso);
+    border: 1px solid var(--color-action-danger);
+}
+
+.citas__button--danger:hover {
+    background-color: var(--color-action-danger-hover);
+    border-color: var(--color-action-danger-hover);
 }
 
 .citas__message {
@@ -128,25 +133,25 @@
 }
 
 .citas__message--info {
-    background-color: #eef4ff;
-    color: #254068;
+    background-color: var(--color-surface-alt);
+    color: var(--color-role-receptionist);
 }
 
 .citas__message--error {
-    background-color: #ffe9e9;
-    color: #8a2030;
+    background-color: var(--color-feedback-error-bg);
+    color: var(--color-header-vinotinto-claro);
 }
 
 .citas__message--success {
-    background-color: #e8f5e9;
-    color: #1d5f34;
+    background-color: var(--color-feedback-success-bg);
+    color: var(--color-feedback-success-text);
 }
 
 .citas__metrics {
     font-size: 0.85rem;
-    color: #5a3a43;
-    background-color: #fffdf8;
-    border: 1px dashed #decacf;
+    color: var(--color-vinotinto-contrast);
+    background-color: var(--color-vinotinto-gradient-end);
+    border: 1px dashed var(--color-vinotinto-border);
     border-radius: 0.5rem;
     padding: 0.55rem 0.7rem;
 }
@@ -157,10 +162,10 @@
 }
 
 .citas__panel {
-    border: 1px solid #eadde0;
+    border: 1px solid var(--color-vinotinto-border);
     border-radius: 0.75rem;
     padding: 0.9rem;
-    background-color: #ffffff;
+    background-color: var(--color-superficie);
 }
 
 .citas__panel-title {
@@ -177,20 +182,20 @@
 .citas__summary-card {
     display: grid;
     gap: 0.2rem;
-    border: 1px solid #eadde0;
+    border: 1px solid var(--color-vinotinto-border);
     border-radius: 0.65rem;
     padding: 0.65rem 0.7rem;
-    background-color: #fff9fa;
+    background-color: var(--color-surface-hover);
 }
 
 .citas__summary-label {
     font-size: 0.78rem;
-    color: #6b4a52;
+    color: var(--color-vinotinto-muted);
 }
 
 .citas__summary-value {
     font-size: 0.92rem;
-    color: #3f242d;
+    color: var(--color-vinotinto-muted);
 }
 
 .citas__search-form {
@@ -208,13 +213,13 @@
 .citas__inline-error {
     min-height: 1.2rem;
     font-size: 0.82rem;
-    color: #8a2030;
+    color: var(--color-header-vinotinto-claro);
 }
 
 .citas__input-error {
     min-height: 1.1rem;
     font-size: 0.8rem;
-    color: #8a2030;
+    color: var(--color-header-vinotinto-claro);
 }
 
 .citas__search-results {
@@ -225,25 +230,25 @@
 }
 
 .citas__search-item {
-    border: 1px solid #eadde0;
+    border: 1px solid var(--color-vinotinto-border);
     border-radius: 0.6rem;
     padding: 0.55rem;
     display: flex;
     gap: 0.65rem;
     justify-content: space-between;
     align-items: center;
-    background-color: #fffdfc;
+    background-color: var(--color-surface-hover);
 }
 
 .citas__search-item-main {
     display: grid;
     gap: 0.1rem;
     font-size: 0.85rem;
-    color: #5a3a43;
+    color: var(--color-vinotinto-contrast);
 }
 
 .citas__empty-text {
-    color: #6b4a52;
+    color: var(--color-vinotinto-muted);
     font-size: 0.9rem;
 }
 
@@ -254,17 +259,17 @@
 }
 
 .citas__quick-add {
-    border: 1px solid #eadde0;
+    border: 1px solid var(--color-vinotinto-border);
     border-radius: 0.65rem;
     padding: 0.7rem;
-    background-color: #fff8f9;
+    background-color: var(--color-surface-hover);
     margin-bottom: 0.75rem;
 }
 
 .citas__section-title {
     font-size: 0.92rem;
     margin-bottom: 0.55rem;
-    color: #4a2a34;
+    color: var(--color-vinotinto-muted);
 }
 
 .citas__booking-actions {
@@ -280,7 +285,7 @@
 }
 
 .citas__list-item {
-    border: 1px solid #eadde0;
+    border: 1px solid var(--color-vinotinto-border);
     border-radius: 0.6rem;
     padding: 0.65rem;
     display: grid;
@@ -289,43 +294,39 @@
 
 /* Appointment status colors */
 .citas__list-item--status-PENDIENTE {
-    border-left: 4px solid #f59e0b;
-    background-color: #fffbeb;
+    background-color: var(--color-surface-alt);
 }
 
 .citas__list-item--status-CONFIRMADA {
-    border-left: 4px solid #3b82f6;
-    background-color: #eff6ff;
+    background-color: var(--color-surface-alt);
 }
 
 .citas__list-item--status-REALIZADA {
-    border-left: 4px solid #22c55e;
-    background-color: #f0fdf4;
+    background-color: var(--color-feedback-success-bg);
 }
 
 .citas__list-item--status-CANCELADA {
-    border-left: 4px solid #ef4444;
-    background-color: #fef2f2;
+    background-color: var(--color-feedback-error-bg);
 }
 
 /* Status badge colors */
 .citas__item-status--PENDIENTE {
-    color: #b45309;
+    color: var(--color-warning-text);
     font-weight: 600;
 }
 
 .citas__item-status--CONFIRMADA {
-    color: #1d4ed8;
+    color: var(--color-role-receptionist);
     font-weight: 600;
 }
 
 .citas__item-status--REALIZADA {
-    color: #15803d;
+    color: var(--color-status-active);
     font-weight: 600;
 }
 
 .citas__item-status--CANCELADA {
-    color: #dc2626;
+    color: var(--color-action-danger);
     font-weight: 600;
 }
 
@@ -339,10 +340,10 @@
     top: 100%;
     left: 0;
     right: 0;
-    background: white;
-    border: 1px solid #d4bcc2;
+    background: var(--color-superficie);
+    border: 1px solid var(--color-input-border);
     border-radius: 0.5rem;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 6px -1px var(--color-shadow-elevated);
     z-index: 100;
     max-height: 300px;
     overflow-y: auto;
@@ -354,7 +355,7 @@
 .citas__autocomplete-item {
     padding: 0.65rem 0.75rem;
     cursor: pointer;
-    border-bottom: 1px solid #f0e4e7;
+    border-bottom: 1px solid var(--color-vinotinto-soft);
     transition: background-color 0.15s ease;
 }
 
@@ -363,11 +364,11 @@
 }
 
 .citas__autocomplete-item:hover {
-    background-color: #f9f5f6;
+    background-color: var(--color-surface-hover);
 }
 
 .citas__autocomplete-item--highlighted {
-    background-color: #f0e4e7;
+    background-color: var(--color-vinotinto-soft);
 }
 
 /* Sections: Active vs History */
@@ -375,7 +376,7 @@
     display: flex;
     gap: 0.5rem;
     margin-bottom: 1rem;
-    border-bottom: 2px solid #eadde0;
+    border-bottom: 2px solid var(--color-vinotinto-border);
 }
 
 .citas__section-tab {
@@ -384,29 +385,29 @@
     border: none;
     cursor: pointer;
     font-weight: 600;
-    color: #6b4a52;
+    color: var(--color-vinotinto-muted);
     border-bottom: 2px solid transparent;
     margin-bottom: -2px;
     transition: all 0.15s ease;
 }
 
 .citas__section-tab:hover {
-    color: #8a3f52;
+    color: var(--color-header-vinotinto-claro);
 }
 
 .citas__section-tab--active {
-    color: #8a3f52;
-    border-bottom-color: #8a3f52;
+    color: var(--color-header-vinotinto-claro);
+    border-bottom-color: var(--color-header-vinotinto-claro);
 }
 
 .citas__section-tab--active .citas__section-tab-count {
-    background-color: #8a3f52;
-    color: white;
+    background-color: var(--color-header-vinotinto-claro);
+    color: var(--color-texto-inverso);
 }
 
 .citas__section-tab-count {
     display: inline-block;
-    background-color: #eadde0;
+    background-color: var(--color-vinotinto-border);
     border-radius: 999px;
     padding: 0.1rem 0.4rem;
     font-size: 0.75rem;
@@ -415,7 +416,7 @@
 
 .citas__list-item--empty {
     justify-content: center;
-    color: #6b4a52;
+    color: var(--color-vinotinto-muted);
     font-size: 0.95rem;
 }
 
@@ -451,35 +452,35 @@
 }
 
 .citas__slot {
-    border: 1px solid #d4bcc2;
+    border: 1px solid var(--color-input-border);
     border-radius: 0.5rem;
     padding: 0.65rem;
     cursor: pointer;
-    background-color: #f9f5f6;
+    background-color: var(--color-surface-hover);
     transition: background-color 0.15s ease, border-color 0.15s ease;
     text-align: center;
     font-weight: 600;
-    color: #472730;
+    color: var(--color-vinotinto-muted);
     width: auto;
 }
 
 .citas__slot:hover {
-    background-color: #f0e4e7;
-    border-color: #8a3f52;
+    background-color: var(--color-vinotinto-soft);
+    border-color: var(--color-header-vinotinto-claro);
 }
 
 .citas__slot--available {
-    border-color: #1f6d3b;
+    border-color: var(--color-status-active);
 }
 
 .citas__slot--available:hover {
-    background-color: #e8f5e9;
+    background-color: var(--color-feedback-success-bg);
 }
 
 .citas__slot--selected {
-    background-color: #8a3f52;
-    color: #ffffff;
-    border-color: #8a3f52;
+    background-color: var(--color-header-vinotinto-claro);
+    color: var(--color-texto-inverso);
+    border-color: var(--color-header-vinotinto-claro);
 }
 
 .citas__slot-time {
@@ -490,11 +491,230 @@
 
 .citas__slots-empty {
     padding: 1rem;
-    background-color: #fff7f8;
-    border: 1px solid #eadde0;
+    background-color: var(--color-surface-alt);
+    border: 1px solid var(--color-vinotinto-border);
     border-radius: 0.5rem;
-    color: #6b4a52;
+    color: var(--color-vinotinto-muted);
     text-align: center;
+}
+
+/* ====== Wizard de reserva (columna izquierda) ====== */
+.citas__wizard {
+    padding: 0.9rem;
+}
+
+.citas__steps {
+    list-style: none;
+    display: grid;
+    gap: 0.75rem;
+    margin: 0;
+    padding: 0;
+    counter-reset: citas-step;
+}
+
+.citas__step {
+    border: 1px solid var(--color-vinotinto-border);
+    border-radius: 0.7rem;
+    background-color: var(--color-superficie);
+    overflow: hidden;
+}
+
+.citas__step--active {
+    border-color: var(--color-header-vinotinto-claro);
+    box-shadow: 0 1px 4px var(--color-focus-ring);
+}
+
+.citas__step--locked {
+    opacity: 0.55;
+}
+
+.citas__step--done {
+    background-color: var(--color-vinotinto-soft);
+}
+
+.citas__step-header {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.65rem 0.75rem;
+}
+
+.citas__step-marker {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    border-radius: 999px;
+    background-color: var(--color-vinotinto-soft);
+    color: var(--color-vinotinto-contrast);
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.citas__step--active .citas__step-marker {
+    background-color: var(--color-header-vinotinto-claro);
+    color: var(--color-texto-inverso);
+}
+
+.citas__step--done .citas__step-marker {
+    background-color: var(--color-status-active);
+    color: var(--color-texto-inverso);
+}
+
+.citas__step-check {
+    display: block;
+}
+
+.citas__step-number {
+    line-height: 1;
+}
+
+.citas__step-heading {
+    display: grid;
+    gap: 0.1rem;
+    flex: 1;
+    min-width: 0;
+}
+
+.citas__step-label {
+    font-weight: 600;
+    color: var(--color-vinotinto-contrast);
+}
+
+.citas__step-value {
+    font-size: 0.85rem;
+    color: var(--color-vinotinto-muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.citas__step-edit {
+    border: 1px solid var(--color-input-border);
+    border-radius: 0.5rem;
+    background-color: var(--color-superficie);
+    color: var(--color-vinotinto-contrast);
+    padding: 0.3rem 0.6rem;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.citas__step-edit:hover {
+    background-color: var(--color-vinotinto-soft);
+}
+
+.citas__step-body {
+    display: grid;
+    gap: 0.65rem;
+    padding: 0 0.75rem 0.8rem;
+}
+
+/* El cuerpo de los pasos no activos se colapsa; su contenido permanece en el DOM. */
+.citas__step--done .citas__step-body,
+.citas__step--locked .citas__step-body {
+    display: none;
+}
+
+.citas__step-hint {
+    font-size: 0.85rem;
+    color: var(--color-vinotinto-muted);
+}
+
+.citas__step-recap,
+.citas__confirm-recap {
+    display: grid;
+    gap: 0.4rem;
+    margin: 0;
+}
+
+.citas__step-recap-row,
+.citas__confirm-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.4rem 0.55rem;
+    border: 1px solid var(--color-vinotinto-border);
+    border-radius: 0.5rem;
+    background-color: var(--color-surface-alt);
+}
+
+.citas__step-recap-label,
+.citas__confirm-label {
+    font-size: 0.82rem;
+    color: var(--color-vinotinto-muted);
+    margin: 0;
+}
+
+.citas__step-recap-value,
+.citas__confirm-value {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--color-vinotinto-contrast);
+    margin: 0;
+    text-align: right;
+}
+
+.citas__field--optional .citas__field-label {
+    color: var(--color-vinotinto-muted);
+}
+
+/* Select de estado oculto pero accesible: respalda las acciones directas. */
+.citas__field--hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* ====== Tarjetas de cita (columna derecha) ====== */
+.citas__item-lead {
+    display: grid;
+    gap: 0.1rem;
+    align-content: start;
+}
+
+.citas__item-time {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--color-vinotinto-contrast);
+    line-height: 1.1;
+}
+
+.citas__item-date {
+    font-size: 0.8rem;
+    color: var(--color-vinotinto-muted);
+}
+
+.citas__item-ref {
+    color: var(--color-vinotinto-subtle);
+    font-size: 0.8rem;
+}
+
+.citas__item-status {
+    display: inline-block;
+    padding: 0.2rem 0.55rem;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    border: 1px solid currentColor;
+}
+
+.citas__item-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+}
+
+.citas__item-actions--closed {
+    align-items: center;
 }
 
 @media (max-width: 767px) {
@@ -569,7 +789,11 @@
     }
 
     .citas__list-item {
-        grid-template-columns: 1.35fr 0.7fr 1fr;
-        align-items: center;
+        grid-template-columns: auto minmax(0, 1fr) auto;
+        align-items: start;
+    }
+
+    .citas__item-actions {
+        grid-column: 1 / -1;
     }
 }

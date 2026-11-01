@@ -25,7 +25,7 @@ function resolveAppContentContainer() {
 
     if (appRoot instanceof Element) {
         const { contentContainer } = mountLayout(appRoot, {
-            salonTitle: "Sistema de Gestion del Salon de Belleza",
+            salonTitle: "Sistema de Gestión del Salón de Belleza",
         });
 
         if (contentContainer instanceof Element) {

@@ -59,7 +59,7 @@
 
 .clients__button--secondary {
     background-color: #f0e4e7;
-    color: #4b2a33;
+    color: var(--color-vinotinto-muted);
 }
 
 .clients__message {
@@ -70,12 +70,12 @@
 
 .clients__message--error {
     background-color: #ffe9e9;
-    color: #8a2030;
+    color: var(--color-header-vinotinto-claro);
 }
 
 .clients__message--success {
     background-color: #e8f5e9;
-    color: #1d5f34;
+    color: var(--color-feedback-success-text);
 }
 
 .clients__panel {
@@ -105,18 +105,18 @@
 }
 
 .clients__table-head {
-    background-color: #fff7f8;
+    background-color: var(--color-surface-alt);
 }
 
 .clients__table-head-row {
-    border-bottom: 1px solid #eadde0;
+    border-bottom: 1px solid var(--color-vinotinto-border);
 }
 
 .clients__table-head-cell {
     text-align: left;
     font-size: 0.82rem;
     font-weight: 700;
-    color: #5e3a45;
+    color: var(--color-vinotinto-contrast);
     padding: 0.65rem 0.75rem;
     white-space: nowrap;
 }
@@ -136,7 +136,7 @@
 .clients__table-cell {
     padding: 0.65rem 0.75rem;
     font-size: 0.88rem;
-    color: #3c232b;
+    color: var(--color-vinotinto-muted);
     vertical-align: middle;
 }
 
@@ -152,7 +152,7 @@
 .clients__modal-overlay {
     position: fixed;
     inset: 0;
-    background-color: rgba(20, 8, 12, 0.5);
+    background-color: var(--color-overlay-scrim);
     display: grid;
     place-items: center;
     padding: 1rem;
@@ -181,7 +181,7 @@
 }
 
 .clients__icon-button {
-    border: 1px solid #d8c2c8;
+    border: 1px solid var(--color-vinotinto-border);
     border-radius: 0.45rem;
     background-color: #ffffff;
     padding: 0.4rem 0.6rem;
@@ -202,7 +202,7 @@
 .clients__field-label {
     font-size: 0.84rem;
     font-weight: 600;
-    color: #5e3a45;
+    color: var(--color-vinotinto-contrast);
 }
 
 .clients__input {
@@ -217,7 +217,7 @@
 .clients__field-error {
     min-height: 1rem;
     font-size: 0.79rem;
-    color: #8a2030;
+    color: var(--color-header-vinotinto-claro);
 }
 
 .clients__form-message {
@@ -228,7 +228,7 @@
 
 .clients__form-message--error {
     background-color: #ffe9e9;
-    color: #8a2030;
+    color: var(--color-header-vinotinto-claro);
 }
 
 .clients__modal-actions {
