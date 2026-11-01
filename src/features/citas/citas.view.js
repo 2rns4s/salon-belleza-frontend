@@ -174,6 +174,20 @@ function renderSuccessMessage(successMessage) {
     return `<p class="citas__message citas__message--success" role="status">${escapeHtml(successMessage)}</p>`;
 }
 
+// La metrica de rendimiento es instrumentacion de RNF, no informacion para el
+// recepcionista. Se mantiene la medicion subyacente pero no se muestra en
+// produccion; solo se renderiza si se habilita explicitamente el flag debug.
+function isPerformanceMetricsDebugEnabled() {
+    try {
+        return (
+            typeof window !== "undefined" &&
+            window.localStorage?.getItem("citas:debug-metrics") === "true"
+        );
+    } catch (storageError) {
+        return false;
+    }
+}
+
 function renderPerformanceMetrics(metrics = {}) {
     return `
         <p class="citas__metrics" aria-live="polite">
@@ -441,7 +455,7 @@ function renderBookingPanel(state, filteredEmployees = [], catalogLoadError = fa
 
     return `
         <section class="citas__panel">
-            <h3 class="citas__panel-title">Reserva y quick-add</h3>
+            <h3 class="citas__panel-title">Reservar cita</h3>
             ${renderSelectedSummary(state)}
 
             <label class="citas__field">
@@ -713,11 +727,11 @@ export function renderAgendaPanel({
         ${renderLoadingMessage(state.loadingAgenda)}
         ${renderErrorMessage(state.errorMessage)}
         ${renderSuccessMessage(state.successMessage)}
-        ${renderPerformanceMetrics(state.metrics)}
+        ${isPerformanceMetricsDebugEnabled() ? renderPerformanceMetrics(state.metrics) : ""}
 
         <div class="citas__workspace">
             <section class="citas__panel">
-                <h3 class="citas__panel-title">Disponibilidad dual</h3>
+                <h3 class="citas__panel-title">Horarios disponibles</h3>
                 ${renderAvailableSlotsGrid(state.availabilitySlots, state.selectedSlot, state.conflictBlocked)}
             </section>
 

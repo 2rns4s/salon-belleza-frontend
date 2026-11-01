@@ -44,7 +44,7 @@ describe("citas module smoke", () => {
         expect(document.querySelector(".appointments")).toBeTruthy();
         expect(document.querySelector(".appointments__title")?.textContent).toContain("Agenda de citas");
         expect(document.querySelector("#citas-agenda-panel")).toBeTruthy();
-        expect(document.querySelector(".citas__panel-title")?.textContent).toContain("Disponibilidad");
+        expect(document.querySelector(".citas__panel-title")?.textContent).toContain("Horarios disponibles");
         expect(fetchSpy).toHaveBeenCalled();
     });
 });
