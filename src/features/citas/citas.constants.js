@@ -91,7 +91,7 @@ export const CITAS_WIZARD_STEPS = Object.freeze([
 export const CITAS_WIZARD_MESSAGES = Object.freeze({
     stepLocked: "Completa el paso anterior para continuar.",
     stepServiceHint: "Selecciona un servicio y la fecha para ver la disponibilidad.",
-    stepSlotHint: "Elegi un horario disponible. Fijar un empleado es opcional.",
+    stepSlotHint: "Elegi el empleado y luego un horario disponible.",
     stepClientHint: "Busca el cliente o crealo con alta rapida.",
     stepConfirmHint: "Revisa el resumen y confirma la cita.",
     editStep: "Editar",

@@ -537,10 +537,10 @@ function renderStepSlot(state, filteredEmployees = [], catalogLoadError = false)
     });
 
     return `
-        <p class="citas__step-hint">Elegi un horario disponible. Fijar un empleado es opcional.</p>
+        <p class="citas__step-hint">Elegi el empleado y luego un horario disponible.</p>
 
-        <label class="citas__field citas__field--optional">
-            <span class="citas__field-label">Empleado (opcional)</span>
+        <label class="citas__field">
+            <span class="citas__field-label">Empleado</span>
             <select
                 class="citas__select"
                 id="citas-booking-employee-select"
