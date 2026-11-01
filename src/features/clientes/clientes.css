@@ -105,11 +105,11 @@
 }
 
 .clients__table-head {
-    background-color: #fff7f8;
+    background-color: var(--color-surface-alt);
 }
 
 .clients__table-head-row {
-    border-bottom: 1px solid #eadde0;
+    border-bottom: 1px solid var(--color-vinotinto-border);
 }
 
 .clients__table-head-cell {
