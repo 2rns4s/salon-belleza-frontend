@@ -256,7 +256,32 @@ function createInitialState() {
             availabilityRefreshMs: null,
         },
         appointmentsTab: "active", // "active" or "history"
+        wizardStep: 1, // paso activo del wizard de reserva (1-4), UI unicamente
     };
+}
+
+// Deriva el paso del wizard a partir de lo ya seleccionado. Es estado de UI puro:
+// no toca disponibilidad, validacion ni los contratos de servicio.
+function resolveWizardStep(currentState = state) {
+    if (!currentState.selectedServiceId || !currentState.selectedDate) {
+        return 1;
+    }
+
+    if (!currentState.selectedSlot) {
+        return 2;
+    }
+
+    if (!currentState.selectedClient) {
+        return 3;
+    }
+
+    return 4;
+}
+
+// Avanza el wizard al paso derivado tras una seleccion. No retrocede por debajo
+// del progreso real del usuario.
+function syncWizardStep() {
+    state.wizardStep = resolveWizardStep(state);
 }
 
 let state = createInitialState();
@@ -408,6 +433,13 @@ function resolveAppointmentStatusValue(appointmentId) {
 }
 
 function handlePanelClick(target, event, handlers = {}) {
+    const stepEditButton = target.closest(".citas__step-edit");
+    if (stepEditButton) {
+        event.preventDefault();
+        handlers.onWizardStepEdit?.(parseNumericAttributeValue(stepEditButton, "data-wizard-step"));
+        return;
+    }
+
     const slotButton = target.closest(".citas__slot");
     if (slotButton) {
         event.preventDefault();
@@ -449,7 +481,11 @@ function handlePanelClick(target, event, handlers = {}) {
         event.preventDefault();
 
         const appointmentId = parseNumericAttributeValue(updateButton, "data-appointment-id");
-        handlers.onUpdateAppointment?.(appointmentId, resolveAppointmentStatusValue(appointmentId));
+        // Los botones de accion directa declaran el estado objetivo; si no, se
+        // usa el valor del select #citas-status-<id> (compat con el contrato previo).
+        const targetStatus = String(updateButton.getAttribute("data-target-status") || "").trim()
+            || resolveAppointmentStatusValue(appointmentId);
+        handlers.onUpdateAppointment?.(appointmentId, targetStatus);
         return;
     }
 
@@ -962,6 +998,7 @@ function handleFilterSubmit(formData) {
     clearFormErrors();
     clearMessages();
 
+    syncWizardStep();
     scheduleDebouncedAgendaLoad();
 }
 
@@ -1009,6 +1046,8 @@ function handleServiceChange(serviceId) {
         state.selectedSlot = null;
         scheduleDebouncedAgendaLoad();
     }
+
+    syncWizardStep();
 }
 
 function handleEmployeeChange(employeeId) {
@@ -1034,6 +1073,8 @@ function handleEmployeeChange(employeeId) {
     if (state.selectedDate && state.selectedServiceId) {
         scheduleDebouncedAgendaLoad();
     }
+
+    syncWizardStep();
 }
 
 function handleViewModeChange(nextViewMode) {
@@ -1064,6 +1105,8 @@ function handleDateChange(newDate) {
     if (state.selectedDate && state.selectedServiceId) {
         scheduleDebouncedAgendaLoad();
     }
+
+    syncWizardStep();
 }
 
 function selectSlot(slotDateTime) {
@@ -1075,6 +1118,19 @@ function selectSlot(slotDateTime) {
     delete state.bookingErrors.fechaInicio;
     clearMessages();
 
+    syncWizardStep();
+    renderAgendaPanelOnly();
+}
+
+// Navegacion del wizard: volver a un paso completado sin borrar las selecciones.
+function handleWizardStepEdit(stepId) {
+    const requestedStep = Number(stepId);
+    if (!Number.isInteger(requestedStep) || requestedStep < 1 || requestedStep > 4) {
+        return;
+    }
+
+    // No se puede saltar mas adelante del progreso real.
+    state.wizardStep = Math.min(requestedStep, resolveWizardStep(state));
     renderAgendaPanelOnly();
 }
 
@@ -1206,6 +1262,7 @@ function handleClientSelect(clientId) {
     clearMessages();
     state.successMessage = `Cliente seleccionado: ${selectedClient.fullName}`;
 
+    syncWizardStep();
     renderAgendaPanelOnly();
 }
 
@@ -1253,6 +1310,7 @@ async function handleQuickAddSubmit(formData) {
         state.errorMessage = normalizedError.message;
     } finally {
         state.savingAction = null;
+        syncWizardStep();
         renderAgendaPanelOnly();
     }
 }
@@ -1349,6 +1407,7 @@ async function handleCreateAppointment() {
         }
     } finally {
         state.savingAction = null;
+        syncWizardStep();
         renderAgendaPanelOnly();
     }
 }
@@ -1495,6 +1554,7 @@ export async function initCitas(container) {
             onSlotSelect: selectSlot,
             onClientSelect: handleClientSelect,
             onShowQuickAdd: handleShowQuickAdd,
+            onWizardStepEdit: handleWizardStepEdit,
             onSectionTabClick: handleSectionTabClick,
             onCreateAppointment: () => {
                 void handleCreateAppointment();

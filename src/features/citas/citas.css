@@ -116,9 +116,14 @@
 }
 
 .citas__button--danger {
-    background-color: #ffe9e9;
-    color: var(--color-header-vinotinto-claro);
-    border: 1px solid #f3c4c9;
+    background-color: var(--color-action-danger);
+    color: var(--color-texto-inverso);
+    border: 1px solid var(--color-action-danger);
+}
+
+.citas__button--danger:hover {
+    background-color: var(--color-action-danger-hover);
+    border-color: var(--color-action-danger-hover);
 }
 
 .citas__message {
@@ -493,6 +498,225 @@
     text-align: center;
 }
 
+/* ====== Wizard de reserva (columna izquierda) ====== */
+.citas__wizard {
+    padding: 0.9rem;
+}
+
+.citas__steps {
+    list-style: none;
+    display: grid;
+    gap: 0.75rem;
+    margin: 0;
+    padding: 0;
+    counter-reset: citas-step;
+}
+
+.citas__step {
+    border: 1px solid var(--color-vinotinto-border);
+    border-radius: 0.7rem;
+    background-color: var(--color-superficie);
+    overflow: hidden;
+}
+
+.citas__step--active {
+    border-color: var(--color-header-vinotinto-claro);
+    box-shadow: 0 1px 4px var(--color-focus-ring);
+}
+
+.citas__step--locked {
+    opacity: 0.55;
+}
+
+.citas__step--done {
+    background-color: var(--color-vinotinto-soft);
+}
+
+.citas__step-header {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.65rem 0.75rem;
+}
+
+.citas__step-marker {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    border-radius: 999px;
+    background-color: var(--color-vinotinto-soft);
+    color: var(--color-vinotinto-contrast);
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.citas__step--active .citas__step-marker {
+    background-color: var(--color-header-vinotinto-claro);
+    color: var(--color-texto-inverso);
+}
+
+.citas__step--done .citas__step-marker {
+    background-color: var(--color-status-active);
+    color: var(--color-texto-inverso);
+}
+
+.citas__step-check {
+    display: block;
+}
+
+.citas__step-number {
+    line-height: 1;
+}
+
+.citas__step-heading {
+    display: grid;
+    gap: 0.1rem;
+    flex: 1;
+    min-width: 0;
+}
+
+.citas__step-label {
+    font-weight: 600;
+    color: var(--color-vinotinto-contrast);
+}
+
+.citas__step-value {
+    font-size: 0.85rem;
+    color: var(--color-vinotinto-muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.citas__step-edit {
+    border: 1px solid var(--color-input-border);
+    border-radius: 0.5rem;
+    background-color: var(--color-superficie);
+    color: var(--color-vinotinto-contrast);
+    padding: 0.3rem 0.6rem;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.citas__step-edit:hover {
+    background-color: var(--color-vinotinto-soft);
+}
+
+.citas__step-body {
+    display: grid;
+    gap: 0.65rem;
+    padding: 0 0.75rem 0.8rem;
+}
+
+/* El cuerpo de los pasos no activos se colapsa; su contenido permanece en el DOM. */
+.citas__step--done .citas__step-body,
+.citas__step--locked .citas__step-body {
+    display: none;
+}
+
+.citas__step-hint {
+    font-size: 0.85rem;
+    color: var(--color-vinotinto-muted);
+}
+
+.citas__step-recap,
+.citas__confirm-recap {
+    display: grid;
+    gap: 0.4rem;
+    margin: 0;
+}
+
+.citas__step-recap-row,
+.citas__confirm-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.4rem 0.55rem;
+    border: 1px solid var(--color-vinotinto-border);
+    border-radius: 0.5rem;
+    background-color: var(--color-surface-alt);
+}
+
+.citas__step-recap-label,
+.citas__confirm-label {
+    font-size: 0.82rem;
+    color: var(--color-vinotinto-muted);
+    margin: 0;
+}
+
+.citas__step-recap-value,
+.citas__confirm-value {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--color-vinotinto-contrast);
+    margin: 0;
+    text-align: right;
+}
+
+.citas__field--optional .citas__field-label {
+    color: var(--color-vinotinto-muted);
+}
+
+/* Select de estado oculto pero accesible: respalda las acciones directas. */
+.citas__field--hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* ====== Tarjetas de cita (columna derecha) ====== */
+.citas__item-lead {
+    display: grid;
+    gap: 0.1rem;
+    align-content: start;
+}
+
+.citas__item-time {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--color-vinotinto-contrast);
+    line-height: 1.1;
+}
+
+.citas__item-date {
+    font-size: 0.8rem;
+    color: var(--color-vinotinto-muted);
+}
+
+.citas__item-ref {
+    color: var(--color-vinotinto-subtle);
+    font-size: 0.8rem;
+}
+
+.citas__item-status {
+    display: inline-block;
+    padding: 0.2rem 0.55rem;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    border: 1px solid currentColor;
+}
+
+.citas__item-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+}
+
+.citas__item-actions--closed {
+    align-items: center;
+}
+
 @media (max-width: 767px) {
     .citas__actions {
         flex-direction: column;
@@ -565,7 +789,11 @@
     }
 
     .citas__list-item {
-        grid-template-columns: 1.35fr 0.7fr 1fr;
-        align-items: center;
+        grid-template-columns: auto minmax(0, 1fr) auto;
+        align-items: start;
+    }
+
+    .citas__item-actions {
+        grid-column: 1 / -1;
     }
 }

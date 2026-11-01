@@ -226,26 +226,12 @@ function renderAvailableSlotsGrid(availabilitySlots = [], selectedSlot = null, i
     return `<div class="citas__slots-grid">${slotsHtml}</div>`;
 }
 
-function renderSelectedSummary(state) {
-    const selectedClientText = state.selectedClient
-        ? `${state.selectedClient.fullName || "Cliente sin nombre"} (${state.selectedClient.phone || "Sin telefono"})`
-        : "Sin cliente seleccionado";
-
-    return `
-        <div class="citas__booking-summary">
-            <article class="citas__summary-card">
-                <span class="citas__summary-label">Horario</span>
-                <strong class="citas__summary-value">${escapeHtml(
-                    state.selectedSlot ? `${state.selectedSlot.replace("T", " ")}` : "Sin horario seleccionado",
-                )}</strong>
-            </article>
-            <article class="citas__summary-card">
-                <span class="citas__summary-label">Cliente</span>
-                <strong class="citas__summary-value">${escapeHtml(selectedClientText)}</strong>
-            </article>
-        </div>
-    `;
-}
+// Icono de check SVG monocromo (hereda currentColor) para pasos completados.
+const CITAS_CHECK_ICON = `
+    <svg class="citas__step-check" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false">
+        <path d="M6.2 11.3 2.9 8l1-1 2.3 2.3L12 3.5l1 1z" fill="currentColor" />
+    </svg>
+`;
 
 function renderClientSearchForm(state) {
     return `
@@ -434,7 +420,151 @@ function renderQuickAddForm(state) {
     `;
 }
 
-function renderBookingPanel(state, filteredEmployees = [], catalogLoadError = false) {
+// Deriva el paso activo del wizard a partir de lo ya seleccionado. El controller
+// mantiene state.wizardStep; si no esta disponible se recalcula aqui para la vista.
+export function deriveWizardStep(state = {}) {
+    if (!state.selectedServiceId || !state.selectedDate) {
+        return 1;
+    }
+
+    if (!state.selectedSlot) {
+        return 2;
+    }
+
+    if (!state.selectedClient) {
+        return 3;
+    }
+
+    return 4;
+}
+
+function resolveWizardActiveStep(state = {}) {
+    const derived = deriveWizardStep(state);
+    const requested = Number(state.wizardStep);
+
+    if (!Number.isInteger(requested) || requested < 1 || requested > 4) {
+        return derived;
+    }
+
+    // El usuario no puede abrir un paso mas adelante de lo que permite su progreso.
+    return Math.min(requested, derived);
+}
+
+function resolveSelectedServiceName(state, services = []) {
+    if (!state.selectedServiceId) {
+        return "";
+    }
+
+    const serviceEntry = services.find((service) => String(service.id) === String(state.selectedServiceId));
+    return serviceEntry?.name || `Servicio ${state.selectedServiceId}`;
+}
+
+function resolveSelectedEmployeeName(state, employees = []) {
+    if (!state.selectedEmployeeId) {
+        return "";
+    }
+
+    const employeeEntry = employees.find((emp) => String(emp.id) === String(state.selectedEmployeeId));
+    return employeeEntry?.fullName || `Empleado ${state.selectedEmployeeId}`;
+}
+
+function renderStepStatusClass(stepId, activeStep) {
+    if (stepId === activeStep) {
+        return "citas__step--active";
+    }
+
+    if (stepId < activeStep) {
+        return "citas__step--done";
+    }
+
+    return "citas__step--locked";
+}
+
+function renderStepHeader(stepId, activeStep, label, collapsedValue) {
+    const isDone = stepId < activeStep;
+    const isLocked = stepId > activeStep;
+    const canEdit = isDone && !isLocked;
+
+    const marker = isDone
+        ? CITAS_CHECK_ICON
+        : `<span class="citas__step-number">${stepId}</span>`;
+
+    const editButton = canEdit
+        ? `<button class="citas__step-edit" type="button" data-wizard-step="${stepId}">Editar</button>`
+        : "";
+
+    const collapsedValueHtml = (isDone && collapsedValue)
+        ? `<span class="citas__step-value">${escapeHtml(collapsedValue)}</span>`
+        : "";
+
+    return `
+        <div class="citas__step-header">
+            <span class="citas__step-marker">${marker}</span>
+            <span class="citas__step-heading">
+                <span class="citas__step-label">${escapeHtml(label)}</span>
+                ${collapsedValueHtml}
+            </span>
+            ${editButton}
+        </div>
+    `;
+}
+
+function renderStepServiceSummary(state, services = []) {
+    const serviceName = resolveSelectedServiceName(state, services) || "Sin servicio";
+    const dateText = state.selectedDate ? formatSlotDate(`${state.selectedDate}T00:00:00`) : "Sin fecha";
+
+    return `
+        <p class="citas__step-hint">Selecciona el servicio y la fecha en el panel de filtros superior.</p>
+        <dl class="citas__step-recap">
+            <div class="citas__step-recap-row">
+                <dt class="citas__step-recap-label">Servicio</dt>
+                <dd class="citas__step-recap-value">${escapeHtml(serviceName)}</dd>
+            </div>
+            <div class="citas__step-recap-row">
+                <dt class="citas__step-recap-label">Fecha</dt>
+                <dd class="citas__step-recap-value">${escapeHtml(dateText)}</dd>
+            </div>
+        </dl>
+    `;
+}
+
+function renderStepSlot(state, filteredEmployees = [], catalogLoadError = false) {
+    const employeeOptionsHtml = renderEmployeeOptions({
+        employees: filteredEmployees,
+        selectedEmployeeId: state.selectedEmployeeId,
+        hasService: Boolean(state.selectedServiceId),
+        hasCatalogError: catalogLoadError,
+    });
+
+    return `
+        <p class="citas__step-hint">Elegi un horario disponible. Fijar un empleado es opcional.</p>
+
+        <label class="citas__field citas__field--optional">
+            <span class="citas__field-label">Empleado (opcional)</span>
+            <select
+                class="citas__select"
+                id="citas-booking-employee-select"
+                ${catalogLoadError || !state.selectedServiceId ? "disabled" : ""}
+            >
+                ${employeeOptionsHtml}
+            </select>
+        </label>
+
+        <h3 class="citas__panel-title">Horarios disponibles</h3>
+        ${renderAvailableSlotsGrid(state.availabilitySlots, state.selectedSlot, state.conflictBlocked)}
+    `;
+}
+
+function renderStepClient(state) {
+    return `
+        <p class="citas__step-hint">Busca el cliente por documento, telefono o nombre. Si no existe, usa alta rapida.</p>
+        ${renderClientSearchForm(state)}
+        ${renderClientSearchResults(state)}
+        ${renderQuickAddForm(state)}
+    `;
+}
+
+function renderStepConfirm(state, services = [], employees = []) {
     const bookingErrors = state.bookingErrors || {};
 
     const createDisabled = Boolean(
@@ -446,47 +576,100 @@ function renderBookingPanel(state, filteredEmployees = [], catalogLoadError = fa
         || !state.selectedEmployeeId,
     );
 
-    const employeeOptionsHtml = renderEmployeeOptions({
-        employees: filteredEmployees,
-        selectedEmployeeId: state.selectedEmployeeId,
-        hasService: Boolean(state.selectedServiceId),
-        hasCatalogError: catalogLoadError,
-    });
+    const serviceName = resolveSelectedServiceName(state, services) || "Sin servicio";
+    const employeeName = resolveSelectedEmployeeName(state, employees) || "Sin empleado asignado";
+    const slotText = state.selectedSlot
+        ? `${formatSlotDate(state.selectedSlot)} · ${formatSlotTime(state.selectedSlot)}`
+        : "Sin horario";
+    const clientText = state.selectedClient
+        ? `${state.selectedClient.fullName || "Cliente sin nombre"} (${state.selectedClient.phone || "Sin telefono"})`
+        : "Sin cliente";
 
     return `
-        <section class="citas__panel">
-            <h3 class="citas__panel-title">Reservar cita</h3>
-            ${renderSelectedSummary(state)}
+        <p class="citas__step-hint">Revisa el resumen y confirma la cita.</p>
 
-            <label class="citas__field">
-                <span class="citas__field-label">Empleado</span>
-                <select
-                    class="citas__select"
-                    id="citas-booking-employee-select"
-                    ${catalogLoadError || !state.selectedServiceId ? "disabled" : ""}
-                >
-                    ${employeeOptionsHtml}
-                </select>
-            </label>
-
-            ${renderClientSearchForm(state)}
-            ${renderClientSearchResults(state)}
-            ${renderQuickAddForm(state)}
-
-            <div class="citas__booking-actions">
-                <p class="citas__inline-error">${escapeHtml(
-                    getFieldError(bookingErrors, ["idCliente", "idServicio", "idEmpleado", "fechaInicio"]),
-                )}</p>
-
-                <button
-                    class="citas__button citas__button--primary"
-                    id="citas-create-appointment-btn"
-                    type="button"
-                    ${createDisabled ? "disabled" : ""}
-                >
-                    ${state.savingAction === "create" ? "Confirmando reserva..." : "Confirmar cita"}
-                </button>
+        <dl class="citas__confirm-recap">
+            <div class="citas__confirm-row">
+                <dt class="citas__confirm-label">Servicio</dt>
+                <dd class="citas__confirm-value">${escapeHtml(serviceName)}</dd>
             </div>
+            <div class="citas__confirm-row">
+                <dt class="citas__confirm-label">Horario</dt>
+                <dd class="citas__confirm-value">${escapeHtml(slotText)}</dd>
+            </div>
+            <div class="citas__confirm-row">
+                <dt class="citas__confirm-label">Empleado</dt>
+                <dd class="citas__confirm-value">${escapeHtml(employeeName)}</dd>
+            </div>
+            <div class="citas__confirm-row">
+                <dt class="citas__confirm-label">Cliente</dt>
+                <dd class="citas__confirm-value">${escapeHtml(clientText)}</dd>
+            </div>
+        </dl>
+
+        <div class="citas__booking-actions">
+            <p class="citas__inline-error">${escapeHtml(
+                getFieldError(bookingErrors, ["idCliente", "idServicio", "idEmpleado", "fechaInicio"]),
+            )}</p>
+
+            <button
+                class="citas__button citas__button--primary"
+                id="citas-create-appointment-btn"
+                type="button"
+                ${createDisabled ? "disabled" : ""}
+            >
+                ${state.savingAction === "create" ? "Confirmando reserva..." : "Confirmar cita"}
+            </button>
+        </div>
+    `;
+}
+
+// Columna izquierda: wizard secuencial de 4 pasos. El contenido interactivo de cada
+// paso se mantiene siempre en el DOM; el CSS colapsa el cuerpo de los pasos no activos.
+function renderBookingWizard(state, filteredEmployees = [], catalogLoadError = false, services = [], employees = []) {
+    const activeStep = resolveWizardActiveStep(state);
+
+    const serviceCollapsed = resolveSelectedServiceName(state, services)
+        ? `${resolveSelectedServiceName(state, services)}${state.selectedDate ? ` · ${formatSlotDate(`${state.selectedDate}T00:00:00`)}` : ""}`
+        : "Sin servicio";
+    const slotCollapsed = state.selectedSlot
+        ? `${formatSlotTime(state.selectedSlot)}${state.selectedEmployeeId ? ` · ${resolveSelectedEmployeeName(state, employees)}` : ""}`
+        : "Sin horario";
+    const clientCollapsed = state.selectedClient
+        ? (state.selectedClient.fullName || "Cliente sin nombre")
+        : "Sin cliente";
+
+    return `
+        <section class="citas__panel citas__wizard" aria-label="Reservar cita">
+            <ol class="citas__steps">
+                <li class="citas__step ${renderStepStatusClass(1, activeStep)}">
+                    ${renderStepHeader(1, activeStep, "Servicio y fecha", serviceCollapsed)}
+                    <div class="citas__step-body">
+                        ${renderStepServiceSummary(state, services)}
+                    </div>
+                </li>
+
+                <li class="citas__step ${renderStepStatusClass(2, activeStep)}">
+                    ${renderStepHeader(2, activeStep, "Elegi horario", slotCollapsed)}
+                    <div class="citas__step-body">
+                        ${renderStepSlot(state, filteredEmployees, catalogLoadError)}
+                    </div>
+                </li>
+
+                <li class="citas__step ${renderStepStatusClass(3, activeStep)}">
+                    ${renderStepHeader(3, activeStep, "Cliente", clientCollapsed)}
+                    <div class="citas__step-body">
+                        ${renderStepClient(state)}
+                    </div>
+                </li>
+
+                <li class="citas__step ${renderStepStatusClass(4, activeStep)}">
+                    ${renderStepHeader(4, activeStep, "Confirmar", "")}
+                    <div class="citas__step-body">
+                        ${renderStepConfirm(state, services, employees)}
+                    </div>
+                </li>
+            </ol>
         </section>
     `;
 }
@@ -533,6 +716,69 @@ function renderAppointmentsSectionTabs(appointments = [], currentTab = "active")
     `;
 }
 
+// Transiciones de estado validas (mismas reglas que valida el controller).
+const APPOINTMENT_STATUS_TRANSITIONS = {
+    PENDIENTE: [
+        { status: "CONFIRMADA", label: "Confirmar", variant: "primary" },
+        { status: "CANCELADA", label: "Cancelar", variant: "danger" },
+    ],
+    CONFIRMADA: [
+        { status: "REALIZADA", label: "Marcar realizada", variant: "primary" },
+        { status: "CANCELADA", label: "Cancelar", variant: "danger" },
+    ],
+};
+
+// Acciones de cambio de estado directas por cita activa. Se conserva el select
+// #citas-status-<id> (contrato de tests/controller); los botones directos fijan
+// su valor antes de disparar la actualizacion.
+function renderAppointmentStatusActions(appointment, appointmentStatus, appointmentStatuses, isUpdating, isDeleting) {
+    const transitions = APPOINTMENT_STATUS_TRANSITIONS[appointmentStatus] || [];
+    const busy = isUpdating || isDeleting;
+
+    const directButtonsHtml = transitions
+        .map((transition) => {
+            const danger = transition.variant === "danger";
+            const variantClass = danger
+                ? "citas__button--danger"
+                : "citas__button--primary";
+
+            return `
+                <button
+                    class="citas__button ${variantClass} citas__appointment-update-btn"
+                    type="button"
+                    data-appointment-id="${escapeHtml(appointment.id)}"
+                    data-target-status="${escapeHtml(transition.status)}"
+                    ${busy ? "disabled" : ""}
+                >
+                    ${isUpdating ? "Actualizando..." : escapeHtml(transition.label)}
+                </button>
+            `;
+        })
+        .join("");
+
+    return `
+        <label class="citas__field citas__field--hidden">
+            <span class="citas__field-label">Estado</span>
+            <select class="citas__select citas__select--compact" id="citas-status-${escapeHtml(appointment.id)}">
+                ${renderStatusOptions(appointmentStatuses, appointment.status)}
+            </select>
+        </label>
+
+        <div class="citas__item-buttons">
+            ${directButtonsHtml}
+
+            <button
+                class="citas__button citas__button--danger citas__appointment-delete-btn"
+                type="button"
+                data-appointment-id="${escapeHtml(appointment.id)}"
+                ${busy ? "disabled" : ""}
+            >
+                ${isDeleting ? "Eliminando..." : "Eliminar"}
+            </button>
+        </div>
+    `;
+}
+
 function renderAppointmentsList(appointments = [], appointmentStatuses = [], state, catalogs = {}) {
     if (!appointments.length) {
         return '<li class="citas__list-item citas__list-item--empty">No hay citas registradas para los filtros seleccionados.</li>';
@@ -562,48 +808,28 @@ function renderAppointmentsList(appointments = [], appointmentStatuses = [], sta
 
             return `
                 <li class="citas__list-item citas__list-item--status-${appointmentStatus}">
+                    <div class="citas__item-lead">
+                        <p class="citas__item-time">${escapeHtml(formatSlotTime(appointment.slotDateTime))}</p>
+                        <p class="citas__item-date">${escapeHtml(formatSlotDate(appointment.slotDateTime))}</p>
+                    </div>
+
                     <div class="citas__item-main">
                         <p class="citas__item-title">Cliente: ${escapeHtml(clientName)}</p>
                         <p class="citas__item-subtitle">
                             Servicio: ${escapeHtml(serviceName)}
                             | Empleado: ${escapeHtml(employeeName)}
                         </p>
-                        <p class="citas__item-subtitle">Cita #${escapeHtml(appointment.id || "-")}</p>
+                        <p class="citas__item-subtitle citas__item-ref">Cita #${escapeHtml(appointment.id || "-")}</p>
                     </div>
 
                     <div class="citas__item-meta">
-                        <p class="citas__item-date">${escapeHtml(formatSlotDate(appointment.slotDateTime))}</p>
-                        <p class="citas__item-time">${escapeHtml(formatSlotTime(appointment.slotDateTime))}</p>
-                        <p class="citas__item-status citas__item-status--${appointmentStatus}">${escapeHtml(appointmentStatus)}</p>
+                        <span class="citas__item-status citas__item-status--${appointmentStatus}">${escapeHtml(appointmentStatus)}</span>
                     </div>
 
                     ${isHistory
-        ? `<div class="citas__item-meta"><p class="citas__empty-text">Cerrada</p></div>`
+        ? `<div class="citas__item-actions citas__item-actions--closed"><p class="citas__empty-text">Registro cerrado</p></div>`
         : `<div class="citas__item-actions">
-                            <label class="citas__field">
-                                <span class="citas__field-label">Estado</span>
-                                <select class="citas__select citas__select--compact" id="citas-status-${escapeHtml(appointment.id)}">
-                                    ${renderStatusOptions(appointmentStatuses, appointment.status)}
-                                </select>
-                            </label>
-
-                            <button
-                                class="citas__button citas__button--secondary citas__appointment-update-btn"
-                                type="button"
-                                data-appointment-id="${escapeHtml(appointment.id)}"
-                                ${isUpdating || isDeleting ? "disabled" : ""}
-                            >
-                                ${isUpdating ? "Actualizando..." : "Actualizar"}
-                            </button>
-
-                            <button
-                                class="citas__button citas__button--danger citas__appointment-delete-btn"
-                                type="button"
-                                data-appointment-id="${escapeHtml(appointment.id)}"
-                                ${isUpdating || isDeleting ? "disabled" : ""}
-                            >
-                                ${isDeleting ? "Eliminando..." : "Eliminar"}
-                            </button>
+                            ${renderAppointmentStatusActions(appointment, appointmentStatus, appointmentStatuses, isUpdating, isDeleting)}
                         </div>`}
                 </li>
             `;
@@ -730,20 +956,15 @@ export function renderAgendaPanel({
         ${isPerformanceMetricsDebugEnabled() ? renderPerformanceMetrics(state.metrics) : ""}
 
         <div class="citas__workspace">
-            <section class="citas__panel">
-                <h3 class="citas__panel-title">Horarios disponibles</h3>
-                ${renderAvailableSlotsGrid(state.availabilitySlots, state.selectedSlot, state.conflictBlocked)}
+            ${renderBookingWizard(state, filteredEmployees, catalogLoadError, serviceCatalog, employeeCatalog)}
+
+            <section class="citas__panel citas__day-panel">
+                <h3 class="citas__panel-title">Citas del dia</h3>
+                ${renderAppointmentsSectionTabs(state.appointments, currentTab)}
+                <ul class="citas__list">
+                    ${renderAppointmentsList(filteredAppointments, appointmentStatuses, state, { services: serviceCatalog, employees: employeeCatalog })}
+                </ul>
             </section>
-
-            ${renderBookingPanel(state, filteredEmployees, catalogLoadError)}
         </div>
-
-        <section class="citas__panel">
-            <h3 class="citas__panel-title">Citas registradas</h3>
-            ${renderAppointmentsSectionTabs(state.appointments, currentTab)}
-            <ul class="citas__list">
-                ${renderAppointmentsList(filteredAppointments, appointmentStatuses, state, { services: serviceCatalog, employees: employeeCatalog })}
-            </ul>
-        </section>
     `);
 }

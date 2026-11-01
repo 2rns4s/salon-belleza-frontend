@@ -78,3 +78,25 @@ export const CITAS_UI_MESSAGES = Object.freeze({
 });
 
 export const DEFAULT_CITAS_ERROR_MESSAGE = "Ocurrio un error inesperado. Intenta nuevamente.";
+
+// Pasos del wizard de reserva (columna izquierda). Son solo etiquetas y textos de UI;
+// la logica de disponibilidad/reserva/validacion no depende de estas constantes.
+export const CITAS_WIZARD_STEPS = Object.freeze([
+    Object.freeze({ id: 1, key: "service", label: "Servicio y fecha" }),
+    Object.freeze({ id: 2, key: "slot", label: "Elegi horario" }),
+    Object.freeze({ id: 3, key: "client", label: "Cliente" }),
+    Object.freeze({ id: 4, key: "confirm", label: "Confirmar" }),
+]);
+
+export const CITAS_WIZARD_MESSAGES = Object.freeze({
+    stepLocked: "Completa el paso anterior para continuar.",
+    stepServiceHint: "Selecciona un servicio y la fecha para ver la disponibilidad.",
+    stepSlotHint: "Elegi un horario disponible. Fijar un empleado es opcional.",
+    stepClientHint: "Busca el cliente o crealo con alta rapida.",
+    stepConfirmHint: "Revisa el resumen y confirma la cita.",
+    editStep: "Editar",
+    stepServicePlaceholder: "Sin servicio",
+    stepSlotPlaceholder: "Sin horario",
+    stepClientPlaceholder: "Sin cliente",
+    employeeAny: "Cualquier empleado disponible",
+});
