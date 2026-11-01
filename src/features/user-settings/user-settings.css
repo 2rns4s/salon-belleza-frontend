@@ -2,8 +2,10 @@
 
 .user-settings {
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     justify-content: center;
+    flex: 1;
+    min-height: 0;
     padding: 2rem 1rem;
 }
 
