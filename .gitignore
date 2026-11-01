@@ -30,3 +30,6 @@ AGENTS.md
 .github/copilot-instructions.md
 citas-prd.md
 design.md
+
+# Ignorar carpeta de entregas SENA (no debe subir al repo)
+entregas/
