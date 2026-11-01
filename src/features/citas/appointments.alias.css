@@ -43,7 +43,7 @@
 .appointments__field-label {
     font-size: 0.85rem;
     font-weight: 600;
-    color: #5e3a45;
+    color: var(--color-vinotinto-contrast);
 }
 
 .appointments__input,
@@ -104,18 +104,18 @@
 
 .appointments__button--secondary {
     background-color: #f0e4e7;
-    color: #472730;
+    color: var(--color-vinotinto-muted);
 }
 
 .appointments__button--ghost {
     background-color: #ffffff;
     border: 1px solid #d4bcc2;
-    color: #5e3a45;
+    color: var(--color-vinotinto-contrast);
 }
 
 .appointments__button--danger {
     background-color: #ffe9e9;
-    color: #8a2030;
+    color: var(--color-header-vinotinto-claro);
     border: 1px solid #f3c4c9;
 }
 
@@ -126,25 +126,25 @@
 }
 
 .appointments__message--info {
-    background-color: #eef4ff;
-    color: #254068;
+    background-color: var(--color-surface-alt);
+    color: var(--color-role-receptionist);
 }
 
 .appointments__message--error {
     background-color: #ffe9e9;
-    color: #8a2030;
+    color: var(--color-header-vinotinto-claro);
 }
 
 .appointments__message--success {
     background-color: #e8f5e9;
-    color: #1d5f34;
+    color: var(--color-feedback-success-text);
 }
 
 .appointments__metrics {
     font-size: 0.85rem;
-    color: #5a3a43;
+    color: var(--color-vinotinto-contrast);
     background-color: #fffdf8;
-    border: 1px dashed #decacf;
+    border: 1px dashed var(--color-vinotinto-border);
     border-radius: 0.5rem;
     padding: 0.55rem 0.7rem;
 }
@@ -188,7 +188,7 @@
 
 .appointments__summary-value {
     font-size: 0.92rem;
-    color: #3f242d;
+    color: var(--color-vinotinto-muted);
 }
 
 .appointments__search-form {
@@ -206,13 +206,13 @@
 .appointments__inline-error {
     min-height: 1.2rem;
     font-size: 0.82rem;
-    color: #8a2030;
+    color: var(--color-header-vinotinto-claro);
 }
 
 .appointments__input-error {
     min-height: 1.1rem;
     font-size: 0.8rem;
-    color: #8a2030;
+    color: var(--color-header-vinotinto-claro);
 }
 
 .appointments__search-results {
@@ -237,7 +237,7 @@
     display: grid;
     gap: 0.1rem;
     font-size: 0.85rem;
-    color: #5a3a43;
+    color: var(--color-vinotinto-contrast);
 }
 
 .appointments__empty-text {
@@ -262,7 +262,7 @@
 .appointments__section-title {
     font-size: 0.92rem;
     margin-bottom: 0.55rem;
-    color: #4a2a34;
+    color: var(--color-vinotinto-muted);
 }
 
 .appointments__booking-actions {
@@ -331,7 +331,7 @@
     transition: background-color 0.15s ease, border-color 0.15s ease;
     text-align: center;
     font-weight: 600;
-    color: #472730;
+    color: var(--color-vinotinto-muted);
     width: auto;
 }
 
@@ -341,7 +341,7 @@
 }
 
 .appointments__slot--available {
-    border-color: #1f6d3b;
+    border-color: var(--color-status-active);
 }
 
 .appointments__slot--available:hover {

@@ -45,7 +45,7 @@
 .citas__field-label {
     font-size: 0.85rem;
     font-weight: 600;
-    color: #5e3a45;
+    color: var(--color-vinotinto-contrast);
 }
 
 .citas__input,
@@ -106,18 +106,18 @@
 
 .citas__button--secondary {
     background-color: #f0e4e7;
-    color: #472730;
+    color: var(--color-vinotinto-muted);
 }
 
 .citas__button--ghost {
     background-color: #ffffff;
     border: 1px solid #d4bcc2;
-    color: #5e3a45;
+    color: var(--color-vinotinto-contrast);
 }
 
 .citas__button--danger {
     background-color: #ffe9e9;
-    color: #8a2030;
+    color: var(--color-header-vinotinto-claro);
     border: 1px solid #f3c4c9;
 }
 
@@ -128,25 +128,25 @@
 }
 
 .citas__message--info {
-    background-color: #eef4ff;
-    color: #254068;
+    background-color: var(--color-surface-alt);
+    color: var(--color-role-receptionist);
 }
 
 .citas__message--error {
     background-color: #ffe9e9;
-    color: #8a2030;
+    color: var(--color-header-vinotinto-claro);
 }
 
 .citas__message--success {
     background-color: #e8f5e9;
-    color: #1d5f34;
+    color: var(--color-feedback-success-text);
 }
 
 .citas__metrics {
     font-size: 0.85rem;
-    color: #5a3a43;
+    color: var(--color-vinotinto-contrast);
     background-color: #fffdf8;
-    border: 1px dashed #decacf;
+    border: 1px dashed var(--color-vinotinto-border);
     border-radius: 0.5rem;
     padding: 0.55rem 0.7rem;
 }
@@ -190,7 +190,7 @@
 
 .citas__summary-value {
     font-size: 0.92rem;
-    color: #3f242d;
+    color: var(--color-vinotinto-muted);
 }
 
 .citas__search-form {
@@ -208,13 +208,13 @@
 .citas__inline-error {
     min-height: 1.2rem;
     font-size: 0.82rem;
-    color: #8a2030;
+    color: var(--color-header-vinotinto-claro);
 }
 
 .citas__input-error {
     min-height: 1.1rem;
     font-size: 0.8rem;
-    color: #8a2030;
+    color: var(--color-header-vinotinto-claro);
 }
 
 .citas__search-results {
@@ -239,7 +239,7 @@
     display: grid;
     gap: 0.1rem;
     font-size: 0.85rem;
-    color: #5a3a43;
+    color: var(--color-vinotinto-contrast);
 }
 
 .citas__empty-text {
@@ -264,7 +264,7 @@
 .citas__section-title {
     font-size: 0.92rem;
     margin-bottom: 0.55rem;
-    color: #4a2a34;
+    color: var(--color-vinotinto-muted);
 }
 
 .citas__booking-actions {
@@ -289,43 +289,39 @@
 
 /* Appointment status colors */
 .citas__list-item--status-PENDIENTE {
-    border-left: 4px solid #f59e0b;
-    background-color: #fffbeb;
+    background-color: var(--color-surface-alt);
 }
 
 .citas__list-item--status-CONFIRMADA {
-    border-left: 4px solid #3b82f6;
-    background-color: #eff6ff;
+    background-color: var(--color-surface-alt);
 }
 
 .citas__list-item--status-REALIZADA {
-    border-left: 4px solid #22c55e;
-    background-color: #f0fdf4;
+    background-color: var(--color-feedback-success-bg);
 }
 
 .citas__list-item--status-CANCELADA {
-    border-left: 4px solid #ef4444;
-    background-color: #fef2f2;
+    background-color: var(--color-feedback-error-bg);
 }
 
 /* Status badge colors */
 .citas__item-status--PENDIENTE {
-    color: #b45309;
+    color: var(--color-warning-text);
     font-weight: 600;
 }
 
 .citas__item-status--CONFIRMADA {
-    color: #1d4ed8;
+    color: var(--color-role-receptionist);
     font-weight: 600;
 }
 
 .citas__item-status--REALIZADA {
-    color: #15803d;
+    color: var(--color-status-active);
     font-weight: 600;
 }
 
 .citas__item-status--CANCELADA {
-    color: #dc2626;
+    color: var(--color-action-danger);
     font-weight: 600;
 }
 
@@ -342,7 +338,7 @@
     background: white;
     border: 1px solid #d4bcc2;
     border-radius: 0.5rem;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 6px -1px var(--color-shadow-elevated);
     z-index: 100;
     max-height: 300px;
     overflow-y: auto;
@@ -459,7 +455,7 @@
     transition: background-color 0.15s ease, border-color 0.15s ease;
     text-align: center;
     font-weight: 600;
-    color: #472730;
+    color: var(--color-vinotinto-muted);
     width: auto;
 }
 
@@ -469,7 +465,7 @@
 }
 
 .citas__slot--available {
-    border-color: #1f6d3b;
+    border-color: var(--color-status-active);
 }
 
 .citas__slot--available:hover {
