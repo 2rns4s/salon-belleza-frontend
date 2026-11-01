@@ -12,10 +12,16 @@ function getFieldError(fieldErrors, aliases = []) {
     return "";
 }
 
+// Etiquetas visibles de rol en español (solo texto; el valor interno no cambia)
+const ROLE_LABELS = {
+    owner: "Propietario",
+    receptionist: "Recepcionista",
+};
+
 // Renderiza un badge de rol con modificador BEM
 function renderRoleBadge(role) {
     const modifier = String(role || "").toLowerCase() === "owner" ? "owner" : "receptionist";
-    const label = String(role || "").toUpperCase();
+    const label = ROLE_LABELS[modifier];
     return `<span class="usuarios__badge usuarios__badge--${escapeHtml(modifier)}">${escapeHtml(label)}</span>`;
 }
 
@@ -76,8 +82,8 @@ function renderUserRows(users = [], loadingList = false) {
                 <td class="usuarios__table-cell usuarios__table-cell--badge">
                     <span class="usuarios__badge usuarios__badge--${user.active ? "active" : "inactive"}">${user.active ? "Activo" : "Inactivo"}</span>
                 </td>
-                <td class="usuarios__table-cell">
-                    ${user.mfaEnabled ? "✓" : "✗"}
+                <td class="usuarios__table-cell usuarios__table-cell--badge">
+                    <span class="usuarios__badge usuarios__badge--${user.mfaEnabled ? "active" : "inactive"}">${user.mfaEnabled ? "Sí" : "No"}</span>
                 </td>
                 <td class="usuarios__table-cell usuarios__table-cell--actions">
                     <button

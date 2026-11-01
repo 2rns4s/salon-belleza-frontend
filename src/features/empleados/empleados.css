@@ -205,8 +205,12 @@
 }
 
 .employees__action-btn--delete {
-    background-color: var(--color-feedback-error-bg);
-    color: var(--color-feedback-error-text);
+    background-color: var(--color-action-danger);
+    color: var(--color-texto-inverso);
+}
+
+.employees__action-btn--delete:hover:not(:disabled) {
+    background-color: var(--color-action-danger-hover);
 }
 
 .employees__modal-overlay {
