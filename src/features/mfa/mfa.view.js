@@ -134,7 +134,7 @@ export function renderSuccessStep() {
     return `
         <section class="mfa">
             <div class="mfa__card mfa__card--success">
-                <h2 class="mfa__title">✓ MFA Activado</h2>
+                <h2 class="mfa__title"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-2px"><polyline points="20 6 9 17 4 12"/></svg> MFA Activado</h2>
                 <p class="mfa__description">
                     Tu cuenta está ahora protegida con autenticación en dos pasos.
                     En tu próximo inicio de sesión, se te pedirá el código de tu app autenticadora.
