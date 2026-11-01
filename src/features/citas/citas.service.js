@@ -1,3 +1,19 @@
+/**
+ * Servicio de citas: capa de transporte HTTP del módulo de agendamiento.
+ * Forma payloads/queries y delega en httpClient; no manipula DOM ni decide UI.
+ *
+ * Trazabilidad SRS (ver docs/desarrollo/trazabilidad-requisitos.md):
+ * @requisito RF-001 Motor de control de concurrencia (consulta de disponibilidad empleado Y recurso)
+ * @requisito RF-004 Filtro de disponibilidad por servicio (query idServicio/idEmpleado)
+ * @requisito RF-007 Mostrar solo horarios válidos (getAvailability retorna slots ya validados por backend)
+ * @requisito RF-008 Registrar cita (createAppointment) y refresco de agenda (getAppointments)
+ * @requisito RF-009 Gestión de clientes en el flujo de cita (searchClients, createClient, getClientById)
+ * @rnf RNF-008 Integridad/anti-overbooking: el 409 del backend es la autoridad; el front consume y reconcilia (BACKEND)
+ * @rnf RNF-015 Manejo de errores: conserva status/data para que el controller muestre mensajes accionables
+ * @hu HU-01, HU-04, HU-07, HU-08, HU-09
+ * @narrativa Como Recepcionista, quiero que el sistema valide la disponibilidad del empleado Y del
+ *            recurso físico al mismo tiempo, para agendar citas complejas sin errores de doble reserva.
+ */
 import { httpClient } from "../../shared/services/httpClient.js";
 import { CITAS_ENDPOINTS } from "./citas.constants.js";
 import {
@@ -28,6 +44,9 @@ function buildQueryString(params = {}) {
     return query ? `?${query}` : "";
 }
 
+// @requisito RF-001/RF-007 — Consulta al motor de concurrencia: el backend valida
+// empleado Y recurso y retorna solo los intervalos válidos para la fecha/servicio/empleado.
+// @rnf RNF-005 — El backend debe retornar los intervalos en <=0.5s (medición instrumentada aparte).
 export async function getAvailability({ date, serviceId, employeeId, signal } = {}) {
     const query = buildQueryString({
         fecha: date,
@@ -77,6 +96,8 @@ export async function createClient(clientPayload = {}) {
     return mapClient(payload);
 }
 
+// @requisito RF-008 — Registrar cita. Un 409 del backend (RNF-008 anti-overbooking)
+// indica que la disponibilidad cambió; el controller debe reconciliar, no asumir éxito.
 export async function createAppointment(appointmentPayload = {}) {
     const requestBody = mapCreateAppointmentPayload(appointmentPayload);
 

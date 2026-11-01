@@ -1,3 +1,13 @@
+/**
+ * Constantes del módulo de citas: endpoints, mensajes y umbrales.
+ *
+ * Trazabilidad SRS (ver docs/desarrollo/trazabilidad-requisitos.md):
+ * @rnf RNF-001 agendaLoadMs=1500 — umbral de carga de la agenda integrada (<=1.5s)
+ * @rnf RNF-005 availabilityRefreshMs=500 — umbral del motor de disponibilidad (<=0.5s)
+ * @rnf RNF-008 CITAS_HTTP_MESSAGES[409] — mensaje de integridad ante horario ya no disponible
+ * @rnf RNF-015 CITAS_HTTP_MESSAGES / CITAS_UI_MESSAGES — mensajes de error accionables en español
+ * @hu HU-05, HU-06, HU-07 — validaciones de empleado/recurso reflejadas en mensajes de conflicto
+ */
 export const CITAS_ENDPOINTS = Object.freeze({
     appointments: "/api/v1/citas",
     availability: "/api/v1/disponibilidad",
@@ -41,6 +51,8 @@ export const CITAS_FILTER_DEBOUNCE_MS = 180;
 export const CITAS_SEARCH_DEBOUNCE_MS = 300;
 export const CITAS_CACHE_TTL_MS = 20_000;
 
+// @rnf RNF-001 agendaLoadMs <= 1500ms (carga de agenda integrada)
+// @rnf RNF-005 availabilityRefreshMs <= 500ms (motor de búsqueda de disponibilidad)
 export const CITAS_PERFORMANCE_THRESHOLDS_MS = Object.freeze({
     agendaLoadMs: 1500,
     availabilityRefreshMs: 500,
