@@ -11,9 +11,9 @@
     display: grid;
     gap: 0.35rem;
     padding: 0.75rem 0.9rem;
-    border: 1px solid #eadde0;
+    border: 1px solid var(--color-vinotinto-border);
     border-radius: 0.75rem;
-    background: linear-gradient(115deg, #fff7f8 0%, #fffdf8 100%);
+    background: linear-gradient(115deg, var(--color-vinotinto-gradient-start) 0%, var(--color-vinotinto-gradient-end) 100%);
 }
 
 .citas__title {
@@ -22,7 +22,7 @@
 }
 
 .citas__subtitle {
-    color: #6b4a52;
+    color: var(--color-vinotinto-muted);
     font-size: 0.95rem;
 }
 
@@ -31,9 +31,9 @@
     gap: 0.75rem;
     grid-template-columns: repeat(auto-fit, minmax(min(100%, 170px), 1fr));
     padding: 1rem;
-    border: 1px solid #eadde0;
+    border: 1px solid var(--color-vinotinto-border);
     border-radius: 0.75rem;
-    background-color: #fff7f8;
+    background-color: var(--color-surface-alt);
 }
 
 .citas__field {
@@ -58,10 +58,10 @@
 
 .citas__input,
 .citas__select {
-    border: 1px solid #d4bcc2;
+    border: 1px solid var(--color-input-border);
     border-radius: 0.5rem;
     padding: 0.55rem 0.7rem;
-    background-color: #ffffff;
+    background-color: var(--color-superficie);
     font-size: 0.95rem;
     width: 100%;
     max-width: 100%;
@@ -100,18 +100,18 @@
 }
 
 .citas__button--primary {
-    background-color: #8a3f52;
-    color: #ffffff;
+    background-color: var(--color-header-vinotinto-claro);
+    color: var(--color-texto-inverso);
 }
 
 .citas__button--secondary {
-    background-color: #f0e4e7;
+    background-color: var(--color-vinotinto-soft);
     color: var(--color-vinotinto-muted);
 }
 
 .citas__button--ghost {
-    background-color: #ffffff;
-    border: 1px solid #d4bcc2;
+    background-color: var(--color-superficie);
+    border: 1px solid var(--color-input-border);
     color: var(--color-vinotinto-contrast);
 }
 
@@ -138,19 +138,19 @@
 }
 
 .citas__message--error {
-    background-color: #ffe9e9;
+    background-color: var(--color-feedback-error-bg);
     color: var(--color-header-vinotinto-claro);
 }
 
 .citas__message--success {
-    background-color: #e8f5e9;
+    background-color: var(--color-feedback-success-bg);
     color: var(--color-feedback-success-text);
 }
 
 .citas__metrics {
     font-size: 0.85rem;
     color: var(--color-vinotinto-contrast);
-    background-color: #fffdf8;
+    background-color: var(--color-vinotinto-gradient-end);
     border: 1px dashed var(--color-vinotinto-border);
     border-radius: 0.5rem;
     padding: 0.55rem 0.7rem;
@@ -162,10 +162,10 @@
 }
 
 .citas__panel {
-    border: 1px solid #eadde0;
+    border: 1px solid var(--color-vinotinto-border);
     border-radius: 0.75rem;
     padding: 0.9rem;
-    background-color: #ffffff;
+    background-color: var(--color-superficie);
 }
 
 .citas__panel-title {
@@ -182,15 +182,15 @@
 .citas__summary-card {
     display: grid;
     gap: 0.2rem;
-    border: 1px solid #eadde0;
+    border: 1px solid var(--color-vinotinto-border);
     border-radius: 0.65rem;
     padding: 0.65rem 0.7rem;
-    background-color: #fff9fa;
+    background-color: var(--color-surface-hover);
 }
 
 .citas__summary-label {
     font-size: 0.78rem;
-    color: #6b4a52;
+    color: var(--color-vinotinto-muted);
 }
 
 .citas__summary-value {
@@ -230,14 +230,14 @@
 }
 
 .citas__search-item {
-    border: 1px solid #eadde0;
+    border: 1px solid var(--color-vinotinto-border);
     border-radius: 0.6rem;
     padding: 0.55rem;
     display: flex;
     gap: 0.65rem;
     justify-content: space-between;
     align-items: center;
-    background-color: #fffdfc;
+    background-color: var(--color-surface-hover);
 }
 
 .citas__search-item-main {
@@ -248,7 +248,7 @@
 }
 
 .citas__empty-text {
-    color: #6b4a52;
+    color: var(--color-vinotinto-muted);
     font-size: 0.9rem;
 }
 
@@ -259,10 +259,10 @@
 }
 
 .citas__quick-add {
-    border: 1px solid #eadde0;
+    border: 1px solid var(--color-vinotinto-border);
     border-radius: 0.65rem;
     padding: 0.7rem;
-    background-color: #fff8f9;
+    background-color: var(--color-surface-hover);
     margin-bottom: 0.75rem;
 }
 
@@ -285,7 +285,7 @@
 }
 
 .citas__list-item {
-    border: 1px solid #eadde0;
+    border: 1px solid var(--color-vinotinto-border);
     border-radius: 0.6rem;
     padding: 0.65rem;
     display: grid;
@@ -340,8 +340,8 @@
     top: 100%;
     left: 0;
     right: 0;
-    background: white;
-    border: 1px solid #d4bcc2;
+    background: var(--color-superficie);
+    border: 1px solid var(--color-input-border);
     border-radius: 0.5rem;
     box-shadow: 0 4px 6px -1px var(--color-shadow-elevated);
     z-index: 100;
@@ -355,7 +355,7 @@
 .citas__autocomplete-item {
     padding: 0.65rem 0.75rem;
     cursor: pointer;
-    border-bottom: 1px solid #f0e4e7;
+    border-bottom: 1px solid var(--color-vinotinto-soft);
     transition: background-color 0.15s ease;
 }
 
@@ -364,11 +364,11 @@
 }
 
 .citas__autocomplete-item:hover {
-    background-color: #f9f5f6;
+    background-color: var(--color-surface-hover);
 }
 
 .citas__autocomplete-item--highlighted {
-    background-color: #f0e4e7;
+    background-color: var(--color-vinotinto-soft);
 }
 
 /* Sections: Active vs History */
@@ -376,7 +376,7 @@
     display: flex;
     gap: 0.5rem;
     margin-bottom: 1rem;
-    border-bottom: 2px solid #eadde0;
+    border-bottom: 2px solid var(--color-vinotinto-border);
 }
 
 .citas__section-tab {
@@ -385,29 +385,29 @@
     border: none;
     cursor: pointer;
     font-weight: 600;
-    color: #6b4a52;
+    color: var(--color-vinotinto-muted);
     border-bottom: 2px solid transparent;
     margin-bottom: -2px;
     transition: all 0.15s ease;
 }
 
 .citas__section-tab:hover {
-    color: #8a3f52;
+    color: var(--color-header-vinotinto-claro);
 }
 
 .citas__section-tab--active {
-    color: #8a3f52;
-    border-bottom-color: #8a3f52;
+    color: var(--color-header-vinotinto-claro);
+    border-bottom-color: var(--color-header-vinotinto-claro);
 }
 
 .citas__section-tab--active .citas__section-tab-count {
-    background-color: #8a3f52;
-    color: white;
+    background-color: var(--color-header-vinotinto-claro);
+    color: var(--color-texto-inverso);
 }
 
 .citas__section-tab-count {
     display: inline-block;
-    background-color: #eadde0;
+    background-color: var(--color-vinotinto-border);
     border-radius: 999px;
     padding: 0.1rem 0.4rem;
     font-size: 0.75rem;
@@ -416,7 +416,7 @@
 
 .citas__list-item--empty {
     justify-content: center;
-    color: #6b4a52;
+    color: var(--color-vinotinto-muted);
     font-size: 0.95rem;
 }
 
@@ -452,11 +452,11 @@
 }
 
 .citas__slot {
-    border: 1px solid #d4bcc2;
+    border: 1px solid var(--color-input-border);
     border-radius: 0.5rem;
     padding: 0.65rem;
     cursor: pointer;
-    background-color: #f9f5f6;
+    background-color: var(--color-surface-hover);
     transition: background-color 0.15s ease, border-color 0.15s ease;
     text-align: center;
     font-weight: 600;
@@ -465,8 +465,8 @@
 }
 
 .citas__slot:hover {
-    background-color: #f0e4e7;
-    border-color: #8a3f52;
+    background-color: var(--color-vinotinto-soft);
+    border-color: var(--color-header-vinotinto-claro);
 }
 
 .citas__slot--available {
@@ -474,13 +474,13 @@
 }
 
 .citas__slot--available:hover {
-    background-color: #e8f5e9;
+    background-color: var(--color-feedback-success-bg);
 }
 
 .citas__slot--selected {
-    background-color: #8a3f52;
-    color: #ffffff;
-    border-color: #8a3f52;
+    background-color: var(--color-header-vinotinto-claro);
+    color: var(--color-texto-inverso);
+    border-color: var(--color-header-vinotinto-claro);
 }
 
 .citas__slot-time {
@@ -491,10 +491,10 @@
 
 .citas__slots-empty {
     padding: 1rem;
-    background-color: #fff7f8;
-    border: 1px solid #eadde0;
+    background-color: var(--color-surface-alt);
+    border: 1px solid var(--color-vinotinto-border);
     border-radius: 0.5rem;
-    color: #6b4a52;
+    color: var(--color-vinotinto-muted);
     text-align: center;
 }
 
