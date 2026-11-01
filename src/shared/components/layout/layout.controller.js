@@ -8,7 +8,7 @@ import { navegarA } from "../../router/router.js";
 import { renderLayoutNavigation, renderLayoutShell, renderLayoutUserContext } from "./layout.view.js";
 
 const DEFAULT_LAYOUT_OPTIONS = Object.freeze({
-    salonTitle: "Sistema de Gestion del Salon de Belleza",
+    salonTitle: "Sistema de Gestión del Salón de Belleza",
 });
 
 let layoutRoot = null;

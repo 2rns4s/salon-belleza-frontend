@@ -13,7 +13,7 @@ export function renderLayoutShell({ salonTitle }) {
             <header class="layout__header">
                 <div class="layout__brand">
                     <h1 class="layout__salon-title">${escapeHtml(salonTitle)}</h1>
-                    <p class="layout__salon-subtitle">Gestion integral del salon de belleza</p>
+                    <p class="layout__salon-subtitle">Gestión integral del salón de belleza</p>
                 </div>
 
                 <div id="layout-nav-context" class="layout__navigation-container"></div>
@@ -26,9 +26,14 @@ export function renderLayoutShell({ salonTitle }) {
 }
 
 export function renderLayoutUserContext({ username, roleLabel, hasSession }) {
+    // Sin sesion iniciada no se muestra el bloque de usuario/rol ni el menu de cuenta:
+    // un usuario no autenticado no debe ver chrome de sesion (login/signup solo ven la marca).
+    if (!hasSession) {
+        return "";
+    }
+
     const safeUsername = String(username || "Invitado").trim() || "Invitado";
     const safeRole = String(roleLabel || "Sin rol").trim() || "Sin rol";
-    const sessionStatus = hasSession ? "Sesion activa" : "Sesion no iniciada";
 
     return `
         <div class="layout__user-menu-wrapper">
@@ -64,7 +69,6 @@ export function renderLayoutNavigation({ userRole, currentPath = "" }) {
 
     if (userRole === "OWNER") {
         links.push(
-            { path: "/dashboard", label: "Dashboard" },
             { path: "/usuarios", label: "Usuarios" },
             { path: "/empleados", label: "Empleados" },
             { path: "/servicios", label: "Servicios" },
