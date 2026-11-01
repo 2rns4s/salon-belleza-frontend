@@ -11,9 +11,9 @@
     justify-content: space-between;
     gap: 0.85rem;
     padding: 0.95rem;
-    border: 1px solid #eadde0;
+    border: 1px solid var(--color-vinotinto-border);
     border-radius: 0.75rem;
-    background: linear-gradient(125deg, #fff7f8 0%, #fffdf8 100%);
+    background: linear-gradient(125deg, var(--color-vinotinto-gradient-start) 0%, var(--color-vinotinto-gradient-end) 100%);
 }
 
 .employees__header-copy {
@@ -29,7 +29,7 @@
 
 .employees__subtitle {
     font-size: 0.92rem;
-    color: #6b4a52;
+    color: var(--color-vinotinto-muted);
 }
 
 .employees__toolbar {
@@ -66,23 +66,23 @@
 
 .employees__button--primary {
     background-color: var(--color-header-vinotinto-claro);
-    color: #ffffff;
+    color: var(--color-texto-inverso);
 }
 
 .employees__button--secondary {
-    background-color: #f0e4e7;
-    color: #4b2a33;
+    background-color: var(--color-vinotinto-soft);
+    color: var(--color-vinotinto-muted);
 }
 
 .employees__button--danger {
-    background-color: #8a2030;
-    color: #ffffff;
+    background-color: var(--color-action-danger);
+    color: var(--color-texto-inverso);
 }
 
 .employees__button--icon {
-    background-color: #ffffff;
-    border: 1px solid #d4bcc2;
-    color: #5e3a45;
+    background-color: var(--color-superficie);
+    border: 1px solid var(--color-input-border);
+    color: var(--color-vinotinto-contrast);
     padding-inline: 0.7rem;
 }
 
@@ -93,13 +93,13 @@
 }
 
 .employees__message--error {
-    background-color: #ffe9e9;
-    color: #8a2030;
+    background-color: var(--color-feedback-error-bg);
+    color: var(--color-feedback-error-text);
 }
 
 .employees__message--success {
-    background-color: #e8f5e9;
-    color: #1d5f34;
+    background-color: var(--color-feedback-success-bg);
+    color: var(--color-feedback-success-text);
 }
 
 .employees__message-text {
@@ -118,7 +118,7 @@
 }
 
 .employees__panel {
-    border: 1px solid #eadde0;
+    border: 1px solid var(--color-vinotinto-border);
     border-radius: 0.75rem;
     background-color: var(--color-superficie);
     overflow: hidden;
@@ -139,16 +139,16 @@
     text-align: left;
     padding: 0.82rem 0.9rem;
     font-size: 0.86rem;
-    color: #6b4a52;
-    border-bottom: 1px solid #eadde0;
+    color: var(--color-vinotinto-muted);
+    border-bottom: 1px solid var(--color-vinotinto-border);
 }
 
 .employees__table-head {
-    background-color: #fff7f8;
+    background-color: var(--color-surface-alt);
 }
 
 .employees__table-head-row {
-    border-bottom: 1px solid #eadde0;
+    border-bottom: 1px solid var(--color-vinotinto-border);
 }
 
 .employees__table-head-cell {
@@ -156,22 +156,22 @@
     white-space: nowrap;
     font-size: 0.82rem;
     font-weight: 700;
-    color: #5e3a45;
+    color: var(--color-vinotinto-contrast);
     padding: 0.66rem 0.75rem;
 }
 
 .employees__table-row {
-    border-bottom: 1px solid #f2e7ea;
+    border-bottom: 1px solid var(--color-vinotinto-border);
 }
 
 .employees__table-row--data:hover {
-    background-color: #fffafb;
+    background-color: var(--color-surface-hover);
 }
 
 .employees__table-cell {
     padding: 0.66rem 0.75rem;
     font-size: 0.88rem;
-    color: #3c232b;
+    color: var(--color-vinotinto-contrast);
     vertical-align: middle;
 }
 
@@ -181,7 +181,7 @@
 
 .employees__table-cell--empty {
     text-align: center;
-    color: #6b4a52;
+    color: var(--color-vinotinto-muted);
 }
 
 .employees__table-cell--actions {
@@ -200,13 +200,13 @@
 }
 
 .employees__action-btn--edit {
-    background-color: #e8f0fb;
-    color: #1a3f78;
+    background-color: var(--color-surface-alt);
+    color: var(--color-role-receptionist);
 }
 
 .employees__action-btn--delete {
-    background-color: #ffe9e9;
-    color: #8a2030;
+    background-color: var(--color-feedback-error-bg);
+    color: var(--color-feedback-error-text);
 }
 
 .employees__modal-overlay {
@@ -215,7 +215,7 @@
     display: grid;
     place-items: center;
     padding: 1rem;
-    background-color: rgba(20, 8, 12, 0.5);
+    background-color: var(--color-overlay-scrim);
     z-index: 35;
 }
 
@@ -225,8 +225,8 @@
     display: grid;
     gap: 0.8rem;
     border-radius: 0.8rem;
-    border: 1px solid #eadde0;
-    background-color: #ffffff;
+    border: 1px solid var(--color-vinotinto-border);
+    background-color: var(--color-superficie);
     padding: 0.95rem;
     overflow: auto;
 }
@@ -267,35 +267,35 @@
 .employees__field-label {
     font-size: 0.84rem;
     font-weight: 600;
-    color: #5e3a45;
+    color: var(--color-vinotinto-contrast);
 }
 
 .employees__input {
-    border: 1px solid #d4bcc2;
+    border: 1px solid var(--color-input-border);
     border-radius: 0.5rem;
-    background-color: #ffffff;
+    background-color: var(--color-superficie);
     padding: 0.55rem 0.68rem;
     font-size: 0.92rem;
     width: 100%;
 }
 
 .employees__input--invalid {
-    border-color: #c92a2a;
+    border-color: var(--color-action-danger);
 }
 
 .employees__field-error {
     min-height: 1rem;
     font-size: 0.79rem;
-    color: #8a2030;
+    color: var(--color-feedback-error-text);
 }
 
 .employee-form__section {
     display: grid;
     gap: 0.55rem;
-    border: 1px solid #eadde0;
+    border: 1px solid var(--color-vinotinto-border);
     border-radius: 0.65rem;
     padding: 0.72rem;
-    background-color: #fffafb;
+    background-color: var(--color-surface-hover);
 }
 
 .employee-form__section-header {
@@ -308,12 +308,12 @@
 
 .employee-form__section-title {
     font-size: 0.92rem;
-    color: #4a2a34;
+    color: var(--color-vinotinto-muted);
 }
 
 .employee-form__hint {
     font-size: 0.88rem;
-    color: #6b4a52;
+    color: var(--color-vinotinto-muted);
 }
 
 .employee-form__feedback {
@@ -323,8 +323,8 @@
 }
 
 .employee-form__feedback--error {
-    background-color: #ffe9e9;
-    color: #8a2030;
+    background-color: var(--color-feedback-error-bg);
+    color: var(--color-feedback-error-text);
 }
 
 .employee-form__feedback-text {
@@ -354,12 +354,12 @@
 }
 
 .employee-shifts__empty {
-    border: 1px dashed #d4bcc2;
+    border: 1px dashed var(--color-input-border);
     border-radius: 0.5rem;
     padding: 0.62rem;
-    color: #6b4a52;
+    color: var(--color-vinotinto-muted);
     font-size: 0.86rem;
-    background-color: #ffffff;
+    background-color: var(--color-superficie);
 }
 
 .employee-shift-row {
@@ -371,18 +371,18 @@
 
 .employee-shift-row__select,
 .employee-shift-row__input {
-    border: 1px solid #d4bcc2;
+    border: 1px solid var(--color-input-border);
     border-radius: 0.45rem;
     padding: 0.52rem 0.62rem;
-    background-color: #ffffff;
+    background-color: var(--color-superficie);
     width: 100%;
 }
 
 .employee-shift-row__remove-btn {
     border: 0;
     border-radius: 0.45rem;
-    background-color: #ffe9e9;
-    color: #8a2030;
+    background-color: var(--color-feedback-error-bg);
+    color: var(--color-feedback-error-text);
     padding: 0.52rem 0.7rem;
     cursor: pointer;
     font-size: 0.82rem;
@@ -397,18 +397,18 @@
 
 .employees-catalog__state--idle,
 .employees-catalog__state--loading {
-    background-color: #f0e4e7;
-    color: #5e3a45;
+    background-color: var(--color-vinotinto-soft);
+    color: var(--color-vinotinto-contrast);
 }
 
 .employees-catalog__state--empty {
-    background-color: #f8f3f4;
-    color: #6b4a52;
+    background-color: var(--color-fondo-principal);
+    color: var(--color-vinotinto-muted);
 }
 
 .employees-catalog__state--error {
-    background-color: #ffe9e9;
-    color: #8a2030;
+    background-color: var(--color-feedback-error-bg);
+    color: var(--color-feedback-error-text);
 }
 
 .employees-catalog__grid {
@@ -421,10 +421,10 @@
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    border: 1px solid #eadde0;
+    border: 1px solid var(--color-vinotinto-border);
     border-radius: 0.5rem;
     padding: 0.52rem 0.62rem;
-    background-color: #ffffff;
+    background-color: var(--color-superficie);
 }
 
 .employees-catalog__checkbox {
@@ -433,12 +433,12 @@
 
 .employees-catalog__label {
     font-size: 0.88rem;
-    color: #4a2a34;
+    color: var(--color-vinotinto-muted);
 }
 
 .employees__confirm-text {
     font-size: 0.92rem;
-    color: #3c232b;
+    color: var(--color-vinotinto-contrast);
 }
 
 .employees__confirm-actions {
