@@ -1,5 +1,8 @@
 import { EMPLEADOS_CATALOG_STATUS, EMPLEADOS_VALIDATION } from "./empleados.constants.js";
 
+// Escape HTML compartido contra XSS (fuente unica en shared/ui/escapeHtml.js).
+import { escapeHtml } from "../../shared/ui/escapeHtml.js";
+
 const WEEK_DAY_OPTIONS = [
     { value: "MONDAY", label: "Lunes" },
     { value: "TUESDAY", label: "Martes" },
@@ -9,15 +12,6 @@ const WEEK_DAY_OPTIONS = [
     { value: "SATURDAY", label: "Sabado" },
     { value: "SUNDAY", label: "Domingo" },
 ];
-
-function escapeHtml(rawValue) {
-    return String(rawValue ?? "")
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#39;");
-}
 
 function formatTimeForInput(value) {
     const rawValue = String(value ?? "").trim();

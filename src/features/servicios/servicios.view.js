@@ -1,13 +1,6 @@
 import { SERVICIOS_VALIDATION, RESOURCE_CATALOG_STATUS } from "./servicios.constants.js";
-
-function escapeHtml(rawValue) {
-    return String(rawValue ?? "")
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#39;");
-}
+// Escape HTML compartido contra XSS (fuente unica en shared/ui/escapeHtml.js).
+import { escapeHtml } from "../../shared/ui/escapeHtml.js";
 
 function renderFeedbackMessage(message, modifier, role) {
     if (!message) return "";
