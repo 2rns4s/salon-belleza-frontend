@@ -1,4 +1,5 @@
 import { httpClient } from "../../shared/services/httpClient.js";
+import { createCrudService } from "../../shared/services/crudService.js";
 import { EMPLEADOS_ENDPOINTS } from "./empleados.constants.js";
 import {
     mapEmployeesResponse,
@@ -8,46 +9,29 @@ import {
     mapServicesCatalogResponse,
 } from "./empleados.mappers.js";
 
-// GET /api/v1/empleados -> EmpleadoResponse[]
-export async function getEmployees() {
-    const data = await httpClient(EMPLEADOS_ENDPOINTS.LIST);
-    return mapEmployeesResponse(data);
-}
+// CRUD estandar de empleados armado por la fabrica compartida
+// (ver shared/services/crudService.js): solo se declaran ruta y mappers.
+const empleadosCrud = createCrudService({
+    listEndpoint: EMPLEADOS_ENDPOINTS.LIST,
+    detailEndpoint: EMPLEADOS_ENDPOINTS.DETAIL,
+    mapList: mapEmployeesResponse,
+    mapOne: mapEmployeeResponse,
+    mapCreate: mapCreateEmployeePayload,
+    mapUpdate: mapUpdateEmployeePayload,
+});
 
-// GET /api/v1/empleados/{id} -> EmpleadoResponse
+export const getEmployees = empleadosCrud.list;
+export const createEmployee = empleadosCrud.create;
+export const updateEmployee = empleadosCrud.update;
+export const deleteEmployee = empleadosCrud.remove;
+
+// GET /api/v1/empleados/{id} -> EmpleadoResponse (propio de empleados, no es parte del CRUD de lista)
 export async function getEmployeeById(id) {
     const data = await httpClient(EMPLEADOS_ENDPOINTS.DETAIL(id));
     return mapEmployeeResponse(data);
 }
 
-// POST /api/v1/empleados -> EmpleadoResponse
-export async function createEmployee(formState = {}) {
-    const payload = mapCreateEmployeePayload(formState);
-    const data = await httpClient(EMPLEADOS_ENDPOINTS.LIST, {
-        method: "POST",
-        body: JSON.stringify(payload),
-    });
-
-    return mapEmployeeResponse(data);
-}
-
-// PUT /api/v1/empleados/{id} -> EmpleadoResponse (actualizacion parcial)
-export async function updateEmployee(id, formState = {}) {
-    const payload = mapUpdateEmployeePayload(formState);
-    const data = await httpClient(EMPLEADOS_ENDPOINTS.DETAIL(id), {
-        method: "PUT",
-        body: JSON.stringify(payload),
-    });
-
-    return mapEmployeeResponse(data);
-}
-
-// DELETE /api/v1/empleados/{id}
-export async function deleteEmployee(id) {
-    await httpClient(EMPLEADOS_ENDPOINTS.DETAIL(id), { method: "DELETE" });
-}
-
-// GET /api/v1/servicios -> catalogo silencioso para serviciosIds
+// GET /api/v1/servicios -> catalogo silencioso para serviciosIds (propio de empleados)
 export async function getServicesCatalog() {
     const data = await httpClient(EMPLEADOS_ENDPOINTS.SERVICES_CATALOG);
     return mapServicesCatalogResponse(data);

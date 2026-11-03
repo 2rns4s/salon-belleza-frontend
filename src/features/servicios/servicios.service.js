@@ -1,4 +1,5 @@
 import { httpClient } from "../../shared/services/httpClient.js";
+import { createCrudService } from "../../shared/services/crudService.js";
 import { SERVICIOS_ENDPOINTS } from "./servicios.constants.js";
 import {
     mapServicesResponse,
@@ -8,39 +9,24 @@ import {
     mapCatalogResourcesResponse,
 } from "./servicios.mappers.js";
 
-// GET /api/v1/servicios → ServicioResponse[]
-export async function getServices() {
-    const data = await httpClient(SERVICIOS_ENDPOINTS.LIST);
-    return mapServicesResponse(data);
-}
+// CRUD estandar de servicios armado por la fabrica compartida
+// (ver shared/services/crudService.js): solo se declaran ruta y mappers.
+const serviciosCrud = createCrudService({
+    listEndpoint: SERVICIOS_ENDPOINTS.LIST,
+    detailEndpoint: SERVICIOS_ENDPOINTS.DETAIL,
+    mapList: mapServicesResponse,
+    mapOne: mapServiceResponse,
+    mapCreate: mapCreateServicePayload,
+    mapUpdate: mapUpdateServicePayload,
+});
 
-// POST /api/v1/servicios → ServicioResponse
-export async function createService(formState) {
-    const payload = mapCreateServicePayload(formState);
-    const data = await httpClient(SERVICIOS_ENDPOINTS.LIST, {
-        method: "POST",
-        body: JSON.stringify(payload),
-    });
-    return mapServiceResponse(data);
-}
+export const getServices = serviciosCrud.list;
+export const createService = serviciosCrud.create;
+export const updateService = serviciosCrud.update;
+export const deleteService = serviciosCrud.remove;
 
-// PUT /api/v1/servicios/{id} → ServicioResponse
-export async function updateService(id, formState) {
-    const payload = mapUpdateServicePayload(formState);
-    const data = await httpClient(SERVICIOS_ENDPOINTS.DETAIL(id), {
-        method: "PUT",
-        body: JSON.stringify(payload),
-    });
-    return mapServiceResponse(data);
-}
-
-// DELETE /api/v1/servicios/{id}
-export async function deleteService(id) {
-    await httpClient(SERVICIOS_ENDPOINTS.DETAIL(id), { method: "DELETE" });
-}
-
-// GET /api/v1/recursos — catálogo para poblar el selector dentro del formulario de servicios
-// No importa nada de src/features/recursos/
+// GET /api/v1/recursos — catálogo para poblar el selector dentro del formulario de servicios.
+// Es propio de servicios (no es parte del CRUD) y no importa nada de src/features/recursos/.
 export async function getResourcesCatalog() {
     const data = await httpClient(SERVICIOS_ENDPOINTS.RECURSOS_CATALOG);
     return mapCatalogResourcesResponse(data);

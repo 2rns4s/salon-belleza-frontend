@@ -1,11 +1,5 @@
-function escapeHtml(rawValue) {
-    return String(rawValue ?? "")
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#39;");
-}
+// Escape HTML compartido contra XSS (fuente unica en shared/ui/escapeHtml.js).
+import { escapeHtml } from "../../ui/escapeHtml.js";
 
 export function renderLayoutShell({ salonTitle }) {
     return `

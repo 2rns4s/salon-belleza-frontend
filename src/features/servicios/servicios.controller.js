@@ -1,17 +1,21 @@
 import { SERVICIOS_VALIDATION, RESOURCE_CATALOG_STATUS } from "./servicios.constants.js";
+// Controller de servicios. Mismo patron que los demas modulos de gestion:
+// estado central -> re-render completo de la pantalla -> eventos por delegacion
+// (un solo listener de click y de submit en el contenedor, via featureMount).
 import { normalizeServiciosHttpError } from "./servicios.mappers.js";
 import { getServices, createService, updateService, deleteService, getResourcesCatalog } from "./servicios.service.js";
 import { renderServiciosPage, readServicesFormState } from "./servicios.view.js";
+import { createFeatureMount } from "../../shared/components/featureMount.js";
 
-let domContainer = null;
 let state = createInitialState();
 
-const listenersRegistry = {
-    submit: null,
-    click: null,
-    change: null,
-    input: null,
-};
+// Montaje compartido: resuelve el contenedor y gestiona los listeners delegados
+// click/submit (ver shared/components/featureMount.js).
+const featureMount = createFeatureMount({
+    render: () => renderServiciosPage(state),
+    onClick: (event) => handleContainerClick(event),
+    onSubmit: (event) => handleFormSubmit(event),
+});
 
 let rowIdCounter = 0;
 
@@ -49,36 +53,8 @@ function createInitialState() {
     };
 }
 
-function resolveServiciosContainer(container) {
-    if (container instanceof Element) return container;
-    if (typeof document === "undefined") return null;
-    const appContent = document.querySelector(".app__content");
-    return appContent instanceof Element ? appContent : null;
-}
-
-function removeContainerListeners() {
-    if (!domContainer) return;
-    if (listenersRegistry.submit) {
-        domContainer.removeEventListener("submit", listenersRegistry.submit);
-        listenersRegistry.submit = null;
-    }
-    if (listenersRegistry.click) {
-        domContainer.removeEventListener("click", listenersRegistry.click);
-        listenersRegistry.click = null;
-    }
-    if (listenersRegistry.change) {
-        domContainer.removeEventListener("change", listenersRegistry.change);
-        listenersRegistry.change = null;
-    }
-    if (listenersRegistry.input) {
-        domContainer.removeEventListener("input", listenersRegistry.input);
-        listenersRegistry.input = null;
-    }
-}
-
 function renderServiciosScreen() {
-    if (!domContainer) return;
-    domContainer.innerHTML = renderServiciosPage(state);
+    featureMount.renderScreen();
 }
 
 function validateServiceForm(form) {
@@ -160,7 +136,7 @@ async function loadServices() {
 async function handleFormSubmit(event) {
     event.preventDefault();
     const form = state.formModal.form;
-    const formState = readServicesFormState(domContainer, form);
+    const formState = readServicesFormState(featureMount.getContainer(), form);
 
     const errors = validateServiceForm(formState);
     if (Object.keys(errors).length) {
@@ -272,7 +248,7 @@ function handleContainerClick(event) {
 
     // Agregar fila de recurso
     if (target.closest("#services-add-resource-btn")) {
-        const syncedForm = readServicesFormState(domContainer, state.formModal.form);
+        const syncedForm = readServicesFormState(featureMount.getContainer(), state.formModal.form);
         const newRow = { rowId: nextRowId(), resourceId: "", quantity: "" };
         state.formModal = {
             ...state.formModal,
@@ -288,7 +264,7 @@ function handleContainerClick(event) {
     // Quitar fila de recurso
     const removeBtn = target.closest("[data-required-resource-remove]");
     if (removeBtn) {
-        const syncedForm = readServicesFormState(domContainer, state.formModal.form);
+        const syncedForm = readServicesFormState(featureMount.getContainer(), state.formModal.form);
         const rowId = removeBtn.getAttribute("data-required-resource-remove");
         state.formModal = {
             ...state.formModal,
@@ -371,18 +347,8 @@ function handleContainerClick(event) {
     }
 }
 
-function attachContainerListeners() {
-    if (!domContainer) return;
-    listenersRegistry.click = handleContainerClick;
-    listenersRegistry.submit = handleFormSubmit;
-    domContainer.addEventListener("click", listenersRegistry.click);
-    domContainer.addEventListener("submit", listenersRegistry.submit);
-}
-
 export function initServicios(container) {
-    removeContainerListeners();
-    domContainer = resolveServiciosContainer(container);
     state = createInitialState();
-    attachContainerListeners();
+    featureMount.mount(container);
     loadServices();
 }
