@@ -1,4 +1,4 @@
-import { httpClient } from "../../shared/services/httpClient.js";
+import { createCrudService } from "../../shared/services/crudService.js";
 import { RECURSOS_ENDPOINTS } from "./recursos.constants.js";
 import {
     mapResourcesResponse,
@@ -7,33 +7,18 @@ import {
     mapUpdateResourcePayload,
 } from "./recursos.mappers.js";
 
-// GET /api/v1/recursos → RecursoResponse[]
-export async function getResources() {
-    const data = await httpClient(RECURSOS_ENDPOINTS.LIST);
-    return mapResourcesResponse(data);
-}
+// CRUD estandar de recursos: la fabrica compartida arma las 4 operaciones HTTP
+// (ver shared/services/crudService.js); aqui solo se declaran la ruta y los mappers.
+const recursosCrud = createCrudService({
+    listEndpoint: RECURSOS_ENDPOINTS.LIST,
+    detailEndpoint: RECURSOS_ENDPOINTS.DETAIL,
+    mapList: mapResourcesResponse,
+    mapOne: mapResourceResponse,
+    mapCreate: mapCreateResourcePayload,
+    mapUpdate: mapUpdateResourcePayload,
+});
 
-// POST /api/v1/recursos → RecursoResponse
-export async function createResource(formState) {
-    const payload = mapCreateResourcePayload(formState);
-    const data = await httpClient(RECURSOS_ENDPOINTS.LIST, {
-        method: "POST",
-        body: JSON.stringify(payload),
-    });
-    return mapResourceResponse(data);
-}
-
-// PUT /api/v1/recursos/{id} → RecursoResponse
-export async function updateResource(id, formState) {
-    const payload = mapUpdateResourcePayload(formState);
-    const data = await httpClient(RECURSOS_ENDPOINTS.DETAIL(id), {
-        method: "PUT",
-        body: JSON.stringify(payload),
-    });
-    return mapResourceResponse(data);
-}
-
-// DELETE /api/v1/recursos/{id}
-export async function deleteResource(id) {
-    await httpClient(RECURSOS_ENDPOINTS.DETAIL(id), { method: "DELETE" });
-}
+export const getResources = recursosCrud.list;
+export const createResource = recursosCrud.create;
+export const updateResource = recursosCrud.update;
+export const deleteResource = recursosCrud.remove;
