@@ -1,4 +1,14 @@
 import { RECURSOS_VALIDATION, DEFAULT_RECURSOS_ERROR_MESSAGE } from "./recursos.constants.js";
+/**
+ * Controller de recursos. Patron de todos los modulos de gestion:
+ *  1. Hay un unico objeto `state` con todo lo que la pantalla necesita mostrar.
+ *  2. Cada vez que el estado cambia, se vuelve a pintar TODA la pantalla
+ *     (render completo del HTML), no se actualizan nodos sueltos.
+ *  3. Los clicks y submits NO se enganchan boton por boton: hay un solo listener
+ *     de click y uno de submit en el contenedor (delegacion de eventos), que
+ *     identifican el boton/formulario por su id o data-*. Eso lo gestiona el
+ *     helper compartido featureMount.
+ */
 import { normalizeRecursosHttpError } from "./recursos.mappers.js";
 import { getResources, createResource, updateResource, deleteResource } from "./recursos.service.js";
 import { renderRecursosPage } from "./recursos.view.js";

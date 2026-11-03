@@ -1,4 +1,7 @@
 import { SERVICIOS_VALIDATION, RESOURCE_CATALOG_STATUS } from "./servicios.constants.js";
+// Controller de servicios. Mismo patron que los demas modulos de gestion:
+// estado central -> re-render completo de la pantalla -> eventos por delegacion
+// (un solo listener de click y de submit en el contenedor, via featureMount).
 import { normalizeServiciosHttpError } from "./servicios.mappers.js";
 import { getServices, createService, updateService, deleteService, getResourcesCatalog } from "./servicios.service.js";
 import { renderServiciosPage, readServicesFormState } from "./servicios.view.js";

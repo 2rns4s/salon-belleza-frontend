@@ -1,4 +1,7 @@
 import { EMPLEADOS_CATALOG_STATUS, EMPLEADOS_VALIDATION } from "./empleados.constants.js";
+// Controller de empleados. Mismo patron que los demas modulos de gestion:
+// estado central -> re-render completo de la pantalla -> eventos por delegacion
+// (un solo listener de click y de submit en el contenedor, via featureMount).
 import { normalizeEmpleadosHttpError } from "./empleados.mappers.js";
 import {
     createEmployee,

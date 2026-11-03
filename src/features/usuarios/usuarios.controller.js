@@ -1,3 +1,6 @@
+// Controller de usuarios. Mismo patron que los demas modulos de gestion:
+// estado central -> re-render completo de la pantalla -> eventos por delegacion
+// (un solo listener de click y de submit en el contenedor, via featureMount).
 import {
     USUARIOS_CATALOG_STATUS,
     USUARIOS_ENDPOINTS,
