@@ -8,6 +8,7 @@ import {
     updateEmployee,
 } from "./empleados.service.js";
 import { renderEmpleadosPage } from "./empleados.view.js";
+import { createFeatureMount } from "../../shared/components/featureMount.js";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const WORK_DAY_VALUES = Object.freeze([
@@ -25,10 +26,14 @@ let domContainer = null;
 let state = createInitialState();
 let shiftRowCounter = 0;
 
-const listenersRegistry = {
-    submit: null,
-    click: null,
-};
+// Montaje compartido: resuelve el contenedor y gestiona los listeners delegados
+// click/submit (ver shared/components/featureMount.js). domContainer se mantiene
+// como referencia local sincronizada con el contenedor del helper.
+const featureMount = createFeatureMount({
+    render: () => renderEmpleadosPage(state),
+    onClick: (event) => handleContainerClick(event),
+    onSubmit: (event) => handleFormSubmit(event),
+});
 
 function nextShiftRowId() {
     shiftRowCounter += 1;
@@ -94,41 +99,8 @@ function createInitialState() {
     };
 }
 
-function resolveEmpleadosContainer(container) {
-    if (container instanceof Element) {
-        return container;
-    }
-
-    if (typeof document === "undefined") {
-        return null;
-    }
-
-    const appContent = document.querySelector(".app__content");
-    return appContent instanceof Element ? appContent : null;
-}
-
-function removeContainerListeners() {
-    if (!domContainer) {
-        return;
-    }
-
-    if (listenersRegistry.submit) {
-        domContainer.removeEventListener("submit", listenersRegistry.submit);
-        listenersRegistry.submit = null;
-    }
-
-    if (listenersRegistry.click) {
-        domContainer.removeEventListener("click", listenersRegistry.click);
-        listenersRegistry.click = null;
-    }
-}
-
 function renderEmpleadosScreen() {
-    if (!domContainer) {
-        return;
-    }
-
-    domContainer.innerHTML = renderEmpleadosPage(state);
+    featureMount.renderScreen();
 }
 
 function normalizeErrorFeedback(error) {
@@ -794,34 +766,21 @@ function handleContainerClick(event) {
     }
 }
 
-function attachContainerListeners() {
-    if (!domContainer) {
-        return;
-    }
-
-    listenersRegistry.submit = handleFormSubmit;
-    listenersRegistry.click = handleContainerClick;
-
-    domContainer.addEventListener("submit", listenersRegistry.submit);
-    domContainer.addEventListener("click", listenersRegistry.click);
-}
-
 export function initEmpleados(container) {
     cleanupEmpleados();
 
-    domContainer = resolveEmpleadosContainer(container);
+    state = createInitialState();
+    domContainer = featureMount.mount(container);
     if (!domContainer) {
         return;
     }
 
-    state = createInitialState();
     renderEmpleadosScreen();
-    attachContainerListeners();
     void loadEmployees();
 }
 
 export function cleanupEmpleados() {
-    removeContainerListeners();
+    featureMount.unmount();
     domContainer = null;
     state = createInitialState();
 }

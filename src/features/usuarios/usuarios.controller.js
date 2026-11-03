@@ -19,14 +19,17 @@ import { renderUsuariosPage } from "./usuarios.view.js";
 import { httpClient } from "../../shared/services/httpClient.js";
 import { obtenerToken } from "../../shared/state/authStore.js";
 import { createPaginatedList } from "../../components/PaginatedList.js";
+import { createFeatureMount } from "../../shared/components/featureMount.js";
 
-let domContainer = null;
 let state = createInitialState();
 
-const listenersRegistry = {
-    submit: null,
-    click: null,
-};
+// Montaje compartido: resuelve el contenedor y gestiona los listeners delegados
+// click/submit (ver shared/components/featureMount.js).
+const featureMount = createFeatureMount({
+    render: () => renderUsuariosPage(state),
+    onClick: (event) => handleContainerClick(event),
+    onSubmit: (event) => handleContainerSubmit(event),
+});
 
 function createEmptyCreateForm() {
     return {
@@ -120,134 +123,91 @@ const usersPagination = createPaginatedList({
     },
 });
 
-function resolveUsuariosContainer(container) {
-    if (container instanceof Element) {
-        return container;
-    }
+// Manejador del submit delegado del contenedor (formularios de crear/editar usuario).
+function handleContainerSubmit(event) {
+    const formElement = event.target;
 
-    if (typeof document === "undefined") {
-        return null;
-    }
-
-    const appContent = document.querySelector(".app__content");
-    return appContent instanceof Element ? appContent : null;
-}
-
-function removeContainerListeners() {
-    if (!domContainer) {
+    if (!(formElement instanceof HTMLFormElement)) {
         return;
     }
 
-    if (listenersRegistry.submit) {
-        domContainer.removeEventListener("submit", listenersRegistry.submit);
-        listenersRegistry.submit = null;
-    }
-
-    if (listenersRegistry.click) {
-        domContainer.removeEventListener("click", listenersRegistry.click);
-        listenersRegistry.click = null;
-    }
-}
-
-function assignContainerListeners() {
-    if (!domContainer) {
+    if (formElement.dataset.form === "create-user") {
+        event.preventDefault();
+        void handleCreateSubmit(new FormData(formElement));
         return;
     }
 
-    removeContainerListeners();
+    if (formElement.dataset.form === "edit-user") {
+        event.preventDefault();
+        void handleEditSubmit(new FormData(formElement));
+    }
+}
 
-    listenersRegistry.submit = (event) => {
-        const formElement = event.target;
+// Manejador del click delegado del contenedor (botones con data-action).
+function handleContainerClick(event) {
+    const btn = event.target instanceof Element
+        ? event.target.closest("[data-action]")
+        : null;
 
-        if (!(formElement instanceof HTMLFormElement)) {
-            return;
-        }
+    if (!btn) {
+        return;
+    }
 
-        if (formElement.dataset.form === "create-user") {
+    // Si el elemento resuelto con data-action es el overlay del modal,
+    // pero el click se originó dentro del diálogo interno, ignorarlo
+    if (
+        btn.classList.contains("usuarios__modal-overlay")
+        && event.target.closest(".usuarios__modal")
+    ) {
+        return;
+    }
+
+    const action = btn.dataset.action;
+
+    switch (action) {
+        case "open-create-modal":
             event.preventDefault();
-            void handleCreateSubmit(new FormData(formElement));
-            return;
-        }
-
-        if (formElement.dataset.form === "edit-user") {
+            handleOpenCreateModal();
+            break;
+        case "close-create-modal":
             event.preventDefault();
-            void handleEditSubmit(new FormData(formElement));
-        }
-    };
-
-    listenersRegistry.click = (event) => {
-        const btn = event.target instanceof Element
-            ? event.target.closest("[data-action]")
-            : null;
-
-        if (!btn) {
-            return;
-        }
-
-        // Si el elemento resuelto con data-action es el overlay del modal,
-        // pero el click se originó dentro del diálogo interno, ignorarlo
-        if (
-            btn.classList.contains("usuarios__modal-overlay")
-            && event.target.closest(".usuarios__modal")
-        ) {
-            return;
-        }
-
-        const action = btn.dataset.action;
-
-        switch (action) {
-            case "open-create-modal":
-                event.preventDefault();
-                handleOpenCreateModal();
-                break;
-            case "close-create-modal":
-                event.preventDefault();
-                handleCloseCreateModal();
-                break;
-            case "open-edit-modal":
-                event.preventDefault();
-                handleOpenEditModal(btn.dataset.userId);
-                break;
-            case "close-edit-modal":
-                event.preventDefault();
-                handleCloseEditModal();
-                break;
-            case "open-deactivate-modal":
-                event.preventDefault();
-                handleOpenDeactivateModal(btn.dataset.userId, btn.dataset.userName);
-                break;
-            case "cancel-deactivate":
-                event.preventDefault();
-                handleCancelDeactivate();
-                break;
-            case "confirm-deactivate":
-                event.preventDefault();
-                void handleConfirmDeactivate();
-                break;
-            case "pagination-prev":
-                event.preventDefault();
-                handlePageChange(usersPagination.prevPage() ? usersPagination.getState().currentPage : 1);
-                break;
-            case "pagination-next":
-                event.preventDefault();
-                handlePageChange(usersPagination.getState().currentPage + 1);
-                break;
-            default:
-                break;
-        }
-    };
-
-    domContainer.addEventListener("submit", listenersRegistry.submit);
-    domContainer.addEventListener("click", listenersRegistry.click);
+            handleCloseCreateModal();
+            break;
+        case "open-edit-modal":
+            event.preventDefault();
+            handleOpenEditModal(btn.dataset.userId);
+            break;
+        case "close-edit-modal":
+            event.preventDefault();
+            handleCloseEditModal();
+            break;
+        case "open-deactivate-modal":
+            event.preventDefault();
+            handleOpenDeactivateModal(btn.dataset.userId, btn.dataset.userName);
+            break;
+        case "cancel-deactivate":
+            event.preventDefault();
+            handleCancelDeactivate();
+            break;
+        case "confirm-deactivate":
+            event.preventDefault();
+            void handleConfirmDeactivate();
+            break;
+        case "pagination-prev":
+            event.preventDefault();
+            handlePageChange(usersPagination.prevPage() ? usersPagination.getState().currentPage : 1);
+            break;
+        case "pagination-next":
+            event.preventDefault();
+            handlePageChange(usersPagination.getState().currentPage + 1);
+            break;
+        default:
+            break;
+    }
 }
 
 function renderUsuariosScreen() {
-    if (!domContainer) {
-        return;
-    }
-
-    domContainer.innerHTML = renderUsuariosPage(state);
-    assignContainerListeners();
+    featureMount.renderScreen();
 }
 
 // Carga el catálogo de empleados para el select del modal de creación
@@ -601,20 +561,18 @@ async function handleEditSubmit(formData) {
 export async function initUsuarios(container) {
     cleanupUsuarios();
 
-    domContainer = resolveUsuariosContainer(container);
-
-    if (!domContainer) {
+    state = createInitialState();
+    const mounted = featureMount.mount(container);
+    if (!mounted) {
         return;
     }
 
-    state = createInitialState();
     renderUsuariosScreen();
 
     await loadUsersList();
 }
 
 export function cleanupUsuarios() {
-    removeContainerListeners();
-    domContainer = null;
+    featureMount.unmount();
     state = createInitialState();
 }

@@ -2,14 +2,18 @@ import { RECURSOS_VALIDATION, DEFAULT_RECURSOS_ERROR_MESSAGE } from "./recursos.
 import { normalizeRecursosHttpError } from "./recursos.mappers.js";
 import { getResources, createResource, updateResource, deleteResource } from "./recursos.service.js";
 import { renderRecursosPage } from "./recursos.view.js";
+import { createFeatureMount } from "../../shared/components/featureMount.js";
 
-let domContainer = null;
 let state = createInitialState();
 
-const listenersRegistry = {
-    submit: null,
-    click: null,
-};
+// Montaje compartido: resuelve el contenedor y gestiona los listeners delegados
+// click/submit (ver shared/components/featureMount.js). Los manejadores concretos
+// (handleContainerClick / handleFormSubmit) y el render siguen definidos abajo.
+const featureMount = createFeatureMount({
+    render: () => renderRecursosPage(state),
+    onClick: (event) => handleContainerClick(event),
+    onSubmit: (event) => handleFormSubmit(event),
+});
 
 function createEmptyForm() {
     return { name: "", totalQuantity: "" };
@@ -38,28 +42,8 @@ function createInitialState() {
     };
 }
 
-function resolveRecursosContainer(container) {
-    if (container instanceof Element) return container;
-    if (typeof document === "undefined") return null;
-    const appContent = document.querySelector(".app__content");
-    return appContent instanceof Element ? appContent : null;
-}
-
-function removeContainerListeners() {
-    if (!domContainer) return;
-    if (listenersRegistry.submit) {
-        domContainer.removeEventListener("submit", listenersRegistry.submit);
-        listenersRegistry.submit = null;
-    }
-    if (listenersRegistry.click) {
-        domContainer.removeEventListener("click", listenersRegistry.click);
-        listenersRegistry.click = null;
-    }
-}
-
 function renderRecursosScreen() {
-    if (!domContainer) return;
-    domContainer.innerHTML = renderRecursosPage(state);
+    featureMount.renderScreen();
 }
 
 function validateResourceForm(form) {
@@ -104,7 +88,8 @@ async function loadResources() {
 
 async function handleFormSubmit(event) {
     event.preventDefault();
-    const formEl = domContainer.querySelector("#resources-form");
+    const container = featureMount.getContainer();
+    const formEl = container?.querySelector("#resources-form");
     if (!formEl) return;
 
     const formData = new FormData(formEl);
@@ -274,20 +259,8 @@ function handleContainerClick(event) {
     }
 }
 
-function attachContainerListeners() {
-    if (!domContainer) return;
-
-    listenersRegistry.click = handleContainerClick;
-    listenersRegistry.submit = handleFormSubmit;
-
-    domContainer.addEventListener("click", listenersRegistry.click);
-    domContainer.addEventListener("submit", listenersRegistry.submit);
-}
-
 export function initRecursos(container) {
-    removeContainerListeners();
-    domContainer = resolveRecursosContainer(container);
     state = createInitialState();
-    attachContainerListeners();
+    featureMount.mount(container);
     loadResources();
 }
