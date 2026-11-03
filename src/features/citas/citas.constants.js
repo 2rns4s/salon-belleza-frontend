@@ -27,12 +27,6 @@ export const CITAS_HTTP_MESSAGES = Object.freeze({
     409: "El horario seleccionado ya no esta disponible. Actualiza la agenda e intenta nuevamente.",
 });
 
-export const CITAS_CACHE_KEYS = Object.freeze({
-    appointments: "citas:appointments",
-    availability: "citas:availability",
-    clients: "citas:clients",
-});
-
 export const CITAS_VIEW_MODES = Object.freeze({
     DAY: "day",
     WEEK: "week",
@@ -45,8 +39,6 @@ export const APPOINTMENT_STATUSES = Object.freeze([
     "REALIZADA",
 ]);
 
-export const SLOT_GRANULARITY_MINUTES = 30;
-
 export const CITAS_FILTER_DEBOUNCE_MS = 180;
 export const CITAS_SEARCH_DEBOUNCE_MS = 300;
 export const CITAS_CACHE_TTL_MS = 20_000;
@@ -56,12 +48,6 @@ export const CITAS_CACHE_TTL_MS = 20_000;
 export const CITAS_PERFORMANCE_THRESHOLDS_MS = Object.freeze({
     agendaLoadMs: 1500,
     availabilityRefreshMs: 500,
-});
-
-export const CONFLICT_TYPES = Object.freeze({
-    NONE: "NONE",
-    EMPLOYEE: "EMPLOYEE",
-    RESOURCE: "RESOURCE",
 });
 
 export const CITAS_UI_MESSAGES = Object.freeze({
@@ -78,25 +64,3 @@ export const CITAS_UI_MESSAGES = Object.freeze({
 });
 
 export const DEFAULT_CITAS_ERROR_MESSAGE = "Ocurrio un error inesperado. Intenta nuevamente.";
-
-// Pasos del wizard de reserva (columna izquierda). Son solo etiquetas y textos de UI;
-// la logica de disponibilidad/reserva/validacion no depende de estas constantes.
-export const CITAS_WIZARD_STEPS = Object.freeze([
-    Object.freeze({ id: 1, key: "service", label: "Servicio y fecha" }),
-    Object.freeze({ id: 2, key: "slot", label: "Elegi horario" }),
-    Object.freeze({ id: 3, key: "client", label: "Cliente" }),
-    Object.freeze({ id: 4, key: "confirm", label: "Confirmar" }),
-]);
-
-export const CITAS_WIZARD_MESSAGES = Object.freeze({
-    stepLocked: "Completa el paso anterior para continuar.",
-    stepServiceHint: "Selecciona un servicio y la fecha para ver la disponibilidad.",
-    stepSlotHint: "Elegi el empleado y luego un horario disponible.",
-    stepClientHint: "Busca el cliente o crealo con alta rapida.",
-    stepConfirmHint: "Revisa el resumen y confirma la cita.",
-    editStep: "Editar",
-    stepServicePlaceholder: "Sin servicio",
-    stepSlotPlaceholder: "Sin horario",
-    stepClientPlaceholder: "Sin cliente",
-    employeeAny: "Cualquier empleado disponible",
-});

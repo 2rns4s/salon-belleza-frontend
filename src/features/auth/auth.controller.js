@@ -65,62 +65,6 @@ function isGenericAuthMessage(message) {
     );
 }
 
-function resolveSignupErrorMessage(error) {
-    const status = error?.status || 0;
-    const message = String(error?.data?.message || error?.message || "");
-    const details = Array.isArray(error?.data?.details) ? error.data.details : [];
-    const fieldErrors = error?.data?.fieldErrors || {};
-
-    if (status === 400) {
-        return {
-            errorMessage: message || "Los datos ingresados no son validos. Revisa los campos.",
-            fieldErrors,
-        };
-    }
-
-    if (status === 404) {
-        return {
-            errorMessage: "No encontramos un empleado con ese correo. Contacta al administrador.",
-            fieldErrors: {},
-        };
-    }
-
-    if (status === 409) {
-        const lowerMessage = message.toLowerCase();
-        const lowerDetails = details.map((d) => d.toLowerCase());
-        const hasEmailConflict = lowerMessage.includes("correo")
-            || lowerMessage.includes("email")
-            || lowerDetails.some((d) => d.includes("correo") || d.includes("email"));
-        const hasUsernameConflict = lowerMessage.includes("usuario")
-            || lowerMessage.includes("username")
-            || lowerDetails.some((d) => d.includes("usuario") || d.includes("username"));
-
-        if (hasEmailConflict && !hasUsernameConflict) {
-            return {
-                errorMessage: "Ese correo ya tiene una cuenta creada. Inicia sesion.",
-                fieldErrors: {},
-            };
-        }
-
-        if (hasUsernameConflict && !hasEmailConflict) {
-            return {
-                errorMessage: "Ese nombre de usuario ya esta en uso. Elige otro.",
-                fieldErrors: {},
-            };
-        }
-
-        return {
-            errorMessage: "Ese correo ya tiene cuenta o el nombre de usuario ya esta en uso.",
-            fieldErrors: {},
-        };
-    }
-
-    return {
-        errorMessage: message || "Error inesperado del servidor. Por favor intenta mas tarde.",
-        fieldErrors: {},
-    };
-}
-
 function resolveUnauthorizedMessage(normalizedMessage, context) {
     const defaultMessage = context === AUTH_STATES.MFA
         ? "Codigo de verificacion invalido o expirado. Intenta nuevamente."

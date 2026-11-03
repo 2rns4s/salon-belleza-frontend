@@ -64,14 +64,6 @@ function renderCatalogBanner(resourcesCatalogStatus) {
     return "";
 }
 
-function renderResourceOptions(catalog = []) {
-    if (!catalog.length) return `<option value="">-- Sin recursos disponibles --</option>`;
-    const options = catalog
-        .map((r) => `<option value="${escapeHtml(r.id)}">${escapeHtml(r.name)}</option>`)
-        .join("");
-    return `<option value="">-- Seleccionar recurso --</option>${options}`;
-}
-
 function renderRequiredResourceRows(rows = [], catalog = []) {
     if (!rows.length) return "";
     return rows

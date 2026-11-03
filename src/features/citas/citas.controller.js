@@ -11,7 +11,7 @@ import {
     updateAppointment,
 } from "./citas.service.js";
 import { normalizeHttpError } from "./citas.mappers.js";
-import { validateDateNotPast, validateDateTimeNotPast } from "../../utils/dateValidator.js";
+import { validateDateTimeNotPast } from "../../utils/dateValidator.js";
 import { createAppointmentStateMachine } from "../../utils/stateMachine.js";
 import { createCache } from "../../hooks/useCache.js";
 import {

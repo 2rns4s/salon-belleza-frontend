@@ -9,7 +9,6 @@ export const MFA_SETUP_STEPS = {
     WAITING_FOR_SETUP: "waiting-setup",
     SHOWING_QR: "showing-qr",
     SETUP_ERROR: "setup-error",
-    VERIFYING: "verifying",
     SUCCESS: "success",
     ERROR: "error",
 };
