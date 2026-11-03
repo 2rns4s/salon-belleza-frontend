@@ -60,7 +60,6 @@ export const CITAS_UI_MESSAGES = Object.freeze({
     appointmentCreated: "Cita creada correctamente.",
     appointmentUpdated: "Estado de cita actualizado correctamente.",
     appointmentDeleted: "Cita eliminada correctamente.",
-    pastDateError: "No se pueden agendar citas en fechas pasadas",
 });
 
 export const DEFAULT_CITAS_ERROR_MESSAGE = "Ocurrio un error inesperado. Intenta nuevamente.";
