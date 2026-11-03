@@ -68,6 +68,22 @@ let catalogLoadError = false;
 let knownClientsById = new Map();
 let clientSearchRequestSeq = 0;
 
+// Si el empleado seleccionado ya no esta entre los elegibles para el servicio
+// actual, deja la seleccion vacia. Se usa tras cambiar servicio, empleado o filtros.
+function clearEmployeeIfNotEligible() {
+    if (!state.selectedEmployeeId) {
+        return;
+    }
+
+    const stillEligible = filteredEmployees.some(
+        (emp) => String(emp.id) === state.selectedEmployeeId,
+    );
+
+    if (!stillEligible) {
+        state.selectedEmployeeId = "";
+    }
+}
+
 function captureClientSearchFocusState() {
     if (typeof document === "undefined") {
         return null;
@@ -841,15 +857,7 @@ async function loadCatalogs() {
 
     filterEmployeesByService(state.selectedServiceId);
 
-    if (state.selectedEmployeeId) {
-        const stillEligible = filteredEmployees.some(
-            (emp) => String(emp.id) === state.selectedEmployeeId,
-        );
-
-        if (!stillEligible) {
-            state.selectedEmployeeId = "";
-        }
-    }
+    clearEmployeeIfNotEligible();
 }
 
 async function loadAgendaData({ forceRefresh = false, preserveErrorMessage = false } = {}) {
@@ -867,6 +875,9 @@ async function loadAgendaData({ forceRefresh = false, preserveErrorMessage = fal
     renderAgendaPanelOnly();
 
     try {
+        // Fase 1: cancelar cualquier carga anterior en curso y lanzar la peticion
+        // de citas. Un AbortController descarta respuestas viejas si el usuario
+        // cambia de filtros antes de que termine la peticion.
         currentAbortController?.abort();
         currentAbortController = new AbortController();
 
@@ -878,6 +889,8 @@ async function loadAgendaData({ forceRefresh = false, preserveErrorMessage = fal
             signal: requestSignal,
         });
 
+        // Fase 2: obtener la disponibilidad (solo si hay servicio elegido), usando
+        // cache cuando aplica. Se mide cuanto tardo para el umbral de rendimiento.
         let availabilitySlots = [];
 
         if (state.selectedServiceId) {
@@ -911,6 +924,9 @@ async function loadAgendaData({ forceRefresh = false, preserveErrorMessage = fal
             );
         }
 
+        // Fase 3: esperar las citas y completar el nombre real de cada cliente
+        // (el backend a veces devuelve un placeholder). Tras cada await se verifica
+        // si la peticion fue cancelada para no pisar datos con una respuesta vieja.
         const appointments = await appointmentsPromise;
 
         if (requestSignal.aborted) {
@@ -923,6 +939,8 @@ async function loadAgendaData({ forceRefresh = false, preserveErrorMessage = fal
             return;
         }
 
+        // Fase 4: ocultar los horarios ya pasados si la fecha es hoy, y volcar
+        // todo al estado para el re-render.
         const visibleAvailabilitySlots = filterNowForwardAvailabilitySlots(
             availabilitySlots,
             state.selectedDate,
@@ -984,16 +1002,7 @@ function handleFilterSubmit(formData) {
 
     filterEmployeesByService(state.selectedServiceId);
 
-    // Limpia empleado si ya no es elegible para el servicio seleccionado
-    if (state.selectedEmployeeId) {
-        const stillEligible = filteredEmployees.some(
-            (emp) => String(emp.id) === state.selectedEmployeeId,
-        );
-
-        if (!stillEligible) {
-            state.selectedEmployeeId = "";
-        }
-    }
+    clearEmployeeIfNotEligible();
 
     clearFormErrors();
     clearMessages();
@@ -1030,16 +1039,7 @@ function handleServiceChange(serviceId) {
     state.selectedServiceId = String(serviceId || "").trim();
     filterEmployeesByService(state.selectedServiceId);
 
-    // Limpia empleado si ya no es elegible
-    if (state.selectedEmployeeId) {
-        const stillEligible = filteredEmployees.some(
-            (emp) => String(emp.id) === state.selectedEmployeeId,
-        );
-
-        if (!stillEligible) {
-            state.selectedEmployeeId = "";
-        }
-    }
+    clearEmployeeIfNotEligible();
 
     // Auto-refresca la disponibilidad cuando ya hay fecha + servicio seleccionados
     if (state.selectedDate && state.selectedServiceId) {
@@ -1058,15 +1058,7 @@ function handleEmployeeChange(employeeId) {
 
     state.selectedEmployeeId = String(employeeId || "").trim();
 
-    if (state.selectedEmployeeId) {
-        const stillEligible = filteredEmployees.some(
-            (emp) => String(emp.id) === state.selectedEmployeeId,
-        );
-
-        if (!stillEligible) {
-            state.selectedEmployeeId = "";
-        }
-    }
+    clearEmployeeIfNotEligible();
 
     state.selectedSlot = null;
 
