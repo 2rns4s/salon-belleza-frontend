@@ -1,172 +1,172 @@
 /* MFA Setup/Enable Feature Styles */
 
 .mfa {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex: 1;
-    min-height: 0;
-    padding: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  min-height: 0;
+  padding: 1rem;
 }
 
 .mfa__card {
-    background: var(--color-superficie);
-    border-radius: 8px;
-    padding: 2rem;
-    box-shadow: 0 2px 8px var(--color-shadow-elevated);
-    max-width: 500px;
-    width: 100%;
+  background: var(--color-superficie);
+  border-radius: 8px;
+  padding: 2rem;
+  box-shadow: 0 2px 8px var(--color-shadow-elevated);
+  max-width: 500px;
+  width: 100%;
 }
 
 .mfa__card--success {
-    border: 2px solid var(--color-feedback-success-border);
-    background: var(--color-feedback-success-bg);
+  border: 2px solid var(--color-feedback-success-border);
+  background: var(--color-feedback-success-bg);
 }
 
 .mfa__card--error {
-    border: 2px solid var(--color-feedback-error-border);
-    background: var(--color-feedback-error-bg);
+  border: 2px solid var(--color-feedback-error-border);
+  background: var(--color-feedback-error-bg);
 }
 
 .mfa__title {
-    font-size: 1.5rem;
-    font-weight: 600;
-    margin: 0 0 0.5rem 0;
-    color: var(--color-texto-principal);
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem 0;
+  color: var(--color-texto-principal);
 }
 
 .mfa__description {
-    font-size: 0.95rem;
-    color: var(--color-texto-secundario);
-    margin: 0 0 1.5rem 0;
-    line-height: 1.5;
+  font-size: 0.95rem;
+  color: var(--color-texto-secundario);
+  margin: 0 0 1.5rem 0;
+  line-height: 1.5;
 }
 
 .mfa__step {
-    margin: 1.5rem 0;
+  margin: 1.5rem 0;
 }
 
 .mfa__step-title {
-    font-size: 1rem;
-    font-weight: 600;
-    color: var(--color-texto-principal);
-    margin: 0 0 1rem 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-texto-principal);
+  margin: 0 0 1rem 0;
 }
 
 .mfa__qr-image {
-    display: block;
-    max-width: 250px;
-    height: auto;
-    margin: 0 auto;
-    border: 2px solid var(--color-input-border);
-    border-radius: 4px;
-    padding: 0.5rem;
+  display: block;
+  max-width: 250px;
+  height: auto;
+  margin: 0 auto;
+  border: 2px solid var(--color-input-border);
+  border-radius: 4px;
+  padding: 0.5rem;
 }
 
 .mfa__form {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
 
 .mfa__field {
-    display: flex;
-    flex-direction: column;
+  display: flex;
+  flex-direction: column;
 }
 
 .mfa__label {
-    font-size: 0.95rem;
-    font-weight: 500;
-    margin-bottom: 0.5rem;
-    color: var(--color-texto-principal);
+  font-size: 0.95rem;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+  color: var(--color-texto-principal);
 }
 
 .mfa__input {
-    padding: 0.75rem;
-    border: 1px solid var(--color-input-border);
-    border-radius: 4px;
-    font-size: 1rem;
-    font-family: monospace;
-    transition: border-color 0.2s, box-shadow 0.2s;
+  padding: 0.75rem;
+  border: 1px solid var(--color-input-border);
+  border-radius: 4px;
+  font-size: 1rem;
+  font-family: monospace;
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
 
 .mfa__input:focus {
-    outline: none;
-    border-color: var(--color-header-vinotinto-claro);
-    box-shadow: 0 0 0 3px var(--color-focus-ring);
+  outline: none;
+  border-color: var(--color-header-vinotinto-claro);
+  box-shadow: 0 0 0 3px var(--color-focus-ring);
 }
 
 .mfa__input--totp {
-    letter-spacing: 0.2em;
-    font-size: 1.25rem;
-    text-align: center;
+  letter-spacing: 0.2em;
+  font-size: 1.25rem;
+  text-align: center;
 }
 
 .mfa__field-error {
-    font-size: 0.85rem;
-    color: var(--color-feedback-error-text);
-    margin-top: 0.25rem;
+  font-size: 0.85rem;
+  color: var(--color-feedback-error-text);
+  margin-top: 0.25rem;
 }
 
 .mfa__error-global {
-    padding: 1rem;
-    margin: 0 0 1rem 0;
-    background: var(--color-feedback-error-bg);
-    border: 1px solid var(--color-feedback-error-border);
-    color: var(--color-feedback-error-text);
-    border-radius: 4px;
-    font-size: 0.95rem;
+  padding: 1rem;
+  margin: 0 0 1rem 0;
+  background: var(--color-feedback-error-bg);
+  border: 1px solid var(--color-feedback-error-border);
+  color: var(--color-feedback-error-text);
+  border-radius: 4px;
+  font-size: 0.95rem;
 }
 
 .mfa__btn {
-    padding: 0.75rem 1.5rem;
-    border: none;
-    border-radius: 4px;
-    font-size: 1rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: background-color 0.2s, opacity 0.2s;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 4px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s, opacity 0.2s;
 }
 
 .mfa__btn--primary {
-    background: var(--color-header-vinotinto-claro);
-    color: var(--color-texto-inverso);
+  background: var(--color-header-vinotinto-claro);
+  color: var(--color-texto-inverso);
 }
 
 .mfa__btn--primary:hover:not(:disabled) {
-    background: var(--color-vinotinto-hover);
+  background: var(--color-vinotinto-hover);
 }
 
 .mfa__btn--secondary {
-    background: var(--color-vinotinto-muted);
-    color: var(--color-texto-inverso);
+  background: var(--color-vinotinto-muted);
+  color: var(--color-texto-inverso);
 }
 
 .mfa__btn--secondary:hover:not(:disabled) {
-    background: var(--color-vinotinto-contrast);
+  background: var(--color-vinotinto-contrast);
 }
 
 .mfa__btn:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 /* Responsive design */
 @media (max-width: 600px) {
-    .mfa__card {
-        padding: 1.5rem;
-    }
+  .mfa__card {
+    padding: 1.5rem;
+  }
 
-    .mfa__title {
-        font-size: 1.25rem;
-    }
+  .mfa__title {
+    font-size: 1.25rem;
+  }
 
-    .mfa__btn {
-        padding: 0.65rem 1.25rem;
-        font-size: 0.95rem;
-    }
+  .mfa__btn {
+    padding: 0.65rem 1.25rem;
+    font-size: 0.95rem;
+  }
 
-    .mfa__qr-image {
-        max-width: 200px;
-    }
+  .mfa__qr-image {
+    max-width: 200px;
+  }
 }

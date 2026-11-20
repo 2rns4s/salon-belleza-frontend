@@ -6,74 +6,74 @@ const ROOTS = ["src", "tests"];
 const IGNORED_DIRECTORIES = new Set(["node_modules", ".git"]);
 
 async function collectJsFiles(directory) {
-    const entries = await readdir(directory, { withFileTypes: true });
-    const files = [];
+  const entries = await readdir(directory, { withFileTypes: true });
+  const files = [];
 
-    for (const entry of entries) {
-        const absolutePath = join(directory, entry.name);
+  for (const entry of entries) {
+    const absolutePath = join(directory, entry.name);
 
-        if (entry.isDirectory()) {
-            if (IGNORED_DIRECTORIES.has(entry.name)) {
-                continue;
-            }
+    if (entry.isDirectory()) {
+      if (IGNORED_DIRECTORIES.has(entry.name)) {
+        continue;
+      }
 
-            files.push(...(await collectJsFiles(absolutePath)));
-            continue;
-        }
-
-        if (entry.isFile() && extname(entry.name) === ".js") {
-            files.push(absolutePath);
-        }
+      files.push(...(await collectJsFiles(absolutePath)));
+      continue;
     }
 
-    return files;
+    if (entry.isFile() && extname(entry.name) === ".js") {
+      files.push(absolutePath);
+    }
+  }
+
+  return files;
 }
 
 function checkFileSyntax(filePath) {
-    const result = spawnSync(process.execPath, ["--check", filePath], {
-        encoding: "utf8",
-    });
+  const result = spawnSync(process.execPath, ["--check", filePath], {
+    encoding: "utf8",
+  });
 
-    return {
-        ok: result.status === 0,
-        stderr: result.stderr || "",
-        filePath,
-    };
+  return {
+    ok: result.status === 0,
+    stderr: result.stderr || "",
+    filePath,
+  };
 }
 
 async function run() {
-    const files = [];
+  const files = [];
 
-    for (const root of ROOTS) {
-        files.push(...(await collectJsFiles(root)));
+  for (const root of ROOTS) {
+    files.push(...(await collectJsFiles(root)));
+  }
+
+  if (!files.length) {
+    console.log("No se encontraron archivos .js para validar.");
+    return;
+  }
+
+  const failures = files
+    .map(checkFileSyntax)
+    .filter((result) => !result.ok);
+
+  if (failures.length > 0) {
+    console.error("Se detectaron errores de sintaxis en los siguientes archivos:\n");
+
+    for (const failure of failures) {
+      console.error(`${failure.filePath}`);
+      console.error(failure.stderr.trim());
+      console.error("");
     }
 
-    if (!files.length) {
-        console.log("No se encontraron archivos .js para validar.");
-        return;
-    }
+    process.exit(1);
+  }
 
-    const failures = files
-        .map(checkFileSyntax)
-        .filter((result) => !result.ok);
-
-    if (failures.length > 0) {
-        console.error("Se detectaron errores de sintaxis en los siguientes archivos:\n");
-
-        for (const failure of failures) {
-            console.error(`${failure.filePath}`);
-            console.error(failure.stderr.trim());
-            console.error("");
-        }
-
-        process.exit(1);
-    }
-
-    console.log(`Sintaxis valida en ${files.length} archivos JavaScript.`);
+  console.log(`Sintaxis valida en ${files.length} archivos JavaScript.`);
 }
 
 run().catch((error) => {
-    console.error("Fallo inesperado durante el chequeo de sintaxis.");
-    console.error(error);
-    process.exit(1);
+  console.error("Fallo inesperado durante el chequeo de sintaxis.");
+  console.error(error);
+  process.exit(1);
 });

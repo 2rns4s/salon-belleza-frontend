@@ -6,21 +6,21 @@ import { TOTP_CODE_REGEX, TOTP_CODE_MAX_LENGTH, MFA_FIELD_MESSAGES } from "./mfa
  * @returns {Object} {secret, qrCodeUrl}
  */
 export function mapMfaSetupResponse(responseData) {
-    if (!responseData || typeof responseData !== "object") {
-        throw new Error("Respuesta inválida del servidor.");
-    }
+  if (!responseData || typeof responseData !== "object") {
+    throw new Error("Respuesta inválida del servidor.");
+  }
 
-    const { secret, qrCodeUrl } = responseData;
+  const { secret, qrCodeUrl } = responseData;
 
-    if (!secret || typeof secret !== "string") {
-        throw new Error("El servidor no proporcionó un secret válido.");
-    }
+  if (!secret || typeof secret !== "string") {
+    throw new Error("El servidor no proporcionó un secret válido.");
+  }
 
-    if (!qrCodeUrl || typeof qrCodeUrl !== "string") {
-        throw new Error("El servidor no proporcionó un código QR válido.");
-    }
+  if (!qrCodeUrl || typeof qrCodeUrl !== "string") {
+    throw new Error("El servidor no proporcionó un código QR válido.");
+  }
 
-    return { secret, qrCodeUrl };
+  return { secret, qrCodeUrl };
 }
 
 /**
@@ -31,30 +31,30 @@ export function mapMfaSetupResponse(responseData) {
  * @throws Error si validación falla
  */
 export function mapMfaEnablePayload(secret, code) {
-    const fieldErrors = {};
+  const fieldErrors = {};
 
-    // Validar secret
-    if (!secret || typeof secret !== "string") {
-        throw new Error("Secret inválido.");
-    }
+  // Validar secret
+  if (!secret || typeof secret !== "string") {
+    throw new Error("Secret inválido.");
+  }
 
-    // Validar code
-    if (!code) {
-        fieldErrors.code = MFA_FIELD_MESSAGES.code.required;
-    } else if (!TOTP_CODE_REGEX.test(String(code).trim())) {
-        fieldErrors.code = MFA_FIELD_MESSAGES.code.invalid;
-    }
+  // Validar code
+  if (!code) {
+    fieldErrors.code = MFA_FIELD_MESSAGES.code.required;
+  } else if (!isValidTotpFormat(code)) {
+    fieldErrors.code = MFA_FIELD_MESSAGES.code.invalid;
+  }
 
-    if (Object.keys(fieldErrors).length > 0) {
-        const error = new Error("Validación de formulario fallida.");
-        error.fieldErrors = fieldErrors;
-        throw error;
-    }
+  if (Object.keys(fieldErrors).length > 0) {
+    const error = new Error("Validación de formulario fallida.");
+    error.fieldErrors = fieldErrors;
+    throw error;
+  }
 
-    return {
-        secret: String(secret).trim(),
-        code: String(code).trim(),
-    };
+  return {
+    secret: String(secret).trim(),
+    code: String(code).trim(),
+  };
 }
 
 /**
@@ -63,10 +63,10 @@ export function mapMfaEnablePayload(secret, code) {
  * @returns {string} Código limpio o vacío
  */
 export function sanitizeTotp(rawCode) {
-    if (!rawCode) {
-        return "";
-    }
-    return String(rawCode).trim().replace(/\D/g, "").slice(0, TOTP_CODE_MAX_LENGTH);
+  if (!rawCode) {
+    return "";
+  }
+  return String(rawCode).trim().replace(/\D/g, "").slice(0, TOTP_CODE_MAX_LENGTH);
 }
 
 /**
@@ -75,5 +75,23 @@ export function sanitizeTotp(rawCode) {
  * @returns {boolean} true si válido
  */
 export function isValidTotpFormat(code) {
-    return TOTP_CODE_REGEX.test(String(code || "").trim());
+  return TOTP_CODE_REGEX.test(String(code || "").trim());
+}
+
+// The enable endpoint can return an empty body after successful activation.
+export function mapMfaEnableResponse({ token }) {
+  return { token };
+}
+
+// Clean the input for immediate UI feedback. The service validates its own payload
+// with the same format rule before sending it to the backend.
+export function validateTotpInput(rawCode) {
+  const sanitized = sanitizeTotp(rawCode);
+  const valid = isValidTotpFormat(sanitized);
+
+  return {
+    valid,
+    sanitized,
+    fieldErrors: valid ? {} : { code: MFA_FIELD_MESSAGES.code.invalid },
+  };
 }

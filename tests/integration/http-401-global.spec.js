@@ -2,161 +2,161 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createErrorResponseFixture } from "../fixtures/shared/error-response.fixture.js";
 
 function createJsonResponse({ ok = true, status = 200, data = {} } = {}) {
-    return {
-        ok,
-        status,
-        headers: {
-            get: () => "application/json",
-        },
-        json: async () => data,
-        text: async () => JSON.stringify(data),
-    };
+  return {
+    ok,
+    status,
+    headers: {
+      get: () => "application/json",
+    },
+    json: async () => data,
+    text: async () => JSON.stringify(data),
+  };
 }
 
 function wait(ms = 0) {
-    return new Promise((resolve) => {
-        setTimeout(resolve, ms);
-    });
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
 }
 
 describe("http 401 global handling", () => {
-    beforeEach(() => {
-        vi.restoreAllMocks();
+  beforeEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("executes unauthorized callback only once while handling concurrent 401 errors", async () => {
+    const { httpClient, setUnauthorizedHandler } = await import("../../src/shared/services/httpClient.js");
+
+    let callbackExecutions = 0;
+    setUnauthorizedHandler(async () => {
+      callbackExecutions += 1;
+      await wait(30);
     });
 
-    it("executes unauthorized callback only once while handling concurrent 401 errors", async () => {
-        const { httpClient, setUnauthorizedHandler } = await import("../../src/shared/services/httpClient.js");
+    vi.spyOn(globalThis, "fetch").mockImplementation(() => (
+      Promise.resolve(createJsonResponse({
+        ok: false,
+        status: 401,
+        data: { message: "Token expirado" },
+      }))
+    ));
 
-        let callbackExecutions = 0;
-        setUnauthorizedHandler(async () => {
-            callbackExecutions += 1;
-            await wait(30);
-        });
+    await Promise.allSettled([
+      httpClient("/api/v1/citas"),
+      httpClient("/api/v1/disponibilidad"),
+    ]);
 
-        vi.spyOn(globalThis, "fetch").mockImplementation(() => (
-            Promise.resolve(createJsonResponse({
-                ok: false,
-                status: 401,
-                data: { message: "Token expirado" },
-            }))
-        ));
+    expect(callbackExecutions).toBe(1);
+  });
 
-        await Promise.allSettled([
-            httpClient("/api/v1/citas"),
-            httpClient("/api/v1/disponibilidad"),
-        ]);
+  it("executes unauthorized callback for 403 responses too", async () => {
+    const { httpClient, setUnauthorizedHandler } = await import("../../src/shared/services/httpClient.js");
 
-        expect(callbackExecutions).toBe(1);
+    let callbackExecutions = 0;
+    setUnauthorizedHandler(async () => {
+      callbackExecutions += 1;
     });
 
-    it("executes unauthorized callback for 403 responses too", async () => {
-        const { httpClient, setUnauthorizedHandler } = await import("../../src/shared/services/httpClient.js");
+    vi.spyOn(globalThis, "fetch").mockImplementation(() => (
+      Promise.resolve(createJsonResponse({
+        ok: false,
+        status: 403,
+        data: { message: "Acceso denegado" },
+      }))
+    ));
 
-        let callbackExecutions = 0;
-        setUnauthorizedHandler(async () => {
-            callbackExecutions += 1;
-        });
+    await expect(httpClient("/api/v1/citas?fecha=2026-03-11")).rejects.toMatchObject({ status: 403 });
+    expect(callbackExecutions).toBe(1);
+  });
 
-        vi.spyOn(globalThis, "fetch").mockImplementation(() => (
-            Promise.resolve(createJsonResponse({
-                ok: false,
-                status: 403,
-                data: { message: "Acceso denegado" },
-            }))
-        ));
+  it("skipUnauthorizedHandler evita callback pero preserva rechazo 401 con ErrorResponse", async () => {
+    const { httpClient, setUnauthorizedHandler } = await import("../../src/shared/services/httpClient.js");
 
-        await expect(httpClient("/api/v1/citas?fecha=2026-03-11")).rejects.toMatchObject({ status: 403 });
-        expect(callbackExecutions).toBe(1);
+    const unauthorizedError = createErrorResponseFixture(401, {
+      message: "Token expirado",
+      details: ["auth: token invalido o expirado"],
     });
 
-    it("skipUnauthorizedHandler evita callback pero preserva rechazo 401 con ErrorResponse", async () => {
-        const { httpClient, setUnauthorizedHandler } = await import("../../src/shared/services/httpClient.js");
-
-        const unauthorizedError = createErrorResponseFixture(401, {
-            message: "Token expirado",
-            details: ["auth: token invalido o expirado"],
-        });
-
-        let callbackExecutions = 0;
-        setUnauthorizedHandler(async () => {
-            callbackExecutions += 1;
-        });
-
-        vi.spyOn(globalThis, "fetch").mockImplementation(() => (
-            Promise.resolve(createJsonResponse({
-                ok: false,
-                status: 401,
-                data: unauthorizedError,
-            }))
-        ));
-
-        await expect(httpClient("/api/v1/citas", { skipUnauthorizedHandler: true })).rejects.toMatchObject({
-            status: 401,
-            data: unauthorizedError,
-        });
-
-        expect(callbackExecutions).toBe(0);
+    let callbackExecutions = 0;
+    setUnauthorizedHandler(async () => {
+      callbackExecutions += 1;
     });
 
-    it("clears session and redirects to /auth when bootstrap global callback handles 401", async () => {
-        const { guardarSesion, obtenerEstadoAuth, obtenerToken } = await import("../../src/shared/state/authStore.js");
-        const { httpClient } = await import("../../src/shared/services/httpClient.js");
-        const { initializeApp } = await import("../../src/app/bootstrap.js");
+    vi.spyOn(globalThis, "fetch").mockImplementation(() => (
+      Promise.resolve(createJsonResponse({
+        ok: false,
+        status: 401,
+        data: unauthorizedError,
+      }))
+    ));
 
-        document.body.innerHTML = "<main class=\"app__content\"></main>";
-        window.appFeatureRoutes = [
-            {
-                path: "/auth",
-                handler: () => {},
-            },
-        ];
-
-        initializeApp();
-
-        guardarSesion({
-            usuario: "recepcion",
-            rol: "RECEPTIONIST",
-            token: "jwt-token",
-        });
-
-        expect(obtenerEstadoAuth().sesionIniciada).toBe(true);
-
-        vi.spyOn(globalThis, "fetch").mockImplementation(() => (
-            Promise.resolve(createJsonResponse({
-                ok: false,
-                status: 401,
-                data: { message: "Token expirado" },
-            }))
-        ));
-
-        await expect(httpClient("/api/v1/citas")).rejects.toMatchObject({ status: 401 });
-
-        expect(obtenerEstadoAuth().sesionIniciada).toBe(false);
-        expect(obtenerToken()).toBeNull();
-        expect(window.location.hash).toBe("#/auth");
+    await expect(httpClient("/api/v1/citas", { skipUnauthorizedHandler: true })).rejects.toMatchObject({
+      status: 401,
+      data: unauthorizedError,
     });
 
-    it("propaga details[] del ErrorResponse cuando falla con 401", async () => {
-        const { httpClient, setUnauthorizedHandler } = await import("../../src/shared/services/httpClient.js");
+    expect(callbackExecutions).toBe(0);
+  });
 
-        setUnauthorizedHandler(async () => {});
+  it("clears session and redirects to /auth when bootstrap global callback handles 401", async () => {
+    const { guardarSesion, obtenerEstadoAuth, obtenerToken } = await import("../../src/shared/state/authStore.js");
+    const { httpClient } = await import("../../src/shared/services/httpClient.js");
+    const { initializeApp } = await import("../../src/app/bootstrap.js");
 
-        const unauthorizedError = createErrorResponseFixture(401, {
-            message: "Token expirado",
-            details: ["auth: token invalido o expirado"],
-        });
+    document.body.innerHTML = "<main class=\"app__content\"></main>";
+    window.appFeatureRoutes = [
+      {
+        path: "/auth",
+        handler: () => {},
+      },
+    ];
 
-        vi.spyOn(globalThis, "fetch").mockImplementation(() => (
-            Promise.resolve(createJsonResponse({
-                ok: false,
-                status: 401,
-                data: unauthorizedError,
-            }))
-        ));
+    initializeApp();
 
-        await expect(httpClient("/api/v1/clientes")).rejects.toMatchObject({
-            status: 401,
-            data: unauthorizedError,
-        });
+    guardarSesion({
+      usuario: "recepcion",
+      rol: "RECEPTIONIST",
+      token: "jwt-token",
     });
+
+    expect(obtenerEstadoAuth().sesionIniciada).toBe(true);
+
+    vi.spyOn(globalThis, "fetch").mockImplementation(() => (
+      Promise.resolve(createJsonResponse({
+        ok: false,
+        status: 401,
+        data: { message: "Token expirado" },
+      }))
+    ));
+
+    await expect(httpClient("/api/v1/citas")).rejects.toMatchObject({ status: 401 });
+
+    expect(obtenerEstadoAuth().sesionIniciada).toBe(false);
+    expect(obtenerToken()).toBeNull();
+    expect(window.location.hash).toBe("#/auth");
+  });
+
+  it("propaga details[] del ErrorResponse cuando falla con 401", async () => {
+    const { httpClient, setUnauthorizedHandler } = await import("../../src/shared/services/httpClient.js");
+
+    setUnauthorizedHandler(async () => {});
+
+    const unauthorizedError = createErrorResponseFixture(401, {
+      message: "Token expirado",
+      details: ["auth: token invalido o expirado"],
+    });
+
+    vi.spyOn(globalThis, "fetch").mockImplementation(() => (
+      Promise.resolve(createJsonResponse({
+        ok: false,
+        status: 401,
+        data: unauthorizedError,
+      }))
+    ));
+
+    await expect(httpClient("/api/v1/clientes")).rejects.toMatchObject({
+      status: 401,
+      data: unauthorizedError,
+    });
+  });
 });

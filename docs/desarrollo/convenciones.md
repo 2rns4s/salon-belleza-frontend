@@ -21,7 +21,7 @@ Estas convenciones describen el código vigente. Deben conservar la separación 
 | Rutas | paths breves en minúsculas | `/auth`, `/mfa-setup`, `/user-settings` |
 | Constantes agrupadas | `UPPER_SNAKE_CASE`, frecuentemente `Object.freeze` | `CITAS_ENDPOINTS`, `MFA_SETUP_STEPS` |
 | Factories de endpoint | función dentro del catálogo | `userById(id)` |
-| CSS | BEM `block__element--modifier` | `app__header`, `citas__...` |
+| CSS | BEM en inglés, `block__element--modifier` | `app__header`, `appointments__slot--selected` |
 | Pruebas | sufijo `.spec.js` | `mfa-active-guard.spec.js` |
 
 No se usan clases como `LoginController` o rutas como `/login-page`; eran ejemplos históricos que no reflejaban el código funcional.
@@ -29,10 +29,10 @@ No se usan clases como `LoginController` o rutas como `/login-page`; eran ejempl
 ## JavaScript
 
 - El proyecto usa ESM (`"type": "module"`) con `import` y `export` explícitos.
-- Preferir `const`; usar `let` solo cuando el valor cambia.
+- Usar `camelCase` para variables y funciones y `UPPER_SNAKE_CASE` para valores constantes. Preferir `const` y usar `let` cuando haya reasignación. Evitar `var`.
 - Mantener funciones pequeñas con responsabilidad observable y retornos explícitos.
 - Utilizar optional chaining y valores por defecto cuando el contrato admite ausencia.
-- Conservar el estilo del archivo: indentación de cuatro espacios, comillas dobles y comas finales en listas multilínea.
+- Conservar el estilo del archivo: indentación de dos espacios en JavaScript, HTML y CSS, llaves de apertura en la misma línea (K&R), comillas dobles y comas finales en listas multilínea.
 - No introducir un framework, bundler o nueva abstracción sin una decisión de arquitectura y actualización documental.
 - Los comentarios deben explicar decisiones o restricciones; no repetir literalmente el código.
 
@@ -73,7 +73,7 @@ Las variaciones de error deben pasar por `httpErrorNormalizer.js`, que reconoce 
 ## Validación y seguridad en UI
 
 - Validar formato para mejorar la experiencia, pero no sustituir reglas del backend.
-- Escapar contenido dinámico antes de interpolarlo en HTML. Existe `src/shared/ui/escapeHtml.js` y helpers locales heredados; evitar nuevas duplicaciones.
+- Escapar contenido dinámico antes de interpolarlo en HTML. Usar `escapeHtml()` de `src/shared/ui/escapeHtml.js` para valores dinámicos de texto y atributos.
 - No registrar JWT, pre-auth tokens, secretos MFA ni datos personales en consola.
 - No interpretar la decodificación del payload JWT como verificación de firma.
 - Toda operación sensible debe seguir autorizada por el backend aunque la ruta tenga guarda de UI.
@@ -82,7 +82,7 @@ Las variaciones de error deben pasar por `httpErrorNormalizer.js`, que reconoce 
 
 - Usar tokens de `src/shared/styles/global.css` antes de introducir valores equivalentes.
 - Mantener bloques por feature y modificadores explícitos.
-- El módulo de citas conserva temporalmente clases `citas*` y aliases `appointments*`; cualquier retiro debe validar consumidores y pruebas.
+- Definir los estilos de cada feature en `<feature>.css`. Los IDs técnicos conservan su nombre cuando vinculan etiquetas y controles, enlazan eventos o identifican elementos desde ARIA.
 - No afirmar que existe un design system completo: actualmente hay tokens de color, patrones y componentes visuales, pero no escalas formales de spacing o tipografía.
 
 Consulte [Sistema de diseño](../estilos/sistema-de-diseno.md).

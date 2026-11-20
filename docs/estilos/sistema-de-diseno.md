@@ -94,15 +94,14 @@ Ejemplos vigentes:
 .app__header {}
 .app__title {}
 .app__content {}
-.citas__... {}
-.appointments__... {}
+.appointments__slot--selected {}
+.users__badge--active {}
 ```
 
-### Compatibilidad temporal de citas
+### Estilos de citas
 
-El módulo de citas conserva bloques en español (`citas`, `citas__*`) y aliases en inglés (`appointments`, `appointments__*`). `appendAppointmentsBEMAliases()` agrega las clases compatibles y `appointments.alias.css` mantiene selectores alternos.
+El módulo de citas utiliza el bloque BEM `appointments` y define sus estilos en `src/features/citas/citas.css`.
 
-Esta duplicidad es deuda controlada. No debe retirarse un conjunto hasta comprobar markup, CSS y pruebas que dependan de los nombres legacy.
 
 ## Patrones de componentes
 

@@ -21,40 +21,40 @@
  * @returns {{ mount: (container?: Element) => Element|null, unmount: () => void, renderScreen: () => void, getContainer: () => Element|null }}
  */
 export function createFeatureMount({ render, onClick, onSubmit }) {
-    let domContainer = null;
+  let domContainer = null;
 
-    function resolveContainer(container) {
-        if (container instanceof Element) return container;
-        if (typeof document === "undefined") return null;
-        const appContent = document.querySelector(".app__content");
-        return appContent instanceof Element ? appContent : null;
+  function resolveContainer(container) {
+    if (container instanceof Element) return container;
+    if (typeof document === "undefined") return null;
+    const appContent = document.querySelector(".app__content");
+    return appContent instanceof Element ? appContent : null;
+  }
+
+  function renderScreen() {
+    if (!domContainer) return;
+    domContainer.innerHTML = render();
+  }
+
+  function unmount() {
+    if (!domContainer) return;
+    if (onClick) domContainer.removeEventListener("click", onClick);
+    if (onSubmit) domContainer.removeEventListener("submit", onSubmit);
+  }
+
+  function mount(container) {
+    unmount();
+    domContainer = resolveContainer(container);
+    if (domContainer) {
+      if (onClick) domContainer.addEventListener("click", onClick);
+      if (onSubmit) domContainer.addEventListener("submit", onSubmit);
     }
+    return domContainer;
+  }
 
-    function renderScreen() {
-        if (!domContainer) return;
-        domContainer.innerHTML = render();
-    }
-
-    function unmount() {
-        if (!domContainer) return;
-        if (onClick) domContainer.removeEventListener("click", onClick);
-        if (onSubmit) domContainer.removeEventListener("submit", onSubmit);
-    }
-
-    function mount(container) {
-        unmount();
-        domContainer = resolveContainer(container);
-        if (domContainer) {
-            if (onClick) domContainer.addEventListener("click", onClick);
-            if (onSubmit) domContainer.addEventListener("submit", onSubmit);
-        }
-        return domContainer;
-    }
-
-    return {
-        mount,
-        unmount,
-        renderScreen,
-        getContainer: () => domContainer,
-    };
+  return {
+    mount,
+    unmount,
+    renderScreen,
+    getContainer: () => domContainer,
+  };
 }

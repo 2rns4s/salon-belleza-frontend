@@ -39,7 +39,7 @@ Las rutas se verificaron en Services y constantes del frontend. El éxito, las r
 | Clientes | `GET /api/v1/clientes/{id}` | Consultar cliente desde el flujo de citas. |
 | Clientes | `GET /api/v1/clientes/buscar` | Buscar con filtros de teléfono, documento o nombre construidos por el consumidor. |
 | Clientes | `POST /api/v1/clientes` | Crear cliente. |
-| Clientes | `PUT /api/v1/clientes/{id}` | Contrato suministrado históricamente; confirmar uso/soporte backend. |
+| Clientes | `PUT /api/v1/clientes/{id}` | Editar nombre, apellido y teléfono (obligatorios). Retorna el cliente actualizado; el documento es inmutable. |
 | Clientes | `DELETE /api/v1/clientes/{id}` | Contrato suministrado históricamente; confirmar uso/soporte backend. |
 | Empleados | `GET /api/v1/empleados` | Listar empleados y poblar catálogos. |
 | Empleados | `GET /api/v1/empleados/{id}` | Obtener detalle. |

@@ -26,39 +26,39 @@ import { httpClient } from "./httpClient.js";
  * @returns {{ list: Function, create: Function, update: Function, remove: Function }}
  */
 export function createCrudService({
-    listEndpoint,
-    detailEndpoint,
-    mapList,
-    mapOne,
-    mapCreate,
-    mapUpdate,
+  listEndpoint,
+  detailEndpoint,
+  mapList,
+  mapOne,
+  mapCreate,
+  mapUpdate,
 }) {
-    async function list() {
-        const data = await httpClient(listEndpoint);
-        return mapList(data);
-    }
+  async function list() {
+    const data = await httpClient(listEndpoint);
+    return mapList(data);
+  }
 
-    async function create(formState) {
-        const payload = mapCreate(formState);
-        const data = await httpClient(listEndpoint, {
-            method: "POST",
-            body: JSON.stringify(payload),
-        });
-        return mapOne(data);
-    }
+  async function create(formState) {
+    const payload = mapCreate(formState);
+    const data = await httpClient(listEndpoint, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+    return mapOne(data);
+  }
 
-    async function update(id, formState) {
-        const payload = mapUpdate(formState);
-        const data = await httpClient(detailEndpoint(id), {
-            method: "PUT",
-            body: JSON.stringify(payload),
-        });
-        return mapOne(data);
-    }
+  async function update(id, formState) {
+    const payload = mapUpdate(formState);
+    const data = await httpClient(detailEndpoint(id), {
+      method: "PUT",
+      body: JSON.stringify(payload),
+    });
+    return mapOne(data);
+  }
 
-    async function remove(id) {
-        await httpClient(detailEndpoint(id), { method: "DELETE" });
-    }
+  async function remove(id) {
+    await httpClient(detailEndpoint(id), { method: "DELETE" });
+  }
 
-    return { list, create, update, remove };
+  return { list, create, update, remove };
 }

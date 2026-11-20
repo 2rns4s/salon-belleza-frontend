@@ -1,290 +1,322 @@
 import {
-    CLIENTES_UI_MESSAGES,
-    CLIENTES_VALIDATION_RULES,
+  CLIENTES_UI_MESSAGES,
+  CLIENTES_VALIDATION_RULES,
 } from "./clientes.constants.js";
-import { mapClientFieldErrors, normalizeClientesHttpError } from "./clientes.mappers.js";
-import { createClient, getClients } from "./clientes.service.js";
+import {
+  mapClientFieldErrors,
+  normalizeClientForm,
+  normalizeClientesHttpError,
+  normalizeClientUpdateError,
+} from "./clientes.mappers.js";
+import { createClient, getClients, updateClient } from "./clientes.service.js";
 import { renderClientesPage } from "./clientes.view.js";
 
 let domContainer = null;
 let state = createInitialState();
 
 const listenersRegistry = {
-    submit: null,
-    click: null,
+  submit: null,
+  click: null,
 };
 
-function createEmptyCreateForm() {
-    return {
-        firstName: "",
-        lastName: "",
-        phone: "",
-        documentNumber: "",
-    };
+function createEmptyForm() {
+  return {
+    firstName: "",
+    lastName: "",
+    phone: "",
+    documentNumber: "",
+  };
 }
 
 function createInitialState() {
-    return {
-        loadingList: false,
-        savingCreate: false,
-        clients: [],
-        errorMessage: "",
-        successMessage: "",
-        isCreateModalOpen: false,
-        createErrorMessage: "",
-        fieldErrors: {},
-        createForm: createEmptyCreateForm(),
-    };
+  return {
+    loadingList: false,
+    savingForm: false,
+    clients: [],
+    errorMessage: "",
+    successMessage: "",
+    isFormOpen: false,
+    editingClient: null,
+    formErrorMessage: "",
+    fieldErrors: {},
+    form: createEmptyForm(),
+  };
 }
 
 function resolveClientesContainer(container) {
-    if (container instanceof Element) {
-        return container;
-    }
+  if (container instanceof Element) {
+    return container;
+  }
 
-    if (typeof document === "undefined") {
-        return null;
-    }
+  if (typeof document === "undefined") {
+    return null;
+  }
 
-    const appContent = document.querySelector(".app__content");
-    return appContent instanceof Element ? appContent : null;
+  const appContent = document.querySelector(".app__content");
+  return appContent instanceof Element ? appContent : null;
 }
 
 function removeContainerListeners() {
-    if (!domContainer) {
-        return;
-    }
+  if (!domContainer) {
+    return;
+  }
 
-    if (listenersRegistry.submit) {
-        domContainer.removeEventListener("submit", listenersRegistry.submit);
-        listenersRegistry.submit = null;
-    }
+  if (listenersRegistry.submit) {
+    domContainer.removeEventListener("submit", listenersRegistry.submit);
+    listenersRegistry.submit = null;
+  }
 
-    if (listenersRegistry.click) {
-        domContainer.removeEventListener("click", listenersRegistry.click);
-        listenersRegistry.click = null;
-    }
+  if (listenersRegistry.click) {
+    domContainer.removeEventListener("click", listenersRegistry.click);
+    listenersRegistry.click = null;
+  }
 }
 
 function assignContainerListeners() {
-    if (!domContainer) {
-        return;
+  if (!domContainer) {
+    return;
+  }
+
+  removeContainerListeners();
+
+  listenersRegistry.submit = (event) => {
+    const formElement = event.target;
+
+    if (!(formElement instanceof HTMLFormElement)) {
+      return;
     }
 
-    removeContainerListeners();
+    if (!["clients-create-form", "clients-edit-form"].includes(formElement.id)) {
+      return;
+    }
 
-    listenersRegistry.submit = (event) => {
-        const formElement = event.target;
+    event.preventDefault();
+    void handleFormSubmit(new FormData(formElement));
+  };
 
-        if (!(formElement instanceof HTMLFormElement)) {
-            return;
-        }
+  listenersRegistry.click = (event) => {
+    const target = event.target;
 
-        if (formElement.id !== "clients-create-form") {
-            return;
-        }
+    if (!(target instanceof Element)) {
+      return;
+    }
 
-        event.preventDefault();
-        void handleCreateSubmit(new FormData(formElement));
-    };
+    const refreshButton = target.closest("#clients-refresh-btn");
+    if (refreshButton) {
+      event.preventDefault();
+      if (!state.isFormOpen && !state.loadingList) void loadClients();
+      return;
+    }
 
-    listenersRegistry.click = (event) => {
-        const target = event.target;
+    const openModalButton = target.closest("#clients-open-create-btn");
+    if (openModalButton) {
+      event.preventDefault();
+      handleOpenForm();
+      return;
+    }
 
-        if (!(target instanceof Element)) {
-            return;
-        }
+    const editButton = target.closest('[data-clients-action="edit"]');
+    if (editButton) {
+      const client = state.clients.find((item) => String(item.id) === editButton.dataset.clientId);
+      if (client) handleOpenForm(client);
+      return;
+    }
 
-        const refreshButton = target.closest("#clients-refresh-btn");
-        if (refreshButton) {
-            event.preventDefault();
-            void loadClients();
-            return;
-        }
+    const closeModalButton = target.closest("#clients-close-modal-btn, #clients-cancel-create-btn");
+    if (closeModalButton) {
+      event.preventDefault();
+      handleCloseForm();
+      return;
+    }
 
-        const openModalButton = target.closest("#clients-open-create-btn");
-        if (openModalButton) {
-            event.preventDefault();
-            handleOpenCreateModal();
-            return;
-        }
+    if (target.classList.contains("clients__modal-overlay")) {
+      event.preventDefault();
+      handleCloseForm();
+    }
+  };
 
-        const closeModalButton = target.closest("#clients-close-modal-btn, #clients-cancel-create-btn");
-        if (closeModalButton) {
-            event.preventDefault();
-            handleCloseCreateModal();
-            return;
-        }
-
-        if (target.classList.contains("clients__modal-overlay")) {
-            event.preventDefault();
-            handleCloseCreateModal();
-        }
-    };
-
-    domContainer.addEventListener("submit", listenersRegistry.submit);
-    domContainer.addEventListener("click", listenersRegistry.click);
+  domContainer.addEventListener("submit", listenersRegistry.submit);
+  domContainer.addEventListener("click", listenersRegistry.click);
 }
 
 function renderClientesScreen() {
-    if (!domContainer) {
-        return;
-    }
+  if (!domContainer) {
+    return;
+  }
 
-    domContainer.innerHTML = renderClientesPage(state);
-    assignContainerListeners();
+  domContainer.innerHTML = renderClientesPage(state);
+  assignContainerListeners();
 }
 
-function mapCreateFormData(formData) {
-    return {
-        firstName: String(formData.get("firstName") || "").trim(),
-        lastName: String(formData.get("lastName") || "").trim(),
-        phone: String(formData.get("phone") || "").trim(),
-        documentNumber: String(formData.get("documentNumber") || "").trim(),
-    };
+function validateForm(form, editingClient) {
+  const validationErrors = {};
+
+  if (!form.firstName) {
+    validationErrors.firstName = "El nombre es obligatorio.";
+  } else if (
+    form.firstName.length < CLIENTES_VALIDATION_RULES.firstNameMinLength
+    || form.firstName.length > CLIENTES_VALIDATION_RULES.firstNameMaxLength
+  ) {
+    validationErrors.firstName = "El nombre debe tener entre 3 y 100 caracteres.";
+  }
+
+  if (!form.lastName) {
+    validationErrors.lastName = "El apellido es obligatorio.";
+  } else if (
+    form.lastName.length < CLIENTES_VALIDATION_RULES.lastNameMinLength
+    || form.lastName.length > CLIENTES_VALIDATION_RULES.lastNameMaxLength
+  ) {
+    validationErrors.lastName = "El apellido debe tener entre 3 y 100 caracteres.";
+  }
+
+  if (!CLIENTES_VALIDATION_RULES.phonePattern.test(form.phone)) {
+    validationErrors.phone = "El telefono debe iniciar en 3 y tener 10 digitos.";
+  }
+
+  if (!editingClient && !CLIENTES_VALIDATION_RULES.documentPattern.test(form.documentNumber)) {
+    validationErrors.documentNumber = "El documento debe tener entre 8 y 10 digitos.";
+  }
+
+  return validationErrors;
 }
 
-function validateCreateInput(createForm) {
-    const validationErrors = {};
-
-    if (!createForm.firstName) {
-        validationErrors.firstName = "El nombre es obligatorio.";
-    } else if (
-        createForm.firstName.length < CLIENTES_VALIDATION_RULES.firstNameMinLength
-        || createForm.firstName.length > CLIENTES_VALIDATION_RULES.firstNameMaxLength
-    ) {
-        validationErrors.firstName = "El nombre debe tener entre 3 y 100 caracteres.";
-    }
-
-    if (!createForm.lastName) {
-        validationErrors.lastName = "El apellido es obligatorio.";
-    } else if (
-        createForm.lastName.length < CLIENTES_VALIDATION_RULES.lastNameMinLength
-        || createForm.lastName.length > CLIENTES_VALIDATION_RULES.lastNameMaxLength
-    ) {
-        validationErrors.lastName = "El apellido debe tener entre 3 y 100 caracteres.";
-    }
-
-    if (!CLIENTES_VALIDATION_RULES.phonePattern.test(createForm.phone)) {
-        validationErrors.phone = "El telefono debe iniciar en 3 y tener 10 digitos.";
-    }
-
-    if (!CLIENTES_VALIDATION_RULES.documentPattern.test(createForm.documentNumber)) {
-        validationErrors.documentNumber = "El documento debe tener entre 8 y 10 digitos.";
-    }
-
-    return validationErrors;
-}
-
-function resetCreateFeedback() {
-    state.createErrorMessage = "";
-    state.fieldErrors = {};
+function resetFormFeedback() {
+  state.formErrorMessage = "";
+  state.fieldErrors = {};
 }
 
 async function loadClients({ preserveSuccessMessage = false } = {}) {
-    state.loadingList = true;
-    state.errorMessage = "";
+  const activeState = state;
+  state.loadingList = true;
+  state.errorMessage = "";
 
-    if (!preserveSuccessMessage) {
-        state.successMessage = "";
-    }
-
-    renderClientesScreen();
-
-    try {
-        const response = await getClients();
-        state.clients = Array.isArray(response?.items) ? response.items : [];
-    } catch (error) {
-        const normalizedError = normalizeClientesHttpError(error);
-        state.errorMessage = normalizedError.message;
-        state.clients = [];
-    } finally {
-        state.loadingList = false;
-        renderClientesScreen();
-    }
-}
-
-function handleOpenCreateModal() {
-    state.isCreateModalOpen = true;
-    state.createForm = createEmptyCreateForm();
-    resetCreateFeedback();
-    renderClientesScreen();
-}
-
-function handleCloseCreateModal() {
-    state.isCreateModalOpen = false;
-    state.createForm = createEmptyCreateForm();
-    state.savingCreate = false;
-    resetCreateFeedback();
-    renderClientesScreen();
-}
-
-async function handleCreateSubmit(formData) {
-    state.createForm = mapCreateFormData(formData);
-
-    const validationErrors = validateCreateInput(state.createForm);
-    if (Object.keys(validationErrors).length > 0) {
-        state.fieldErrors = validationErrors;
-        state.createErrorMessage = CLIENTES_UI_MESSAGES.localValidation;
-        renderClientesScreen();
-        return;
-    }
-
-    state.savingCreate = true;
+  if (!preserveSuccessMessage) {
     state.successMessage = "";
-    state.errorMessage = "";
-    state.createErrorMessage = "";
-    state.fieldErrors = {};
+  }
 
-    renderClientesScreen();
+  renderClientesScreen();
 
-    try {
-        const createdClient = await createClient(state.createForm);
-        const fullName = String(
-            createdClient?.fullName
-                || `${state.createForm.firstName} ${state.createForm.lastName}`,
-        ).trim();
-
-        state.successMessage = fullName
-            ? `Cliente ${fullName} registrado correctamente.`
-            : CLIENTES_UI_MESSAGES.createSuccess;
-
-        state.isCreateModalOpen = false;
-        state.createForm = createEmptyCreateForm();
-        resetCreateFeedback();
-
-        await loadClients({ preserveSuccessMessage: true });
-    } catch (error) {
-        const normalizedError = normalizeClientesHttpError(error);
-
-        state.createErrorMessage = normalizedError.message;
-        state.fieldErrors = normalizedError.status === 400
-            ? mapClientFieldErrors(normalizedError.fieldErrors)
-            : {};
-        state.isCreateModalOpen = true;
-        renderClientesScreen();
-    } finally {
-        state.savingCreate = false;
-        renderClientesScreen();
+  try {
+    const response = await getClients();
+    if (state !== activeState) return;
+    state.clients = Array.isArray(response?.items) ? response.items : [];
+  } catch (error) {
+    if (state !== activeState) return;
+    const normalizedError = normalizeClientesHttpError(error);
+    state.errorMessage = normalizedError.message;
+    state.clients = [];
+  } finally {
+    if (state === activeState) {
+      state.loadingList = false;
+      renderClientesScreen();
     }
+  }
+}
+
+function handleOpenForm(client = null) {
+  if (state.isFormOpen) return;
+  state.isFormOpen = true;
+  state.editingClient = client;
+  state.form = client ? normalizeClientForm(client) : createEmptyForm();
+  resetFormFeedback();
+  renderClientesScreen();
+}
+
+function handleCloseForm() {
+  if (state.savingForm) return;
+  resetForm();
+  renderClientesScreen();
+}
+
+function resetForm() {
+  state.isFormOpen = false;
+  state.editingClient = null;
+  state.form = createEmptyForm();
+  state.savingForm = false;
+  resetFormFeedback();
+}
+
+async function handleFormSubmit(formData) {
+  if (!state.isFormOpen || state.savingForm) return;
+  const activeState = state;
+  const editingClient = state.editingClient;
+  const { documentNumber, ...editableFields } = normalizeClientForm(Object.fromEntries(formData));
+  state.form = editingClient ? editableFields : { ...editableFields, documentNumber };
+
+  const validationErrors = validateForm(state.form, editingClient);
+  if (Object.keys(validationErrors).length > 0) {
+    state.fieldErrors = validationErrors;
+    state.formErrorMessage = CLIENTES_UI_MESSAGES.localValidation;
+    renderClientesScreen();
+    return;
+  }
+
+  state.savingForm = true;
+  state.successMessage = "";
+  state.errorMessage = "";
+  state.formErrorMessage = "";
+  state.fieldErrors = {};
+
+  renderClientesScreen();
+
+  try {
+    if (editingClient) {
+      const updated = await updateClient(editingClient.id, state.form);
+      if (state !== activeState) return;
+
+      // PUT returns the authoritative row, so a second list request is unnecessary.
+      state.clients = state.clients.map((client) => client.id === editingClient.id ? updated : client);
+      state.successMessage = CLIENTES_UI_MESSAGES.updateSuccess;
+      resetForm();
+    } else {
+      const createdClient = await createClient(state.form);
+      if (state !== activeState) return;
+
+      const fullName = String(
+        createdClient?.fullName || `${state.form.firstName} ${state.form.lastName}`,
+      ).trim();
+
+      state.successMessage = fullName
+        ? `Cliente ${fullName} registrado correctamente.`
+        : CLIENTES_UI_MESSAGES.createSuccess;
+
+      resetForm();
+      await loadClients({ preserveSuccessMessage: true });
+    }
+  } catch (error) {
+    if (state !== activeState) return;
+    const normalizedError = editingClient
+      ? normalizeClientUpdateError(error)
+      : normalizeClientesHttpError(error);
+
+    state.formErrorMessage = normalizedError.message;
+    state.fieldErrors = normalizedError.status === 400 || (editingClient && normalizedError.status === 409)
+      ? mapClientFieldErrors(normalizedError.fieldErrors)
+      : {};
+  } finally {
+    if (state === activeState) {
+      state.savingForm = false;
+      renderClientesScreen();
+    }
+  }
 }
 
 export async function initClientes(container) {
-    cleanupClientes();
+  cleanupClientes();
 
-    domContainer = resolveClientesContainer(container);
-    if (!domContainer) {
-        return;
-    }
+  domContainer = resolveClientesContainer(container);
+  if (!domContainer) {
+    return;
+  }
 
-    state = createInitialState();
-    renderClientesScreen();
+  state = createInitialState();
+  renderClientesScreen();
 
-    await loadClients();
+  await loadClients();
 }
 
 export function cleanupClientes() {
-    removeContainerListeners();
-    domContainer = null;
-    state = createInitialState();
+  removeContainerListeners();
+  domContainer = null;
+  state = createInitialState();
 }

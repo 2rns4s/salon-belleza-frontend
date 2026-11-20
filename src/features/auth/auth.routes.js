@@ -1,20 +1,20 @@
 import { initAuth } from "./auth.controller.js";
 
 function renderAuthRoute() {
-    const appContent = document.querySelector(".app__content");
+  const appContent = document.querySelector(".app__content");
 
-    if (!appContent) {
-        return;
-    }
+  if (!appContent) {
+    return;
+  }
 
-    initAuth(appContent);
+  initAuth(appContent);
 }
 
 const existingFeatureRoutes = window.appFeatureRoutes || [];
 
 existingFeatureRoutes.push(
-    { path: "/", handler: renderAuthRoute },
-    { path: "/auth", handler: renderAuthRoute },
+  { path: "/", handler: renderAuthRoute },
+  { path: "/auth", handler: renderAuthRoute },
 );
 
 window.appFeatureRoutes = existingFeatureRoutes;
