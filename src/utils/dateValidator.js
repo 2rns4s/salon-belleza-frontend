@@ -9,42 +9,42 @@
  * @returns {{ valid: boolean, error?: string }} - Object with valid flag and optional error message
  */
 export function validateDateNotPast(date) {
-    let parsedDate;
+  let parsedDate;
 
-    if (date instanceof Date) {
-        parsedDate = date;
-    } else if (typeof date === "string") {
-        parsedDate = new Date(date);
-    } else {
-        return {
-            valid: false,
-            error: "Formato de fecha inválido",
-        };
-    }
+  if (date instanceof Date) {
+    parsedDate = date;
+  } else if (typeof date === "string") {
+    parsedDate = new Date(date);
+  } else {
+    return {
+      valid: false,
+      error: "Formato de fecha inválido",
+    };
+  }
 
-    if (Number.isNaN(parsedDate.getTime())) {
-        return {
-            valid: false,
-            error: "Fecha inválida",
-        };
-    }
+  if (Number.isNaN(parsedDate.getTime())) {
+    return {
+      valid: false,
+      error: "Fecha inválida",
+    };
+  }
 
-    // Get start of today (midnight) for comparison
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+  // Get start of today (midnight) for comparison
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
 
-    // Get start of the provided date
-    const dateToCheck = new Date(parsedDate);
-    dateToCheck.setHours(0, 0, 0, 0);
+  // Get start of the provided date
+  const dateToCheck = new Date(parsedDate);
+  dateToCheck.setHours(0, 0, 0, 0);
 
-    if (dateToCheck < today) {
-        return {
-            valid: false,
-            error: "No se pueden agendar citas en fechas pasadas",
-        };
-    }
+  if (dateToCheck < today) {
+    return {
+      valid: false,
+      error: "No se pueden agendar citas en fechas pasadas",
+    };
+  }
 
-    return { valid: true };
+  return { valid: true };
 }
 
 /**
@@ -53,34 +53,34 @@ export function validateDateNotPast(date) {
  * @returns {{ valid: boolean, error?: string }}
  */
 export function validateDateTimeNotPast(dateTime) {
-    let parsedDateTime;
+  let parsedDateTime;
 
-    if (dateTime instanceof Date) {
-        parsedDateTime = dateTime;
-    } else if (typeof dateTime === "string") {
-        parsedDateTime = new Date(dateTime);
-    } else {
-        return {
-            valid: false,
-            error: "Formato de fecha y hora inválido",
-        };
-    }
+  if (dateTime instanceof Date) {
+    parsedDateTime = dateTime;
+  } else if (typeof dateTime === "string") {
+    parsedDateTime = new Date(dateTime);
+  } else {
+    return {
+      valid: false,
+      error: "Formato de fecha y hora inválido",
+    };
+  }
 
-    if (Number.isNaN(parsedDateTime.getTime())) {
-        return {
-            valid: false,
-            error: "Fecha y hora inválida",
-        };
-    }
+  if (Number.isNaN(parsedDateTime.getTime())) {
+    return {
+      valid: false,
+      error: "Fecha y hora inválida",
+    };
+  }
 
-    const now = new Date();
+  const now = new Date();
 
-    if (parsedDateTime < now) {
-        return {
-            valid: false,
-            error: "No se pueden agendar citas en fechas u horarios pasados",
-        };
-    }
+  if (parsedDateTime < now) {
+    return {
+      valid: false,
+      error: "No se pueden agendar citas en fechas u horarios pasados",
+    };
+  }
 
-    return { valid: true };
+  return { valid: true };
 }

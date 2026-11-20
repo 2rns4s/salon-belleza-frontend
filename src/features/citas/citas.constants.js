@@ -9,35 +9,50 @@
  * @hu HU-05, HU-06, HU-07 — validaciones de empleado/recurso reflejadas en mensajes de conflicto
  */
 export const CITAS_ENDPOINTS = Object.freeze({
-    appointments: "/api/v1/citas",
-    availability: "/api/v1/disponibilidad",
-    searchClients: "/api/v1/clientes/buscar",
-    createClient: "/api/v1/clientes",
-    clientById: (clientId) => `/api/v1/clientes/${clientId}`,
-    services: "/api/v1/servicios",
-    employees: "/api/v1/empleados",
-    updateAppointmentById: (appointmentId) => `/api/v1/citas/${appointmentId}`,
-    deleteAppointmentById: (appointmentId) => `/api/v1/citas/${appointmentId}`,
+  appointments: "/api/v1/citas",
+  availability: "/api/v1/disponibilidad",
+  searchClients: "/api/v1/clientes/buscar",
+  createClient: "/api/v1/clientes",
+  clientById: (clientId) => `/api/v1/clientes/${clientId}`,
+  services: "/api/v1/servicios",
+  employees: "/api/v1/empleados",
+  updateAppointmentById: (appointmentId) => `/api/v1/citas/${appointmentId}`,
+  deleteAppointmentById: (appointmentId) => `/api/v1/citas/${appointmentId}`,
 });
 
 export const CITAS_HTTP_MESSAGES = Object.freeze({
-    400: "Los datos enviados no son validos. Revisa la informacion e intenta nuevamente.",
-    403: "No tienes permisos para consultar citas con esta sesion. Inicia sesion con un usuario autorizado.",
-    404: "No se encontraron resultados para la busqueda realizada.",
-    409: "El horario seleccionado ya no esta disponible. Actualiza la agenda e intenta nuevamente.",
+  400: "Los datos enviados no son validos. Revisa la informacion e intenta nuevamente.",
+  403: "No tienes permisos para consultar citas con esta sesion. Inicia sesion con un usuario autorizado.",
+  404: "No se encontraron resultados para la busqueda realizada.",
+  409: "El horario seleccionado ya no esta disponible. Actualiza la agenda e intenta nuevamente.",
 });
 
 export const CITAS_VIEW_MODES = Object.freeze({
-    DAY: "day",
-    WEEK: "week",
+  DAY: "day",
+  WEEK: "week",
 });
 
 export const APPOINTMENT_STATUSES = Object.freeze([
-    "PENDIENTE",
-    "CONFIRMADA",
-    "CANCELADA",
-    "REALIZADA",
+  "PENDIENTE",
+  "CONFIRMADA",
+  "CANCELADA",
+  "REALIZADA",
 ]);
+
+const NO_APPOINTMENT_TRANSITIONS = Object.freeze([]);
+const APPOINTMENT_STATUS_TRANSITIONS = Object.freeze({
+  PENDIENTE: Object.freeze(["CONFIRMADA", "CANCELADA"]),
+  CONFIRMADA: Object.freeze(["REALIZADA", "CANCELADA"]),
+  CANCELADA: NO_APPOINTMENT_TRANSITIONS,
+  REALIZADA: NO_APPOINTMENT_TRANSITIONS,
+});
+
+// Las citas terminales quedan en el historial y no pueden volver a estar activas.
+export function getAppointmentStatusTransitions(status) {
+  return Object.hasOwn(APPOINTMENT_STATUS_TRANSITIONS, status)
+    ? APPOINTMENT_STATUS_TRANSITIONS[status]
+    : NO_APPOINTMENT_TRANSITIONS;
+}
 
 export const CITAS_FILTER_DEBOUNCE_MS = 180;
 export const CITAS_SEARCH_DEBOUNCE_MS = 300;
@@ -46,20 +61,20 @@ export const CITAS_CACHE_TTL_MS = 20_000;
 // @rnf RNF-001 agendaLoadMs <= 1500ms (carga de agenda integrada)
 // @rnf RNF-005 availabilityRefreshMs <= 500ms (motor de búsqueda de disponibilidad)
 export const CITAS_PERFORMANCE_THRESHOLDS_MS = Object.freeze({
-    agendaLoadMs: 1500,
-    availabilityRefreshMs: 500,
+  agendaLoadMs: 1500,
+  availabilityRefreshMs: 500,
 });
 
 export const CITAS_UI_MESSAGES = Object.freeze({
-    searchCriteriaRequired: "Ingresa al menos un criterio de busqueda: documento, telefono o nombre.",
-    slotRequired: "Selecciona un horario disponible antes de confirmar la cita.",
-    clientRequired: "Selecciona o crea un cliente para continuar con la reserva.",
-    serviceRequired: "Debes indicar un servicio para crear la cita.",
-    employeeRequired: "Debes indicar un empleado para crear la cita.",
-    quickAddSuccess: "Cliente creado correctamente y listo para reservar.",
-    appointmentCreated: "Cita creada correctamente.",
-    appointmentUpdated: "Estado de cita actualizado correctamente.",
-    appointmentDeleted: "Cita eliminada correctamente.",
+  searchCriteriaRequired: "Ingresa al menos un criterio de busqueda: documento, telefono o nombre.",
+  slotRequired: "Selecciona un horario disponible antes de confirmar la cita.",
+  clientRequired: "Selecciona o crea un cliente para continuar con la reserva.",
+  serviceRequired: "Debes indicar un servicio para crear la cita.",
+  employeeRequired: "Debes indicar un empleado para crear la cita.",
+  quickAddSuccess: "Cliente creado correctamente y listo para reservar.",
+  appointmentCreated: "Cita creada correctamente.",
+  appointmentUpdated: "Estado de cita actualizado correctamente.",
+  appointmentDeleted: "Cita eliminada correctamente.",
 });
 
 export const DEFAULT_CITAS_ERROR_MESSAGE = "Ocurrio un error inesperado. Intenta nuevamente.";

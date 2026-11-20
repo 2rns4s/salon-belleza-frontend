@@ -2,26 +2,26 @@ import { EMPLEADOS_CATALOG_STATUS, EMPLEADOS_VALIDATION } from "./empleados.cons
 // Controller de empleados. Mismo patron que los demas modulos de gestion:
 // estado central -> re-render completo de la pantalla -> eventos por delegacion
 // (un solo listener de click y de submit en el contenedor, via featureMount).
-import { normalizeEmpleadosHttpError } from "./empleados.mappers.js";
+import { normalizeEmployeeContact, normalizeEmpleadosHttpError } from "./empleados.mappers.js";
 import {
-    createEmployee,
-    deleteEmployee,
-    getEmployees,
-    getServicesCatalog,
-    updateEmployee,
+  createEmployee,
+  deleteEmployee,
+  getEmployees,
+  getServicesCatalog,
+  updateEmployee,
 } from "./empleados.service.js";
 import { renderEmpleadosPage } from "./empleados.view.js";
 import { createFeatureMount } from "../../shared/components/featureMount.js";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const WORK_DAY_VALUES = Object.freeze([
-    "MONDAY",
-    "TUESDAY",
-    "WEDNESDAY",
-    "THURSDAY",
-    "FRIDAY",
-    "SATURDAY",
-    "SUNDAY",
+  "MONDAY",
+  "TUESDAY",
+  "WEDNESDAY",
+  "THURSDAY",
+  "FRIDAY",
+  "SATURDAY",
+  "SUNDAY",
 ]);
 const WEEKDAY_VALUES = Object.freeze(["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY"]);
 
@@ -33,757 +33,733 @@ let shiftRowCounter = 0;
 // click/submit (ver shared/components/featureMount.js). domContainer se mantiene
 // como referencia local sincronizada con el contenedor del helper.
 const featureMount = createFeatureMount({
-    render: () => renderEmpleadosPage(state),
-    onClick: (event) => handleContainerClick(event),
-    onSubmit: (event) => handleFormSubmit(event),
+  render: () => renderEmpleadosPage(state),
+  onClick: (event) => handleContainerClick(event),
+  onSubmit: (event) => handleFormSubmit(event),
 });
 
 function nextShiftRowId() {
-    shiftRowCounter += 1;
-    return `shift-row-${shiftRowCounter}`;
+  shiftRowCounter += 1;
+  return `shift-row-${shiftRowCounter}`;
 }
 
 function createEmptyShift() {
-    return {
-        rowId: nextShiftRowId(),
-        day: "MONDAY",
-        startTime: "09:00",
-        endTime: "17:00",
-    };
+  return buildShiftRow("MONDAY", "09:00", "17:00");
 }
 
 function isValidWorkDay(dayValue) {
-    const normalizedDay = String(dayValue || "").trim().toUpperCase();
-    return WORK_DAY_VALUES.includes(normalizedDay);
+  const normalizedDay = String(dayValue || "").trim().toUpperCase();
+  return WORK_DAY_VALUES.includes(normalizedDay);
 }
 
 function buildShiftRow(day, startTime, endTime) {
-    return {
-        rowId: nextShiftRowId(),
-        day: String(day || "").trim().toUpperCase(),
-        startTime: normalizeTimeInputValue(startTime),
-        endTime: normalizeTimeInputValue(endTime),
-    };
+  return {
+    rowId: nextShiftRowId(),
+    day,
+    startTime,
+    endTime,
+  };
 }
 
 function createEmptyForm({ withDefaultShift = false } = {}) {
-    return {
-        firstName: "",
-        lastName: "",
-        email: "",
-        phone: "",
-        workShifts: withDefaultShift ? [createEmptyShift()] : [],
-        serviceIds: [],
-    };
+  return {
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
+    workShifts: withDefaultShift ? [createEmptyShift()] : [],
+    serviceIds: [],
+  };
 }
 
 function createInitialState() {
-    return {
-        loadingList: false,
-        savingForm: false,
-        employees: [],
-        errorFeedback: null,
-        successMessage: "",
-        servicesCatalog: [],
-        servicesCatalogStatus: EMPLEADOS_CATALOG_STATUS.IDLE,
-        formModal: {
-            isOpen: false,
-            mode: "create",
-            employeeId: null,
-            form: createEmptyForm(),
-            fieldErrors: {},
-            errorFeedback: null,
-        },
-        deleteConfirm: {
-            isOpen: false,
-            employeeId: null,
-            employeeName: "",
-        },
-    };
+  return {
+    loadingList: false,
+    savingForm: false,
+    employees: [],
+    errorFeedback: null,
+    successMessage: "",
+    servicesCatalog: [],
+    servicesCatalogStatus: EMPLEADOS_CATALOG_STATUS.IDLE,
+    formModal: {
+      isOpen: false,
+      mode: "create",
+      employeeId: null,
+      form: createEmptyForm(),
+      fieldErrors: {},
+      errorFeedback: null,
+    },
+    deleteConfirm: {
+      isOpen: false,
+      employeeId: null,
+      employeeName: "",
+    },
+  };
 }
 
 function renderEmpleadosScreen() {
-    featureMount.renderScreen();
+  featureMount.renderScreen();
 }
 
 function normalizeErrorFeedback(error) {
-    const normalizedError = normalizeEmpleadosHttpError(error);
+  const normalizedError = normalizeEmpleadosHttpError(error);
 
-    return {
-        status: Number(normalizedError?.status || 0),
-        message: String(normalizedError?.message || ""),
-        details: Array.isArray(normalizedError?.details)
-            ? normalizedError.details.filter((detail) => String(detail || "").trim())
-            : [],
-        fieldErrors: normalizedError?.fieldErrors || null,
-    };
+  return {
+    status: Number(normalizedError?.status || 0),
+    message: String(normalizedError?.message || ""),
+    details: Array.isArray(normalizedError?.details)
+      ? normalizedError.details.filter((detail) => String(detail || "").trim())
+      : [],
+    fieldErrors: normalizedError?.fieldErrors || null,
+  };
 }
 
 function normalizeTimeInputValue(value) {
-    const rawValue = String(value ?? "").trim();
+  const rawValue = String(value ?? "").trim();
 
-    if (/^\d{2}:\d{2}:\d{2}$/.test(rawValue)) {
-        return rawValue.slice(0, 5);
-    }
+  if (/^\d{2}:\d{2}:\d{2}$/.test(rawValue)) {
+    return rawValue.slice(0, 5);
+  }
 
-    if (/^\d{2}:\d{2}$/.test(rawValue)) {
-        return rawValue;
-    }
+  if (/^\d{2}:\d{2}$/.test(rawValue)) {
+    return rawValue;
+  }
 
-    return "";
+  return "";
 }
 
-function toMinutes(timeValue) {
-    const normalized = normalizeTimeInputValue(timeValue);
+function toMinutes(normalizedTime) {
+  const [hours, minutes] = normalizedTime.split(":").map(Number);
 
-    if (!normalized) {
-        return -1;
-    }
+  if (!Number.isInteger(hours) || !Number.isInteger(minutes)) {
+    return -1;
+  }
 
-    const [hours, minutes] = normalized.split(":").map((item) => Number(item));
-
-    if (!Number.isInteger(hours) || !Number.isInteger(minutes)) {
-        return -1;
-    }
-
-    return (hours * 60) + minutes;
+  return (hours * 60) + minutes;
 }
 
-function buildWorkShiftsFromTemplate({
-    dayScope,
-    startTime,
-    breakStartTime,
-    breakEndTime,
-    endTime,
+function validateWorkShiftTemplate({
+  dayScope,
+  startTime,
+  breakStartTime,
+  breakEndTime,
+  endTime,
 } = {}) {
-    const normalizedDayScope = String(dayScope || "").trim().toUpperCase();
-    const normalizedStartTime = normalizeTimeInputValue(startTime);
-    const normalizedBreakStartTime = normalizeTimeInputValue(breakStartTime);
-    const normalizedBreakEndTime = normalizeTimeInputValue(breakEndTime);
-    const normalizedEndTime = normalizeTimeInputValue(endTime);
+  const normalizedDayScope = String(dayScope || "").trim().toUpperCase();
+  const normalizedStartTime = normalizeTimeInputValue(startTime);
+  const normalizedBreakStartTime = normalizeTimeInputValue(breakStartTime);
+  const normalizedBreakEndTime = normalizeTimeInputValue(breakEndTime);
+  const normalizedEndTime = normalizeTimeInputValue(endTime);
 
-    if (!normalizedDayScope) {
-        return {
-            shifts: [],
-            errorMessage: "Selecciona al menos un dia para aplicar la plantilla.",
-        };
+  if (!normalizedDayScope) {
+    return { errorMessage: "Selecciona al menos un dia para aplicar la plantilla." };
+  }
+
+  if (!normalizedStartTime || !normalizedEndTime) {
+    return { errorMessage: "Completa hora de inicio y fin para aplicar la plantilla." };
+  }
+
+  const startMinutes = toMinutes(normalizedStartTime);
+  const endMinutes = toMinutes(normalizedEndTime);
+
+  if (startMinutes < 0 || endMinutes < 0 || startMinutes >= endMinutes) {
+    return { errorMessage: "La hora de inicio debe ser menor a la hora de fin." };
+  }
+
+  const hasBreak = Boolean(normalizedBreakStartTime || normalizedBreakEndTime);
+  if (hasBreak && (!normalizedBreakStartTime || !normalizedBreakEndTime)) {
+    return { errorMessage: "Para usar descanso debes indicar inicio y fin del descanso." };
+  }
+
+  if (hasBreak) {
+    const breakStartMinutes = toMinutes(normalizedBreakStartTime);
+    const breakEndMinutes = toMinutes(normalizedBreakEndTime);
+
+    if (
+      breakStartMinutes < 0
+      || breakEndMinutes < 0
+      || !(startMinutes < breakStartMinutes
+      && breakStartMinutes < breakEndMinutes
+      && breakEndMinutes < endMinutes)
+    ) {
+      return { errorMessage: "El descanso debe quedar dentro del horario y con rangos validos." };
+    }
+  }
+
+  const targetDays = normalizedDayScope === "WEEKDAYS"
+    ? WEEKDAY_VALUES
+    : [normalizedDayScope];
+
+  if (!targetDays.every((day) => isValidWorkDay(day))) {
+    return { errorMessage: "Selecciona un dia valido para la plantilla." };
+  }
+
+  return {
+    targetDays,
+    startTime: normalizedStartTime,
+    endTime: normalizedEndTime,
+    breakStartTime: normalizedBreakStartTime,
+    breakEndTime: normalizedBreakEndTime,
+  };
+}
+
+function buildWorkShiftsFromTemplate(input) {
+  const { targetDays, startTime, endTime, breakStartTime, breakEndTime, errorMessage } =
+    validateWorkShiftTemplate(input);
+
+  if (errorMessage) {
+    return { shifts: [], errorMessage };
+  }
+
+  // Generate row IDs only after the schedule passes the business rules.
+  const shifts = targetDays.flatMap((day) => {
+    if (!breakStartTime) {
+      return [buildShiftRow(day, startTime, endTime)];
     }
 
-    if (!normalizedStartTime || !normalizedEndTime) {
-        return {
-            shifts: [],
-            errorMessage: "Completa hora de inicio y fin para aplicar la plantilla.",
-        };
-    }
+    return [
+      buildShiftRow(day, startTime, breakStartTime),
+      buildShiftRow(day, breakEndTime, endTime),
+    ];
+  });
 
-    const startMinutes = toMinutes(normalizedStartTime);
-    const endMinutes = toMinutes(normalizedEndTime);
-
-    if (startMinutes < 0 || endMinutes < 0 || startMinutes >= endMinutes) {
-        return {
-            shifts: [],
-            errorMessage: "La hora de inicio debe ser menor a la hora de fin.",
-        };
-    }
-
-    const hasBreak = Boolean(normalizedBreakStartTime || normalizedBreakEndTime);
-    if (hasBreak && (!normalizedBreakStartTime || !normalizedBreakEndTime)) {
-        return {
-            shifts: [],
-            errorMessage: "Para usar descanso debes indicar inicio y fin del descanso.",
-        };
-    }
-
-    if (hasBreak) {
-        const breakStartMinutes = toMinutes(normalizedBreakStartTime);
-        const breakEndMinutes = toMinutes(normalizedBreakEndTime);
-
-        if (
-            breakStartMinutes < 0
-            || breakEndMinutes < 0
-            || !(startMinutes < breakStartMinutes
-            && breakStartMinutes < breakEndMinutes
-            && breakEndMinutes < endMinutes)
-        ) {
-            return {
-                shifts: [],
-                errorMessage: "El descanso debe quedar dentro del horario y con rangos validos.",
-            };
-        }
-    }
-
-    const targetDays = normalizedDayScope === "WEEKDAYS"
-        ? WEEKDAY_VALUES
-        : [normalizedDayScope];
-
-    if (!targetDays.every((day) => isValidWorkDay(day))) {
-        return {
-            shifts: [],
-            errorMessage: "Selecciona un dia valido para la plantilla.",
-        };
-    }
-
-    const generatedShifts = targetDays.flatMap((day) => {
-        if (!hasBreak) {
-            return [buildShiftRow(day, normalizedStartTime, normalizedEndTime)];
-        }
-
-        return [
-            buildShiftRow(day, normalizedStartTime, normalizedBreakStartTime),
-            buildShiftRow(day, normalizedBreakEndTime, normalizedEndTime),
-        ];
-    });
-
-    return {
-        shifts: generatedShifts,
-        errorMessage: "",
-    };
+  return { shifts, errorMessage: "" };
 }
 
 function validateEmployeeForm(formState, mode) {
-    const errors = {};
+  const errors = {};
 
-    const firstName = String(formState.firstName || "").trim();
-    const lastName = String(formState.lastName || "").trim();
-    const email = String(formState.email || "").trim();
-    const phone = String(formState.phone || "").trim();
+  const { firstName, lastName, email, phone } = formState;
 
-    if (!firstName) {
-        errors.firstName = "El nombre es obligatorio.";
-    } else if (
-        firstName.length < EMPLEADOS_VALIDATION.NAME_MIN
-        || firstName.length > EMPLEADOS_VALIDATION.NAME_MAX
-    ) {
-        errors.firstName = `El nombre debe tener entre ${EMPLEADOS_VALIDATION.NAME_MIN} y ${EMPLEADOS_VALIDATION.NAME_MAX} caracteres.`;
-    }
+  if (!firstName) {
+    errors.firstName = "El nombre es obligatorio.";
+  } else if (
+    firstName.length < EMPLEADOS_VALIDATION.NAME_MIN
+    || firstName.length > EMPLEADOS_VALIDATION.NAME_MAX
+  ) {
+    errors.firstName = `El nombre debe tener entre ${EMPLEADOS_VALIDATION.NAME_MIN} y ${EMPLEADOS_VALIDATION.NAME_MAX} caracteres.`;
+  }
 
-    if (!lastName) {
-        errors.lastName = "El apellido es obligatorio.";
-    } else if (
-        lastName.length < EMPLEADOS_VALIDATION.NAME_MIN
-        || lastName.length > EMPLEADOS_VALIDATION.NAME_MAX
-    ) {
-        errors.lastName = `El apellido debe tener entre ${EMPLEADOS_VALIDATION.NAME_MIN} y ${EMPLEADOS_VALIDATION.NAME_MAX} caracteres.`;
-    }
+  if (!lastName) {
+    errors.lastName = "El apellido es obligatorio.";
+  } else if (
+    lastName.length < EMPLEADOS_VALIDATION.NAME_MIN
+    || lastName.length > EMPLEADOS_VALIDATION.NAME_MAX
+  ) {
+    errors.lastName = `El apellido debe tener entre ${EMPLEADOS_VALIDATION.NAME_MIN} y ${EMPLEADOS_VALIDATION.NAME_MAX} caracteres.`;
+  }
 
-    if (!email) {
-        errors.email = "El correo es obligatorio.";
-    } else if (!EMAIL_PATTERN.test(email)) {
-        errors.email = "Ingresa un correo valido.";
-    }
+  if (!email) {
+    errors.email = "El correo es obligatorio.";
+  } else if (!EMAIL_PATTERN.test(email)) {
+    errors.email = "Ingresa un correo valido.";
+  }
 
-    if (!phone) {
-        errors.phone = "El telefono es obligatorio.";
-    } else if (!EMPLEADOS_VALIDATION.PHONE_PATTERN.test(phone)) {
-        errors.phone = "El telefono debe iniciar en 3 y tener 10 digitos.";
-    }
+  if (!phone) {
+    errors.phone = "El telefono es obligatorio.";
+  } else if (!EMPLEADOS_VALIDATION.PHONE_PATTERN.test(phone)) {
+    errors.phone = "El telefono debe iniciar en 3 y tener 10 digitos.";
+  }
 
-    if (mode === "create") {
-        const workShifts = Array.isArray(formState.workShifts) ? formState.workShifts : [];
-        const serviceIds = Array.isArray(formState.serviceIds) ? formState.serviceIds : [];
+  if (mode === "create") {
+    const workShifts = Array.isArray(formState.workShifts) ? formState.workShifts : [];
+    const serviceIds = Array.isArray(formState.serviceIds) ? formState.serviceIds : [];
 
-        if (!workShifts.length) {
-            errors.workShifts = "Debes registrar al menos una franja laboral.";
-        } else {
-            for (let index = 0; index < workShifts.length; index += 1) {
-                const shift = workShifts[index] || {};
-                const day = String(shift.day || "").trim();
-                const startTime = normalizeTimeInputValue(shift.startTime);
-                const endTime = normalizeTimeInputValue(shift.endTime);
+    if (!workShifts.length) {
+      errors.workShifts = "Debes registrar al menos una franja laboral.";
+    } else {
+      for (let index = 0; index < workShifts.length; index += 1) {
+        const shift = workShifts[index] || {};
+        const day = String(shift.day || "").trim();
+        const startTime = normalizeTimeInputValue(shift.startTime);
+        const endTime = normalizeTimeInputValue(shift.endTime);
 
-                if (!day || !startTime || !endTime) {
-                    errors.workShifts = `Completa dia, hora inicio y hora fin en la franja ${index + 1}.`;
-                    break;
-                }
-
-                if (!isValidWorkDay(day)) {
-                    errors.workShifts = `Selecciona un dia valido en la franja ${index + 1}.`;
-                    break;
-                }
-
-                if (toMinutes(startTime) >= toMinutes(endTime)) {
-                    errors.workShifts = `La hora de inicio debe ser menor a la hora de fin en la franja ${index + 1}.`;
-                    break;
-                }
-            }
+        if (!day || !startTime || !endTime) {
+          errors.workShifts = `Completa dia, hora inicio y hora fin en la franja ${index + 1}.`;
+          break;
         }
 
-        if (!serviceIds.length) {
-            errors.serviceIds = "Debes seleccionar al menos un servicio.";
+        if (!isValidWorkDay(day)) {
+          errors.workShifts = `Selecciona un dia valido en la franja ${index + 1}.`;
+          break;
         }
+
+        if (toMinutes(startTime) >= toMinutes(endTime)) {
+          errors.workShifts = `La hora de inicio debe ser menor a la hora de fin en la franja ${index + 1}.`;
+          break;
+        }
+      }
     }
 
-    return errors;
+    if (!serviceIds.length) {
+      errors.serviceIds = "Debes seleccionar al menos un servicio.";
+    }
+  }
+
+  return errors;
 }
 
 function syncFormFromDom() {
-    if (!domContainer || !state.formModal.isOpen) {
-        return;
-    }
+  if (!domContainer || !state.formModal.isOpen) {
+    return;
+  }
 
-    const firstNameInput = domContainer.querySelector("#employees-first-name");
-    const lastNameInput = domContainer.querySelector("#employees-last-name");
-    const emailInput = domContainer.querySelector("#employees-email");
-    const phoneInput = domContainer.querySelector("#employees-phone");
+  const formElement = domContainer.querySelector("#employees-form");
+  if (!formElement) {
+    return;
+  }
 
-    const updatedForm = {
-        ...state.formModal.form,
-        firstName: String(firstNameInput?.value || "").trim(),
-        lastName: String(lastNameInput?.value || "").trim(),
-        email: String(emailInput?.value || "").trim(),
-        phone: String(phoneInput?.value || "").trim(),
-    };
+  const formData = new FormData(formElement);
+  const updatedForm = {
+    ...state.formModal.form,
+    ...normalizeEmployeeContact(Object.fromEntries(formData)),
+  };
 
-    if (state.formModal.mode === "create") {
-        const shiftRows = domContainer.querySelectorAll("[data-employee-shift-row-id]");
-        updatedForm.workShifts = Array.from(shiftRows).map((rowElement) => {
-            const rowId = String(rowElement.getAttribute("data-employee-shift-row-id") || nextShiftRowId());
-            const dayInput = rowElement.querySelector("[data-employee-shift-field='day']");
-            const startTimeInput = rowElement.querySelector("[data-employee-shift-field='startTime']");
-            const endTimeInput = rowElement.querySelector("[data-employee-shift-field='endTime']");
+  if (state.formModal.mode === "create") {
+    const shiftRows = domContainer.querySelectorAll("[data-employee-shift-row-id]");
+    updatedForm.workShifts = Array.from(shiftRows).map((rowElement) => {
+      const rowId = String(rowElement.getAttribute("data-employee-shift-row-id") || nextShiftRowId());
+      const dayInput = rowElement.querySelector("[data-employee-shift-field='day']");
+      const startTimeInput = rowElement.querySelector("[data-employee-shift-field='startTime']");
+      const endTimeInput = rowElement.querySelector("[data-employee-shift-field='endTime']");
 
-            return {
-                rowId,
-                day: String(dayInput?.value || "").trim().toUpperCase(),
-                startTime: normalizeTimeInputValue(startTimeInput?.value),
-                endTime: normalizeTimeInputValue(endTimeInput?.value),
-            };
-        });
+      return {
+        rowId,
+        day: String(dayInput?.value || "").trim().toUpperCase(),
+        startTime: normalizeTimeInputValue(startTimeInput?.value),
+        endTime: normalizeTimeInputValue(endTimeInput?.value),
+      };
+    });
 
-        updatedForm.serviceIds = Array.from(domContainer.querySelectorAll("[data-employee-service-checkbox]:checked"))
-            .map((checkbox) => Number(checkbox.value))
-            .filter((value) => Number.isFinite(value) && value > 0);
-    }
+    updatedForm.serviceIds = Array.from(domContainer.querySelectorAll("[data-employee-service-checkbox]:checked"))
+      .map((checkbox) => Number(checkbox.value))
+      .filter((value) => Number.isFinite(value) && value > 0);
+  }
 
-    state.formModal = {
-        ...state.formModal,
-        form: updatedForm,
-    };
+  state.formModal = {
+    ...state.formModal,
+    form: updatedForm,
+  };
 }
 
 async function loadServicesCatalog() {
-    state.servicesCatalogStatus = EMPLEADOS_CATALOG_STATUS.LOADING;
-    renderEmpleadosScreen();
+  state.servicesCatalogStatus = EMPLEADOS_CATALOG_STATUS.LOADING;
+  renderEmpleadosScreen();
 
-    try {
-        const catalog = await getServicesCatalog();
-        state.servicesCatalog = catalog;
-        state.servicesCatalogStatus = catalog.length
-            ? EMPLEADOS_CATALOG_STATUS.READY
-            : EMPLEADOS_CATALOG_STATUS.EMPTY;
-    } catch {
-        state.servicesCatalog = [];
-        state.servicesCatalogStatus = EMPLEADOS_CATALOG_STATUS.ERROR;
-    }
+  try {
+    const catalog = await getServicesCatalog();
+    state.servicesCatalog = catalog;
+    state.servicesCatalogStatus = catalog.length
+      ? EMPLEADOS_CATALOG_STATUS.READY
+      : EMPLEADOS_CATALOG_STATUS.EMPTY;
+  } catch {
+    state.servicesCatalog = [];
+    state.servicesCatalogStatus = EMPLEADOS_CATALOG_STATUS.ERROR;
+  }
 
-    renderEmpleadosScreen();
+  renderEmpleadosScreen();
 }
 
 async function loadEmployees({ preserveSuccessMessage = false } = {}) {
-    state.loadingList = true;
-    state.errorFeedback = null;
+  state.loadingList = true;
+  state.errorFeedback = null;
 
-    if (!preserveSuccessMessage) {
-        state.successMessage = "";
-    }
+  if (!preserveSuccessMessage) {
+    state.successMessage = "";
+  }
 
+  renderEmpleadosScreen();
+
+  try {
+    state.employees = await getEmployees();
+  } catch (error) {
+    state.employees = [];
+    state.errorFeedback = normalizeErrorFeedback(error);
+  } finally {
+    state.loadingList = false;
     renderEmpleadosScreen();
-
-    try {
-        state.employees = await getEmployees();
-    } catch (error) {
-        state.employees = [];
-        state.errorFeedback = normalizeErrorFeedback(error);
-    } finally {
-        state.loadingList = false;
-        renderEmpleadosScreen();
-    }
+  }
 }
 
 function openCreateModal() {
-    state.formModal = {
-        isOpen: true,
-        mode: "create",
-        employeeId: null,
-        form: createEmptyForm({ withDefaultShift: true }),
-        fieldErrors: {},
-        errorFeedback: null,
-    };
-    state.successMessage = "";
-    renderEmpleadosScreen();
+  state.formModal = {
+    isOpen: true,
+    mode: "create",
+    employeeId: null,
+    form: createEmptyForm({ withDefaultShift: true }),
+    fieldErrors: {},
+    errorFeedback: null,
+  };
+  state.successMessage = "";
+  renderEmpleadosScreen();
 
-    if (
-        state.servicesCatalogStatus === EMPLEADOS_CATALOG_STATUS.IDLE
-        || state.servicesCatalogStatus === EMPLEADOS_CATALOG_STATUS.EMPTY
-        || state.servicesCatalogStatus === EMPLEADOS_CATALOG_STATUS.ERROR
-    ) {
-        void loadServicesCatalog();
-    }
+  if (
+    state.servicesCatalogStatus === EMPLEADOS_CATALOG_STATUS.IDLE
+    || state.servicesCatalogStatus === EMPLEADOS_CATALOG_STATUS.EMPTY
+    || state.servicesCatalogStatus === EMPLEADOS_CATALOG_STATUS.ERROR
+  ) {
+    void loadServicesCatalog();
+  }
 }
 
 function openEditModal(employee) {
-    state.formModal = {
-        isOpen: true,
-        mode: "edit",
-        employeeId: employee.id,
-        form: {
-            firstName: String(employee.firstName || "").trim(),
-            lastName: String(employee.lastName || "").trim(),
-            email: String(employee.email || "").trim(),
-            phone: String(employee.phone || "").trim(),
-            workShifts: Array.isArray(employee.workShifts)
-                ? employee.workShifts.map((shift) => ({
-                    rowId: nextShiftRowId(),
-                    day: String(shift.day || "").trim().toUpperCase(),
-                    startTime: normalizeTimeInputValue(shift.startTime),
-                    endTime: normalizeTimeInputValue(shift.endTime),
-                }))
-                : [],
-            serviceIds: Array.isArray(employee.serviceIds)
-                ? employee.serviceIds
-                : [],
-        },
-        fieldErrors: {},
-        errorFeedback: null,
-    };
-    state.successMessage = "";
-    renderEmpleadosScreen();
+  state.formModal = {
+    isOpen: true,
+    mode: "edit",
+    employeeId: employee.id,
+    form: {
+      ...normalizeEmployeeContact(employee),
+      workShifts: Array.isArray(employee.workShifts)
+        ? employee.workShifts.map((shift) => ({
+          rowId: nextShiftRowId(),
+          day: String(shift.day || "").trim().toUpperCase(),
+          startTime: normalizeTimeInputValue(shift.startTime),
+          endTime: normalizeTimeInputValue(shift.endTime),
+        }))
+        : [],
+      serviceIds: Array.isArray(employee.serviceIds)
+        ? employee.serviceIds
+        : [],
+    },
+    fieldErrors: {},
+    errorFeedback: null,
+  };
+  state.successMessage = "";
+  renderEmpleadosScreen();
 }
 
 function closeFormModal() {
-    state.formModal = {
-        isOpen: false,
-        mode: "create",
-        employeeId: null,
-        form: createEmptyForm(),
-        fieldErrors: {},
-        errorFeedback: null,
-    };
-    renderEmpleadosScreen();
+  state.formModal = {
+    isOpen: false,
+    mode: "create",
+    employeeId: null,
+    form: createEmptyForm(),
+    fieldErrors: {},
+    errorFeedback: null,
+  };
+  renderEmpleadosScreen();
 }
 
 async function handleFormSubmit(event) {
-    const targetForm = event.target;
+  const targetForm = event.target;
 
-    if (!(targetForm instanceof HTMLFormElement) || targetForm.id !== "employees-form") {
-        return;
-    }
+  if (!(targetForm instanceof HTMLFormElement) || targetForm.id !== "employees-form") {
+    return;
+  }
 
-    event.preventDefault();
-    syncFormFromDom();
+  event.preventDefault();
+  syncFormFromDom();
 
-    const formState = { ...state.formModal.form };
-    const validationErrors = validateEmployeeForm(formState, state.formModal.mode);
+  const formState = { ...state.formModal.form };
+  const validationErrors = validateEmployeeForm(formState, state.formModal.mode);
 
-    if (Object.keys(validationErrors).length > 0) {
-        state.formModal = {
-            ...state.formModal,
-            fieldErrors: validationErrors,
-            errorFeedback: null,
-        };
-        renderEmpleadosScreen();
-        return;
-    }
-
-    state.savingForm = true;
+  if (Object.keys(validationErrors).length > 0) {
     state.formModal = {
-        ...state.formModal,
-        fieldErrors: {},
-        errorFeedback: null,
+      ...state.formModal,
+      fieldErrors: validationErrors,
+      errorFeedback: null,
     };
     renderEmpleadosScreen();
+    return;
+  }
 
-    try {
-        if (state.formModal.mode === "edit" && state.formModal.employeeId != null) {
-            await updateEmployee(state.formModal.employeeId, formState);
-            state.successMessage = "Empleado actualizado correctamente.";
-        } else {
-            await createEmployee(formState);
-            state.successMessage = "Empleado creado correctamente.";
-        }
+  state.savingForm = true;
+  state.formModal = {
+    ...state.formModal,
+    fieldErrors: {},
+    errorFeedback: null,
+  };
+  renderEmpleadosScreen();
 
-        state.formModal = {
-            isOpen: false,
-            mode: "create",
-            employeeId: null,
-            form: createEmptyForm(),
-            fieldErrors: {},
-            errorFeedback: null,
-        };
-
-        await loadEmployees({ preserveSuccessMessage: true });
-    } catch (error) {
-        const normalizedError = normalizeErrorFeedback(error);
-        state.formModal = {
-            ...state.formModal,
-            errorFeedback: normalizedError,
-            fieldErrors: normalizedError.fieldErrors || {},
-        };
-        renderEmpleadosScreen();
-    } finally {
-        state.savingForm = false;
-        renderEmpleadosScreen();
+  try {
+    if (state.formModal.mode === "edit" && state.formModal.employeeId != null) {
+      await updateEmployee(state.formModal.employeeId, formState);
+      state.successMessage = "Empleado actualizado correctamente.";
+    } else {
+      await createEmployee(formState);
+      state.successMessage = "Empleado creado correctamente.";
     }
+
+    state.formModal = {
+      isOpen: false,
+      mode: "create",
+      employeeId: null,
+      form: createEmptyForm(),
+      fieldErrors: {},
+      errorFeedback: null,
+    };
+
+    await loadEmployees({ preserveSuccessMessage: true });
+  } catch (error) {
+    const normalizedError = normalizeErrorFeedback(error);
+    state.formModal = {
+      ...state.formModal,
+      errorFeedback: normalizedError,
+      fieldErrors: normalizedError.fieldErrors || {},
+    };
+    renderEmpleadosScreen();
+  } finally {
+    state.savingForm = false;
+    renderEmpleadosScreen();
+  }
 }
 
 async function handleConfirmDelete() {
-    const { employeeId } = state.deleteConfirm;
+  const { employeeId } = state.deleteConfirm;
 
-    if (employeeId == null) {
-        return;
-    }
+  if (employeeId == null) {
+    return;
+  }
 
-    try {
-        await deleteEmployee(employeeId);
-        state.successMessage = "Empleado eliminado correctamente.";
-        state.deleteConfirm = {
-            isOpen: false,
-            employeeId: null,
-            employeeName: "",
-        };
+  try {
+    await deleteEmployee(employeeId);
+    state.successMessage = "Empleado eliminado correctamente.";
+    state.deleteConfirm = {
+      isOpen: false,
+      employeeId: null,
+      employeeName: "",
+    };
 
-        await loadEmployees({ preserveSuccessMessage: true });
-    } catch (error) {
-        state.errorFeedback = normalizeErrorFeedback(error);
-        state.deleteConfirm = {
-            isOpen: false,
-            employeeId: null,
-            employeeName: "",
-        };
-        renderEmpleadosScreen();
-    }
+    await loadEmployees({ preserveSuccessMessage: true });
+  } catch (error) {
+    state.errorFeedback = normalizeErrorFeedback(error);
+    state.deleteConfirm = {
+      isOpen: false,
+      employeeId: null,
+      employeeName: "",
+    };
+    renderEmpleadosScreen();
+  }
 }
 
 function handleContainerClick(event) {
-    const target = event.target;
+  const target = event.target;
 
-    if (!(target instanceof Element)) {
-        return;
+  if (!(target instanceof Element)) {
+    return;
+  }
+
+  if (target.closest("#employees-open-create-btn")) {
+    openCreateModal();
+    return;
+  }
+
+  if (target.closest("#employees-refresh-btn")) {
+    void loadEmployees();
+    return;
+  }
+
+  if (target.closest("#employees-add-shift-btn")) {
+    syncFormFromDom();
+
+    const workShifts = Array.isArray(state.formModal.form.workShifts)
+      ? state.formModal.form.workShifts
+      : [];
+
+    state.formModal = {
+      ...state.formModal,
+      form: {
+        ...state.formModal.form,
+        workShifts: [...workShifts, createEmptyShift()],
+      },
+      fieldErrors: {
+        ...state.formModal.fieldErrors,
+        workShifts: "",
+      },
+    };
+
+    renderEmpleadosScreen();
+    return;
+  }
+
+  if (target.closest("#employees-add-week-btn")) {
+    syncFormFromDom();
+
+    const workShifts = Array.isArray(state.formModal.form.workShifts)
+      ? state.formModal.form.workShifts
+      : [];
+
+    const { shifts: weekShifts } = buildWorkShiftsFromTemplate({
+      dayScope: "WEEKDAYS",
+      startTime: "09:00",
+      endTime: "17:00",
+    });
+
+    state.formModal = {
+      ...state.formModal,
+      form: {
+        ...state.formModal.form,
+        workShifts: [...workShifts, ...weekShifts],
+      },
+      fieldErrors: {
+        ...state.formModal.fieldErrors,
+        workShifts: "",
+      },
+    };
+
+    renderEmpleadosScreen();
+    return;
+  }
+
+  if (target.closest("#employees-apply-template-btn")) {
+    syncFormFromDom();
+
+    const templateDayScopeSelect = domContainer.querySelector("#employees-template-day-scope");
+    const templateStartTimeInput = domContainer.querySelector("#employees-template-start-time");
+    const templateBreakStartInput = domContainer.querySelector("#employees-template-break-start-time");
+    const templateBreakEndInput = domContainer.querySelector("#employees-template-break-end-time");
+    const templateEndTimeInput = domContainer.querySelector("#employees-template-end-time");
+
+    const templateResult = buildWorkShiftsFromTemplate({
+      dayScope: templateDayScopeSelect?.value,
+      startTime: templateStartTimeInput?.value,
+      breakStartTime: templateBreakStartInput?.value,
+      breakEndTime: templateBreakEndInput?.value,
+      endTime: templateEndTimeInput?.value,
+    });
+
+    if (!templateResult.shifts.length) {
+      state.formModal = {
+        ...state.formModal,
+        fieldErrors: {
+          ...state.formModal.fieldErrors,
+          workShifts: templateResult.errorMessage,
+        },
+      };
+      renderEmpleadosScreen();
+      return;
     }
 
-    if (target.closest("#employees-open-create-btn")) {
-        openCreateModal();
-        return;
+    const currentShifts = Array.isArray(state.formModal.form.workShifts)
+      ? state.formModal.form.workShifts
+      : [];
+
+    state.formModal = {
+      ...state.formModal,
+      form: {
+        ...state.formModal.form,
+        workShifts: [...currentShifts, ...templateResult.shifts],
+      },
+      fieldErrors: {
+        ...state.formModal.fieldErrors,
+        workShifts: "",
+      },
+    };
+
+    renderEmpleadosScreen();
+    return;
+  }
+
+  const removeShiftBtn = target.closest("[data-employee-shift-remove]");
+  if (removeShiftBtn) {
+    syncFormFromDom();
+
+    const rowId = String(removeShiftBtn.getAttribute("data-employee-shift-remove") || "").trim();
+    const currentShifts = Array.isArray(state.formModal.form.workShifts)
+      ? state.formModal.form.workShifts
+      : [];
+
+    state.formModal = {
+      ...state.formModal,
+      form: {
+        ...state.formModal.form,
+        workShifts: currentShifts.filter((shift) => String(shift.rowId) !== rowId),
+      },
+      fieldErrors: {
+        ...state.formModal.fieldErrors,
+        workShifts: "",
+      },
+    };
+
+    renderEmpleadosScreen();
+    return;
+  }
+
+  const editButton = target.closest("[data-employee-edit-id]");
+  if (editButton) {
+    const employeeId = Number(editButton.getAttribute("data-employee-edit-id"));
+    const employee = state.employees.find((item) => item.id === employeeId);
+
+    if (!employee) {
+      return;
     }
 
-    if (target.closest("#employees-refresh-btn")) {
-        void loadEmployees();
-        return;
+    openEditModal(employee);
+    return;
+  }
+
+  const deleteButton = target.closest("[data-employee-delete-id]");
+  if (deleteButton) {
+    const employeeId = Number(deleteButton.getAttribute("data-employee-delete-id"));
+    const employee = state.employees.find((item) => item.id === employeeId);
+
+    if (!employee) {
+      return;
     }
 
-    if (target.closest("#employees-add-shift-btn")) {
-        syncFormFromDom();
+    state.deleteConfirm = {
+      isOpen: true,
+      employeeId,
+      employeeName: employee.fullName || "empleado seleccionado",
+    };
+    state.successMessage = "";
+    renderEmpleadosScreen();
+    return;
+  }
 
-        const workShifts = Array.isArray(state.formModal.form.workShifts)
-            ? state.formModal.form.workShifts
-            : [];
+  if (target.closest("#employees-confirm-delete-btn")) {
+    void handleConfirmDelete();
+    return;
+  }
 
-        state.formModal = {
-            ...state.formModal,
-            form: {
-                ...state.formModal.form,
-                workShifts: [...workShifts, createEmptyShift()],
-            },
-            fieldErrors: {
-                ...state.formModal.fieldErrors,
-                workShifts: "",
-            },
-        };
+  if (target.closest("#employees-cancel-delete-btn")) {
+    state.deleteConfirm = {
+      isOpen: false,
+      employeeId: null,
+      employeeName: "",
+    };
+    renderEmpleadosScreen();
+    return;
+  }
 
-        renderEmpleadosScreen();
-        return;
-    }
+  if (target.closest("#employees-cancel-btn") || target.closest("#employees-close-modal-btn")) {
+    closeFormModal();
+    return;
+  }
 
-    if (target.closest("#employees-add-week-btn")) {
-        syncFormFromDom();
-
-        const workShifts = Array.isArray(state.formModal.form.workShifts)
-            ? state.formModal.form.workShifts
-            : [];
-
-        const weekShifts = [
-            { day: "MONDAY", startTime: "09:00", endTime: "17:00" },
-            { day: "TUESDAY", startTime: "09:00", endTime: "17:00" },
-            { day: "WEDNESDAY", startTime: "09:00", endTime: "17:00" },
-            { day: "THURSDAY", startTime: "09:00", endTime: "17:00" },
-            { day: "FRIDAY", startTime: "09:00", endTime: "17:00" },
-        ].map((shift) => ({ ...shift, rowId: nextShiftRowId() }));
-
-        state.formModal = {
-            ...state.formModal,
-            form: {
-                ...state.formModal.form,
-                workShifts: [...workShifts, ...weekShifts],
-            },
-            fieldErrors: {
-                ...state.formModal.fieldErrors,
-                workShifts: "",
-            },
-        };
-
-        renderEmpleadosScreen();
-        return;
-    }
-
-    if (target.closest("#employees-apply-template-btn")) {
-        syncFormFromDom();
-
-        const templateDayScopeSelect = domContainer.querySelector("#employees-template-day-scope");
-        const templateStartTimeInput = domContainer.querySelector("#employees-template-start-time");
-        const templateBreakStartInput = domContainer.querySelector("#employees-template-break-start-time");
-        const templateBreakEndInput = domContainer.querySelector("#employees-template-break-end-time");
-        const templateEndTimeInput = domContainer.querySelector("#employees-template-end-time");
-
-        const templateResult = buildWorkShiftsFromTemplate({
-            dayScope: templateDayScopeSelect?.value,
-            startTime: templateStartTimeInput?.value,
-            breakStartTime: templateBreakStartInput?.value,
-            breakEndTime: templateBreakEndInput?.value,
-            endTime: templateEndTimeInput?.value,
-        });
-
-        if (!templateResult.shifts.length) {
-            state.formModal = {
-                ...state.formModal,
-                fieldErrors: {
-                    ...state.formModal.fieldErrors,
-                    workShifts: templateResult.errorMessage,
-                },
-            };
-            renderEmpleadosScreen();
-            return;
-        }
-
-        const currentShifts = Array.isArray(state.formModal.form.workShifts)
-            ? state.formModal.form.workShifts
-            : [];
-
-        state.formModal = {
-            ...state.formModal,
-            form: {
-                ...state.formModal.form,
-                workShifts: [...currentShifts, ...templateResult.shifts],
-            },
-            fieldErrors: {
-                ...state.formModal.fieldErrors,
-                workShifts: "",
-            },
-        };
-
-        renderEmpleadosScreen();
-        return;
-    }
-
-    const removeShiftBtn = target.closest("[data-employee-shift-remove]");
-    if (removeShiftBtn) {
-        syncFormFromDom();
-
-        const rowId = String(removeShiftBtn.getAttribute("data-employee-shift-remove") || "").trim();
-        const currentShifts = Array.isArray(state.formModal.form.workShifts)
-            ? state.formModal.form.workShifts
-            : [];
-
-        state.formModal = {
-            ...state.formModal,
-            form: {
-                ...state.formModal.form,
-                workShifts: currentShifts.filter((shift) => String(shift.rowId) !== rowId),
-            },
-            fieldErrors: {
-                ...state.formModal.fieldErrors,
-                workShifts: "",
-            },
-        };
-
-        renderEmpleadosScreen();
-        return;
-    }
-
-    const editButton = target.closest("[data-employee-edit-id]");
-    if (editButton) {
-        const employeeId = Number(editButton.getAttribute("data-employee-edit-id"));
-        const employee = state.employees.find((item) => item.id === employeeId);
-
-        if (!employee) {
-            return;
-        }
-
-        openEditModal(employee);
-        return;
-    }
-
-    const deleteButton = target.closest("[data-employee-delete-id]");
-    if (deleteButton) {
-        const employeeId = Number(deleteButton.getAttribute("data-employee-delete-id"));
-        const employee = state.employees.find((item) => item.id === employeeId);
-
-        if (!employee) {
-            return;
-        }
-
-        state.deleteConfirm = {
-            isOpen: true,
-            employeeId,
-            employeeName: employee.fullName || "empleado seleccionado",
-        };
-        state.successMessage = "";
-        renderEmpleadosScreen();
-        return;
-    }
-
-    if (target.closest("#employees-confirm-delete-btn")) {
-        void handleConfirmDelete();
-        return;
-    }
-
-    if (target.closest("#employees-cancel-delete-btn")) {
-        state.deleteConfirm = {
-            isOpen: false,
-            employeeId: null,
-            employeeName: "",
-        };
-        renderEmpleadosScreen();
-        return;
-    }
-
-    if (target.closest("#employees-cancel-btn") || target.closest("#employees-close-modal-btn")) {
-        closeFormModal();
-        return;
-    }
-
-    if (target.matches("[data-employees-close='overlay']")) {
-        state.formModal = {
-            isOpen: false,
-            mode: "create",
-            employeeId: null,
-            form: createEmptyForm(),
-            fieldErrors: {},
-            errorFeedback: null,
-        };
-        state.deleteConfirm = {
-            isOpen: false,
-            employeeId: null,
-            employeeName: "",
-        };
-        renderEmpleadosScreen();
-    }
+  if (target.matches("[data-employees-close='overlay']")) {
+    state.formModal = {
+      isOpen: false,
+      mode: "create",
+      employeeId: null,
+      form: createEmptyForm(),
+      fieldErrors: {},
+      errorFeedback: null,
+    };
+    state.deleteConfirm = {
+      isOpen: false,
+      employeeId: null,
+      employeeName: "",
+    };
+    renderEmpleadosScreen();
+  }
 }
 
 export function initEmpleados(container) {
-    cleanupEmpleados();
+  cleanupEmpleados();
 
-    state = createInitialState();
-    domContainer = featureMount.mount(container);
-    if (!domContainer) {
-        return;
-    }
+  state = createInitialState();
+  domContainer = featureMount.mount(container);
+  if (!domContainer) {
+    return;
+  }
 
-    renderEmpleadosScreen();
-    void loadEmployees();
+  renderEmpleadosScreen();
+  void loadEmployees();
 }
 
 export function cleanupEmpleados() {
-    featureMount.unmount();
-    domContainer = null;
-    state = createInitialState();
+  featureMount.unmount();
+  domContainer = null;
+  state = createInitialState();
 }

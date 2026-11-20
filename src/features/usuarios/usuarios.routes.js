@@ -1,28 +1,26 @@
 import { initUsuarios } from "./usuarios.controller.js";
-import { AUTH_ROLES, tieneRol } from "../../shared/state/authStore.js";
-import { navegarA } from "../../shared/router/router.js";
+import { AUTH_ROLES } from "../../shared/state/authStore.js";
+import { requireRole } from "../../shared/router/requireRole.js";
 
 function renderUsuariosRoute(container) {
-    // Solo OWNER puede acceder a la gestion de usuarios
-    if (!tieneRol(AUTH_ROLES.OWNER)) {
-        navegarA("/dashboard");
-        return;
-    }
+  if (!requireRole(AUTH_ROLES.OWNER)) {
+    return;
+  }
 
-    void initUsuarios(container);
+  void initUsuarios(container);
 }
 
 const existingFeatureRoutes = window.appFeatureRoutes || [];
 
 const hasUsuariosRoute = existingFeatureRoutes.some(
-    (routeDefinition) => routeDefinition?.path === "/usuarios",
+  (routeDefinition) => routeDefinition?.path === "/usuarios",
 );
 
 if (!hasUsuariosRoute) {
-    existingFeatureRoutes.push({
-        path: "/usuarios",
-        handler: renderUsuariosRoute,
-    });
+  existingFeatureRoutes.push({
+    path: "/usuarios",
+    handler: renderUsuariosRoute,
+  });
 }
 
 window.appFeatureRoutes = existingFeatureRoutes;
