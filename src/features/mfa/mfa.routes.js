@@ -1,5 +1,5 @@
 import { initMfaSetup } from "./mfa.controller.js";
-import { resolveAuthUserContext } from "../../shared/state/authStore.js";
+import { requireAuth } from "../../shared/router/requireAuth.js";
 import { navegarA } from "../../shared/router/router.js";
 
 /**
@@ -7,14 +7,10 @@ import { navegarA } from "../../shared/router/router.js";
  * Protegida: solo usuarios autenticados y con MFA inactivo
  */
 function renderMfaSetupRoute(container) {
-  const userContext = resolveAuthUserContext();
+  const userContext = requireAuth();
+  if (!userContext) return;
 
-  if (!userContext?.hasSession || userContext?.isTokenExpired || userContext?.isTokenMalformed) {
-    navegarA("/auth");
-    return;
-  }
-
-  if (userContext?.isMfaEnabled) {
+  if (userContext.isMfaEnabled) {
     // Evita reprovisionar MFA cuando ya está activo
     navegarA("/user-settings");
     return;

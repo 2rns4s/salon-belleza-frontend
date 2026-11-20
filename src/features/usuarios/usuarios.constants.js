@@ -44,3 +44,4 @@ export const USUARIOS_UI_MESSAGES = Object.freeze({
 });
 
 export const DEFAULT_USUARIOS_ERROR_MESSAGE = "No fue posible completar la operación. Intenta nuevamente.";
+/** Centraliza la configuración del módulo de usuarios. */

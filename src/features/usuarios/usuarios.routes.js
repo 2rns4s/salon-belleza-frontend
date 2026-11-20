@@ -24,3 +24,7 @@ if (!hasUsuariosRoute) {
 }
 
 window.appFeatureRoutes = existingFeatureRoutes;
+/**
+ * Registra la gestión de usuarios para propietarios.
+ * @requisito RF-012 Administración de usuarios y roles
+ */

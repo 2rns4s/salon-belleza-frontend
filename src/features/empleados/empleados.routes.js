@@ -12,3 +12,7 @@ window.appFeatureRoutes.push({
     initEmpleados(container);
   },
 });
+/**
+ * Limita la gestión de empleados al propietario.
+ * @requisito RF-002 Gestión de empleados
+ */

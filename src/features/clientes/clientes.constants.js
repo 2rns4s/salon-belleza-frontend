@@ -33,3 +33,4 @@ export const CLIENTES_VALIDATION_RULES = Object.freeze({
 });
 
 export const DEFAULT_CLIENTES_ERROR_MESSAGE = "No fue posible completar la operacion. Intenta nuevamente.";
+/** Centraliza la configuración del módulo de clientes. */

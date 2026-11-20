@@ -1,10 +1,13 @@
 import { initUserSettings } from "./user-settings.controller.js";
+import { requireAuth } from "../../shared/router/requireAuth.js";
 
 /**
  * Handler para la ruta user-settings
  * Protegida: solo usuarios autenticados
  */
 function renderUserSettingsRoute(container) {
+  if (!requireAuth()) return;
+
   void initUserSettings(container);
 }
 

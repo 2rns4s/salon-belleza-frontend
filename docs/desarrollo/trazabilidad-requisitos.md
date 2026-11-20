@@ -11,9 +11,25 @@ comportamiento trazable al requisito.
 
 ## Fuentes de verdad
 
-- **RF / RNF**: numeración del SRS IEEE 830 del proyecto (RF-001..RF-010,
+- **RF / RNF**: numeración del SRS IEEE 830 del proyecto (RF-001..RF-012,
   RNF-001..RNF-015).
 - **HU**: historias de usuario del SRS (HU-01..HU-10).
+
+El PDF original, fechado en noviembre de 2025, desarrolla diez historias en su
+sección 3.2. Su índice anuncia 22. La versión del SRS en el repositorio añade
+RF-011 (JWT y MFA) y RF-012 (administración de usuarios y roles).
+
+| Historias | Evidencia del frontend | Alcance de la verificación |
+|---|---|---|
+| HU-01, HU-04, HU-05, HU-06 y HU-07 | [Matriz de citas](../testing/citas-trazabilidad-requisitos.md) | Consumo de disponibilidad y manejo de conflictos. La validación concurrente corresponde al backend. |
+| HU-02 | `tests/integration/empleados-crud.spec.js`, `empleados-form-franjas.spec.js` | Gestión de empleados y franjas. |
+| HU-03 | `tests/integration/recursos-crud.spec.js`, `servicios-required-resources.spec.js` | Gestión de recursos y asociación a servicios. |
+| HU-08 | `tests/integration/citas-crud-and-conflicts.spec.js` | Registro de citas y actualización de agenda. |
+| HU-09 | `tests/integration/clientes-list-and-create.spec.js`, `citas-crud-and-conflicts.spec.js` | Gestión de fichas y creación desde la agenda. El criterio original de buscar por teléfono dentro de la agenda queda pendiente de demostrar. |
+| HU-10 | [Matriz de citas](../testing/citas-trazabilidad-requisitos.md) | El envío de confirmaciones requiere evidencia del backend y del proveedor de notificaciones. |
+
+La sección 3.1 del PDF especifica pantallas y comportamientos de interfaz.
+La comparación visual requiere los prototipos originales.
 - **Narrativa de la HU**: el campo "Descripción de la historia de usuario" del
   SRS, con el formato `Como <rol>, quiero <capacidad>, para <beneficio>`. Es la
   voz del usuario levantada en el análisis y se usa como equivalente a la

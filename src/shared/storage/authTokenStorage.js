@@ -11,3 +11,7 @@ export function setAuthToken(token) {
 export function clearAuthToken() {
   localStorage.removeItem(AUTH_TOKEN_KEY);
 }
+/**
+ * Centraliza la persistencia local del JWT.
+ * @requisito RF-011 Autenticación JWT y MFA
+ */

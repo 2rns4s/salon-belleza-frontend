@@ -18,3 +18,7 @@ existingFeatureRoutes.push(
 );
 
 window.appFeatureRoutes = existingFeatureRoutes;
+/**
+ * Registra las pantallas públicas de autenticación.
+ * @requisito RF-011 Autenticación JWT y MFA
+ */

@@ -11,10 +11,7 @@ import "../features/citas/citas.routes.js";
 import "../features/mfa/mfa.routes.js";
 import "../features/user-settings/user-settings.routes.js";
 import "../features/auth/auth.routes.js";
-
-function renderDashboardPlaceholder(container) {
-  container.innerHTML = "<p class=\"app__text\">Autenticación completada correctamente. Panel principal pendiente de implementación.</p>";
-}
+import { renderDashboardRoute } from "../features/dashboard/dashboard.js";
 
 function renderNotFound(container) {
   container.innerHTML = "<p class=\"app__text\">ruta no encontrada.</p>";
@@ -40,7 +37,7 @@ function resolveAppContentContainer() {
 function registerBaseRoutes(appContent) {
   registrarRuta("/dashboard", () => {
     updateLayoutUserContext();
-    renderDashboardPlaceholder(appContent);
+    renderDashboardRoute(appContent);
   });
 
   registrarRuta("/404", () => {
@@ -97,3 +94,4 @@ export function initializeApp() {
   iniciarRouter();
 }
 
+/** Monta el layout, registra las rutas y centraliza el manejo de sesiones rechazadas. */

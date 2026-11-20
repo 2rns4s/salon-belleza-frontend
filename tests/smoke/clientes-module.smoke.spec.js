@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
+import { setAuthToken } from "../../src/shared/storage/authTokenStorage.js";
 
 function createJsonResponse({ ok = true, status = 200, data = [] } = {}) {
   return {
@@ -35,6 +36,11 @@ describe("clientes module smoke", () => {
     const clientesRoute = window.appFeatureRoutes.find((route) => route?.path === "/clientes");
     expect(clientesRoute).toBeTruthy();
 
+    clientesRoute.handler();
+    expect(window.location.hash).toBe("#/auth");
+    expect(fetchSpy).not.toHaveBeenCalled();
+
+    setAuthToken(`header.${btoa(JSON.stringify({ roles: ["ROLE_RECEPTIONIST"] }))}.signature`);
     clientesRoute.handler();
     await flushPromises();
     await flushPromises();

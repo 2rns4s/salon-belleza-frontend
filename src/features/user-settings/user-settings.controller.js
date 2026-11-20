@@ -40,3 +40,4 @@ export function initUserSettings(container) {
 
   updateStateAndRender(container);
 }
+/** Inicializa las preferencias y opciones de seguridad de la cuenta. */

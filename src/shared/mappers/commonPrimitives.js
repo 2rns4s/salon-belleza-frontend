@@ -58,3 +58,4 @@ export function toBackendLocalTime(value) {
 
   return rawValue;
 }
+/** Normaliza valores de entrada comunes a los adaptadores de datos. */

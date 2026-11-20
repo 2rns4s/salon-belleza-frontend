@@ -81,15 +81,15 @@ En servicios, `readServicesFormState(...)` mantiene la lectura del formulario de
 | Ruta | Módulo | Protección comprobada |
 |---|---|---|
 | `/`, `/auth` | auth | Entrada y autenticación. |
-| `/dashboard` | bootstrap | Sin guarda local; contenido placeholder. |
-| `/citas` | citas | No comprueba sesión en su módulo de rutas. |
-| `/clientes` | clientes | No comprueba sesión en su módulo de rutas. |
+| `/dashboard` | bootstrap → dashboard | Requiere sesión válida y rol `OWNER`; consulta métricas por rango. |
+| `/citas` | citas | Requiere sesión válida. |
+| `/clientes` | clientes | Requiere sesión válida. |
 | `/empleados` | empleados | Comprueba rol `OWNER`. |
 | `/servicios` | servicios | Comprueba rol `OWNER`. |
 | `/recursos` | recursos | Comprueba rol `OWNER`. |
 | `/usuarios` | usuarios | Comprueba rol `OWNER`. |
 | `/mfa-setup` | mfa | Valida sesión, expiración, token malformado y MFA ya activo. |
-| `/user-settings` | user-settings | No comprueba sesión en su módulo de rutas. |
+| `/user-settings` | user-settings | Requiere sesión válida. |
 | `/404` | bootstrap | Fallback del router. |
 
 No existe una guarda global uniforme para cada transición. El handler HTTP de `401`/`403` limpia la sesión y redirige, pero actúa después de una respuesta de API; no sustituye la autorización del backend ni una guarda preventiva.
@@ -122,7 +122,6 @@ Las features pueden consumir catálogos mediante endpoints sin importar otras fe
 
 - La URL `http://localhost:8080` está codificada y no existe configuración por ambiente.
 - El código actual no demuestra HTTPS en desarrollo ni una política productiva.
-- El dashboard y sus métricas no están implementados.
 - La migración del JWT a cookies `httpOnly` está pendiente de una decisión de despliegue y coordinación con backend.
 - Citas mantiene compatibilidad temporal entre clases BEM `citas*` y `appointments*`.
 - La garantía de no overbooking requiere validación atómica del backend, aun cuando el frontend consulte franjas y bloquee opciones.

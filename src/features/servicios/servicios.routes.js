@@ -12,3 +12,4 @@ window.appFeatureRoutes.push({
     initServicios(container);
   },
 });
+/** Registra el acceso del propietario al catálogo de servicios. */

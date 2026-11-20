@@ -2,7 +2,7 @@
 
 Frontend web para centralizar la agenda de un salón de belleza y apoyar a recepción en la gestión de citas, clientes, empleados, servicios y recursos físicos. El objetivo principal del producto es reducir errores de concurrencia —incluido el overbooking— mediante disponibilidad calculada por la API y presentada por la interfaz.
 
-> **Estado:** frontend en desarrollo. La autenticación, MFA, los módulos de gestión y el flujo de citas tienen implementación verificable; `/dashboard` aún muestra un placeholder. La garantía final de concurrencia, persistencia, notificaciones y operación depende del backend y de la infraestructura.
+> **Estado:** frontend en desarrollo. Incluye autenticación, MFA, módulos de gestión, flujo de citas y un dashboard de métricas para propietarios. La garantía final de concurrencia, persistencia, notificaciones y operación depende del backend y de la infraestructura.
 
 ## Capacidades principales
 

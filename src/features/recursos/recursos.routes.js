@@ -12,3 +12,7 @@ window.appFeatureRoutes.push({
     initRecursos(container);
   },
 });
+/**
+ * Limita la gestión de recursos físicos al propietario.
+ * @requisito RF-003 Gestión de recursos físicos
+ */

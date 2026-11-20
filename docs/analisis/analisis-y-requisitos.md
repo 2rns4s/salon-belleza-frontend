@@ -71,7 +71,7 @@ La solución requerida es un **Integrated Concurrency Control Engine** (`RF-001`
 - Gestión de recursos físicos finitos y su asociación a servicios.
 - Gestión de servicios, clientes, usuarios, autenticación y MFA.
 - Confirmaciones o notificaciones como integración dependiente del backend/proveedor.
-- Dashboard y reportes básicos únicamente en la medida en que exista implementación; actualmente `/dashboard` es un placeholder.
+- Dashboard para propietarios con métricas de citas y servicios más realizados por rango de fechas.
 
 ### 4.2 Exclusiones iniciales
 
@@ -290,7 +290,7 @@ Los datos de contacto de clientes deben tratarse conforme a la Ley 1581 de 2012 
 | H2: recepción centraliza teléfono, WhatsApp y atención presencial | OBJ-002, OBJ-003 | RF-008, RF-009 | HU-008, HU-009 | `src/features/citas/`, `src/features/clientes/` | Smoke e integration tests; reportes históricos en `docs/testing/` | No hay integración directa con WhatsApp ni portal público. |
 | H3: doble consulta manual de Excel y recursos | OBJ-002, OBJ-003 | RF-001, RF-007 | HU-001, HU-007 | Agenda y consulta de disponibilidad en `src/features/citas/` | `docs/testing/citas-rnf-results.md` con metodología local | Falta estudio contra línea base manual real. |
 | H4: Corte y Tinte exige colorista, silla y lavacabezas simultáneos | OBJ-001 | RF-002, RF-003, RF-004, RF-006 | HU-002, HU-003, HU-004, HU-006 | `src/features/empleados/`, `servicios/`, `recursos/`, `citas/` | Specs de integración por feature | No se prueba aquí la asignación transaccional conjunta del backend. |
-| H5: errores, lentitud y falta de visibilidad causan pérdida de clientes | OBJ-001, OBJ-002, OBJ-003, OBJ-005 | RF-007, RF-008, RF-010 | HU-007, HU-008, HU-010 | Mensajes de citas; `/dashboard` placeholder | Reportes de citas fechados en `docs/testing/` | No hay métricas productivas, dashboard real ni proveedor de notificaciones. |
+| H5: errores, lentitud y falta de visibilidad causan pérdida de clientes | OBJ-001, OBJ-002, OBJ-003, OBJ-005 | RF-007, RF-008, RF-010 | HU-007, HU-008, HU-010 | Mensajes de citas y dashboard de métricas para propietarios | Reportes de citas fechados en `docs/testing/` | Queda por verificar la operación en producción y el proveedor de notificaciones. |
 | Necesidad de proteger administración | OBJ-004 | RF-011, RF-012 | Soporte transversal de HU-002 y HU-003 | `src/features/auth/`, `mfa/`, `usuarios/`, `shared/state/` | `tests/integration/mfa-active-guard.spec.js` | Guardas de sesión no uniformes; política MFA por rol no verificada. |
 
 ## 9. Riesgos, decisiones pendientes y referencias
